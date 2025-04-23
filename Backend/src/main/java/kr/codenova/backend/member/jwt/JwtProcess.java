@@ -7,6 +7,8 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import kr.codenova.backend.global.exception.CustomException;
+import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
 import kr.codenova.backend.member.entity.Member;
 import org.slf4j.Logger;
@@ -44,7 +46,7 @@ public class JwtProcess {
     public static CustomMemberDetails verify(String token) {
         if (token == null || !token.startsWith(JwtVO.TOKEN_PREFIX)) {
             log.error("토큰이 null이거나 Bearer로 시작하지 않습니다. token: {}", token);
-            throw new RuntimeException("토큰이 null이거나 Bearer로 시작하지 않습니다.");
+            throw new CustomException(ResponseCode.INVALID_TOKEN_FORMAT);
         }
 
         try {
@@ -77,7 +79,7 @@ public class JwtProcess {
             log.debug("토큰에서 추출된 정보 - id: {}", memberId);
 
             if (memberId == null || id == null) {
-                throw new RuntimeException("토큰에 필수 클레임이 없습니다.");
+                throw new CustomException(ResponseCode.MISSING_MANDATORY_CLAIMS);
             }
 
             Member member = Member.builder()

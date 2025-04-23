@@ -1,6 +1,5 @@
-package kr.codenova.backend.config;
+package kr.codenova.backend.global.config.security;
 
-import kr.codenova.backend.member.auth.CustomMemberDetails;
 import kr.codenova.backend.member.auth.CustomMemberDetailsService;
 import kr.codenova.backend.member.jwt.JwtAuthenticationFilter;
 import kr.codenova.backend.member.jwt.JwtAuthorizationFilter;
@@ -10,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
