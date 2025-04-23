@@ -75,7 +75,7 @@ const MainPage = () => {
           </div>
 
           {/* 로티 애니메이션 - 박스 하단 고정 */}
-          <Player
+          <Player 
             autoplay
             loop
             src={defendLottie}
