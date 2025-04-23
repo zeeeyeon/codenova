@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kr.codenova.backend.global.response.Response;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
 import kr.codenova.backend.member.dto.LoginDto;
 import org.slf4j.Logger;
@@ -20,8 +21,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 
 import java.io.IOException;
 
-import static kr.codenova.backend.member.jwt.ResponseCode.FAIL_LOGIN;
-import static kr.codenova.backend.member.jwt.ResponseCode.SUCCESS_LOGIN;
+import static kr.codenova.backend.global.response.ResponseCode.FAIL_LOGIN;
+import static kr.codenova.backend.global.response.ResponseCode.SUCCESS_LOGIN;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private Logger log = LoggerFactory.getLogger(getClass());

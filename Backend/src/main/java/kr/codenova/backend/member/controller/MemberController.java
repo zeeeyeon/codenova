@@ -5,7 +5,7 @@ import kr.codenova.backend.member.auth.CustomMemberDetails;
 import kr.codenova.backend.member.dto.SignupDto;
 import kr.codenova.backend.member.dto.MemberProfileDto;
 import kr.codenova.backend.member.entity.Member;
-import kr.codenova.backend.member.jwt.Response;
+import kr.codenova.backend.global.response.Response;
 import kr.codenova.backend.member.repository.MemberRepository;
 import kr.codenova.backend.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import static kr.codenova.backend.member.jwt.ResponseCode.GET_USER_PROFILE;
+import static kr.codenova.backend.global.response.ResponseCode.GET_USER_PROFILE;
 
 @RestController
 @RequestMapping("/api/member")
