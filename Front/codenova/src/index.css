@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @font-face {
   font-family: 'NeoDGM';  /* 원하는 글꼴 이름 */
   src: url('./assets/fonts/neodgm.ttf') format('truetype');
@@ -9,4 +13,12 @@
   font-family: 'NeoDGM', sans-serif;  /* 전역적으로 'NeoDGM' 폰트를 사용 */
   margin: 0;
   padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* 요게 핵심 */
 }
