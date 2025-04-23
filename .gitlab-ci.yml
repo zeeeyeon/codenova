@@ -22,7 +22,9 @@ docker setup:
         fi
 
         if ! command -v docker-compose &> /dev/null; then
-          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-\\\$(uname -s)-\\\$(uname -m)" -o /usr/local/bin/docker-compose
+          OS=$(uname -s)
+          ARCH=$(uname -m)
+          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-${OS}-${ARCH}" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
         fi
       EOF
