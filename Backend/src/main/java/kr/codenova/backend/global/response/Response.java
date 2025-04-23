@@ -1,4 +1,4 @@
-package kr.codenova.backend.member.jwt;
+package kr.codenova.backend.global.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
