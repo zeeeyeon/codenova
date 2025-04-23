@@ -3,6 +3,7 @@ import logoImage from "../../assets/images/codenova_logo.png";
 import signupButton from "../../assets/images/signup_button.png";
 import loginButton from "../../assets/images/login_button.png";
 import multibg from "../../assets/images/multi_background.png";
+
 const LandingPage = () => {
   const navigate = useNavigate()
   return (
@@ -11,10 +12,10 @@ const LandingPage = () => {
       style={{ backgroundImage: `url(${multibg})` }}
     >
       {/* 로고 */}
-      <img src={logoImage} alt="CodeNova Logo" className="mx-auto pt-10 w-[40rem]" />
+      <img src={logoImage} alt="CodeNova Logo" className="mx-auto pt-10 w-[30rem]" />
 
       {/* 버튼 영역 */}
-      <div className="flex justify-center gap-10 mt-12">
+      <div className="flex justify-center gap-10 mt-8">
         <img
           src={signupButton}
           alt="Sign Up"
@@ -28,6 +29,19 @@ const LandingPage = () => {
           onClick={() => navigate("/auth/login")} 
         />
       </div>
+
+      {/* 문구 영역 */}
+      <div className="mt-10 text-center font-mono">
+        <p className="text-white text-7xl drop-shadow-[2px_2px_0_black]">
+          Code like a supernova
+        </p>
+        <p className="text-6xl mt-4 drop-shadow-[2px_2px_0_black]">
+          <span className="text-yellow-400">Fast</span>,{" "}
+          <span className="text-lime-400">bright</span>,{" "}
+          <span className="text-cyan-400">unstoppable</span>
+        </p>
+      </div>     
+
     </div>
   );
 };
