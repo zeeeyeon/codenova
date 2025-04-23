@@ -13,11 +13,11 @@ const LoginPage = () => {
       <img
         src={logoImage}
         alt="CodeNova Logo"
-        className="mx-auto pt-10 w-[28rem] z-20 relative"
+        className="mx-auto pt-10 w-[24rem] z-20 relative"
       />
 
       {/* 보드 + 입력창 */}
-      <div className="relative mx-auto w-[52rem] -mt-16 z-10 rounded-xl overflow-hidden">
+      <div className="relative mx-auto w-[44rem] -mt-16 z-10 rounded-xl overflow-hidden">
         <img src={Board} alt="LoginBoard" className="w-full" />
 
         {/* 입력창들 */}

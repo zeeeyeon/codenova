@@ -13,7 +13,7 @@ const SignupPage = () => {
       <img
         src={logoImage}
         alt="CodeNova Logo"
-        className="mx-auto pt-5 w-[28rem] z-20 relative"
+        className="mx-auto pt-5 w-[24rem] z-20 relative"
       />
 
       {/* 보드 + 입력창 */}
