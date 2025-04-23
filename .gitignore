@@ -64,6 +64,9 @@ $RECYCLE.BIN/
 *.msp
 *.yml
 
+!.gitlab-ci.yml
+!docker-compose.yml
+
 # Windows shortcuts
 *.lnk
 
