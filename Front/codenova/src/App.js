@@ -4,12 +4,13 @@ import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import SingleRoutes from "./routes/SingleRoutes";
 import MultiRoutes from "./routes/MultiRoutes";
+import LandingPage from "./pages/main/LandingPage";
 
 function App() {
   return (
     <BrowserRouter>
         <Routes>
-          <Route path="/" element={<h2 className="text-xl">Landing Page</h2>} />
+          <Route path="/" element={<LandingPage/>} />
           <Route path="/main/*" element={<MainPage />} />
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/signup" element={<SignupPage />} />
