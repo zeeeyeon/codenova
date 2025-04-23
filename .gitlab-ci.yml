@@ -41,6 +41,10 @@ deploy:
   script:
     - |
       ssh -o StrictHostKeyChecking=no -i timmy.pem ubuntu@3.25.70.20 << 'EOF'
+        if [ ! -d /home/ubuntu/project ]; then
+          git clone https://lab.ssafy.com/s12-final/S12P31E103.git /home/ubuntu/project
+        fi
+
         cd /home/ubuntu/project
         git pull origin be/test/cicd
         docker-compose down || true
