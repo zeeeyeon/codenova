@@ -21,27 +21,15 @@ build-and-push:
     - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
     - aws configure set default.region $AWS_REGION
 
-    - echo "🛠️ 백엔드 Gradle 빌드"
-    - cd Backend
-    - chmod +x ./gradlew
-    - ./gradlew build
-    - cd ..
-
-    - echo "🛠️ 프론트엔드 npm 빌드"
-    - cd Front/codenova
-    - npm install
-    - npm run build
-    - cd ../..
-
     - echo "🔑 ECR 로그인"
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
 
-    - echo "📦 백엔드 Docker 빌드 & 푸시"
+    - echo "📦 백엔드 Docker 빌드 & 푸시 (Gradle 빌드 포함)"
     - docker build -t $ECR_BACKEND_REPO:latest ./Backend
     - docker push $ECR_BACKEND_REPO:latest
 
-    - echo "🎨 프론트엔드 Docker 빌드 & 푸시"
+    - echo "🎨 프론트엔드 Docker 빌드 & 푸시 (React 빌드 포함)"
     - docker build -t $ECR_FRONTEND_REPO:latest ./Front/codenova
     - docker push $ECR_FRONTEND_REPO:latest
 
