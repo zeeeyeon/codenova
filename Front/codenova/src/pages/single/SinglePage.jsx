@@ -6,6 +6,7 @@ import javaImag from '../../assets/images/Java.png'
 import cImag from '../../assets/images/C.png'
 import CsImg from '../../assets/images/CS.png'
 import SqlImg from '../../assets/images/SQL.png'
+import Keyboard from '../../components/keyboard/Keyboard'
 
 const SinglePage = () => {
 
@@ -32,12 +33,13 @@ const SinglePage = () => {
                             for i in range(1,10)
                         </div>
                         
-                        <div className="flex-1 border-4 rounded-xl text-white p-4"
+                        <div className="flex-1 border-4 rounded-xl max-h-[220px] text-white p-4 flex justify-center"
                             style={{
                                 borderColor: '#51E2F5'
                             }}
                         >
-                            왼쪽 하단 콘텐츠
+                            <Keyboard/>
+                        
                         </div>
                     </div>
 
