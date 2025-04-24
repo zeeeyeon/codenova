@@ -6,8 +6,8 @@ variables:
   DOCKER_DRIVER: overlay2
 
 before_script:
-  - echo "$SSH_KEY" > timmy.pem
-  - chmod 400 timmy.pem
+  - echo "$SSH_KEY" > CodeNova.pem
+  - chmod 400 CodeNova.pem
 
 build-and-push:
   stage: build-and-push
