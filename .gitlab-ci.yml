@@ -30,7 +30,7 @@ build-and-push:
     - docker push $ECR_BACKEND_REPO:latest
 
     - echo "🎨 프론트엔드 Docker 빌드 & 푸시"
-    - docker build -t $ECR_FRONTEND_REPO:latest ./Front
+    - docker build -t $ECR_FRONTEND_REPO:latest ./Front/codenova
     - docker push $ECR_FRONTEND_REPO:latest
 
 deploy:
