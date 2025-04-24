@@ -42,7 +42,7 @@ deploy:
   script:
     - echo "🚀 EC2에서 실행"
     - |
-      ssh -o StrictHostKeyChecking=no -i timmy.pem ubuntu@3.25.70.20 << EOF
+      ssh -o StrictHostKeyChecking=no -i CodeNova.pem ubuntu@3.25.70.20 << EOF
         echo "🔑 ECR 로그인 on EC2"
         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
