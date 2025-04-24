@@ -5,7 +5,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import SingleRoutes from "./routes/SingleRoutes";
 import MultiRoutes from "./routes/MultiRoutes";
-
+import MeteoRoutes from "./rtoues/MeteoRoutes";
 function App() {
   return (
     <BrowserRouter>
@@ -16,6 +16,7 @@ function App() {
         <Route path="/auth/signup" element={<SignupPage />} />
         <Route path="/single/*" element={<SingleRoutes />} />
         <Route path="/multi/*" element={<MultiRoutes />} />
+        <Route path="/meteo/*" element={<MeteoRoutes />} />
       </Routes>
     </BrowserRouter>
   );
