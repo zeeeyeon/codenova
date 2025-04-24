@@ -23,6 +23,7 @@ build-and-push:
 
     - echo "🛠️ 백엔드 Gradle 빌드"
     - cd Backend
+    - chmod +x ./gradlew
     - ./gradlew build
     - cd ..
 
