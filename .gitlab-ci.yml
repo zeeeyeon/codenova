@@ -58,5 +58,5 @@ deploy:
 
         echo "🚀 컨테이너 실행"
         docker run -d --name backend -p 8080:8080 $ECR_BACKEND_REPO:latest
-        docker run -d --name frontend -p 3000:80 $ECR_FRONTEND_REPO:latest
+        docker run -d --name frontend -p 3000:3000 $ECR_FRONTEND_REPO:latest
       EOF
