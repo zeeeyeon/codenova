@@ -1,4 +1,4 @@
-FROM gradle:8.3-jdk17 AS builder
+FROM gradle:8.3-jdk21 AS builder
 WORKDIR /app
 COPY . .
 RUN gradle clean build -x test
