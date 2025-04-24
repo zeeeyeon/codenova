@@ -26,11 +26,11 @@ build-and-push:
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
 
     - echo "📦 백엔드 Docker 빌드 & 푸시 (Gradle 빌드 포함)"
-    - docker build -t $ECR_BACKEND_REPO:latest ./Backend
+    - docker build -no-cache -t $ECR_BACKEND_REPO:latest ./Backend
     - docker push $ECR_BACKEND_REPO:latest
 
     - echo "🎨 프론트엔드 Docker 빌드 & 푸시"
-    - docker build -t $ECR_FRONTEND_REPO:latest ./Front/codenova
+    - docker build -no-cache -t $ECR_FRONTEND_REPO:latest ./Front/codenova
     - docker push $ECR_FRONTEND_REPO:latest
 
 deploy:
