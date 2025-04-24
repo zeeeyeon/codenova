@@ -1,11 +1,10 @@
-# build stage
+# 빌드 단계에서 Gradle 캐시 위치를 변경
 FROM gradle:8.3-jdk17 AS builder
 WORKDIR /app
-COPY . .
-RUN gradle build --no-daemon
 
-# runtime stage
-FROM openjdk:17-jdk
-WORKDIR /app
-COPY --from=builder /app/build/libs/*.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENV GRADLE_USER_HOME=/app/.gradle  # ⬅️ 이 줄이 핵심
+COPY . .
+
+RUN mkdir -p /app/.gradle && chmod -R 777 /app/.gradle
+
+RUN gradle build --no-daemon
