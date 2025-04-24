@@ -16,6 +16,7 @@ build-jar:
     - deploy
   script:
     - cd Backend
+    - chmod +x gradlew
     - ./gradlew clean build -x test
   artifacts:
     paths:
