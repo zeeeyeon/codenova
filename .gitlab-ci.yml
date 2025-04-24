@@ -25,7 +25,7 @@ build-and-push:
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
 
-    - echo "📦 백엔드 Docker 빌드 & 푸시 (Gradle 빌드 포함)"
+    - echo "📆 블록에어 Dockerfile을 이용한 브랜치 빌드"
     - docker build --no-cache -t $ECR_BACKEND_REPO:latest ./Backend
     - docker push $ECR_BACKEND_REPO:latest
 
@@ -51,7 +51,7 @@ deploy:
         docker pull $ECR_BACKEND_REPO:latest
         docker pull $ECR_FRONTEND_REPO:latest
 
-        echo "🧹 기존 컨테이너 정리"
+        echo "🪩 기존 컨테이너 정리"
         docker stop backend || true && docker rm backend || true
         docker stop frontend || true && docker rm frontend || true
 
