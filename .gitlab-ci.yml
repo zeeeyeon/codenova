@@ -20,6 +20,8 @@ build-and-push:
     - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
     - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
     - aws configure set default.region $AWS_REGION
+
+    - echo "🔑 ECR 로그인"
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
 
@@ -41,10 +43,19 @@ deploy:
     - echo "🚀 EC2에서 실행"
     - |
       ssh -o StrictHostKeyChecking=no -i timmy.pem ubuntu@3.25.70.20 << EOF
+        echo "🔑 ECR 로그인 on EC2"
         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
 
+        echo "📥 이미지 pull"
         docker pull $ECR_BACKEND_REPO:latest
         docker pull $ECR_FRONTEND_REPO:latest
 
-        docker stop backend || true && docker rm backend ||
+        echo "🧹 기존 컨테이너 정리"
+        docker stop backend || true && docker rm backend || true
+        docker stop frontend || true && docker rm frontend || true
+
+        echo "🚀 컨테이너 실행"
+        docker run -d --name backend -p 8080:8080 $ECR_BACKEND_REPO:latest
+        docker run -d --name frontend -p 3000:80 $ECR_FRONTEND_REPO:latest
+      EOF
