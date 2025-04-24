@@ -1,7 +1,11 @@
-FROM node:20 AS builder
+FROM node:20
+
 WORKDIR /app
+
 COPY . .
+
 RUN npm install && npm run build
 
-FROM nginx:alpine
-COPY --from=builder /app/build /usr/share/nginx/html
+RUN npm install -g serve
+
+CMD ["serve", "-s", "build"]
