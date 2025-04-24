@@ -29,7 +29,7 @@ build-and-push:
     - docker build -t $ECR_BACKEND_REPO:latest ./Backend
     - docker push $ECR_BACKEND_REPO:latest
 
-    - echo "🎨 프론트엔드 Docker 빌드 & 푸시 (React 빌드 포함)"
+    - echo "🎨 프론트엔드 Docker 빌드 & 푸시"
     - docker build -t $ECR_FRONTEND_REPO:latest ./Front/codenova
     - docker push $ECR_FRONTEND_REPO:latest
 
