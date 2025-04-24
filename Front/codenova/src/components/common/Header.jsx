@@ -5,7 +5,7 @@ import helpIcon from "../../assets/images/help_icon.png";
 
 const Header = () => {
   return (
-    <header className="w-full flex justify-between items-center px-3 py-4">
+    <header className="w-full flex justify-between items-center px-3 py-3">
       {/* 왼쪽 로고 */}
       <img src={logo} alt="Logo" className="w-40" />
 
