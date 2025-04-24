@@ -9,6 +9,18 @@ before_script:
   - echo "$SSH_KEY" > CodeNova.pem
   - chmod 400 CodeNova.pem
 
+build-jar:
+  stage: build
+  tags:
+    - deploy
+  script:
+    - cd Backend
+    - ./gradlew clean build -x test
+  artifacts:
+    paths:
+      - Backend/build/libs/Backend-0.0.1-SNAPSHOT.jar
+    expire_in: 30 min
+
 build-and-push:
   stage: build-and-push
   tags:
