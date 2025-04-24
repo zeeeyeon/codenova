@@ -1,6 +1,7 @@
 FROM gradle:8.3-jdk17 AS builder
 WORKDIR /app
 COPY . .
+RUN rm -rf ~/.gradle/caches/
 RUN gradle build --no-daemon
 
 FROM openjdk:17-jdk
