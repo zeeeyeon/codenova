@@ -1,33 +1,35 @@
 stages:
-  - docker set-up
+  - build-and-push
   - deploy
 
-docker setup:
-  stage: docker set-up
+variables:
+  DOCKER_DRIVER: overlay2
+
+before_script:
+  - echo "$SSH_KEY" > timmy.pem
+  - chmod 400 timmy.pem
+
+build-and-push:
+  stage: build-and-push
   tags:
     - deploy
   only:
     - be/test/cicd
-
-  before_script:
-    - echo "$SSH_KEY" > timmy.pem
-    - chmod 400 timmy.pem
-
   script:
-    - |
-      ssh -o StrictHostKeyChecking=no -i timmy.pem ubuntu@3.25.70.20 << 'EOF'
-        if ! command -v docker &> /dev/null; then
-          curl -fsSL https://get.docker.com | sudo sh
-          sudo usermod -aG docker ubuntu
-        fi
+    - echo "🔐 AWS CLI 로그인"
+    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+    - aws configure set default.region $AWS_REGION
+    - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
+    - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
 
-        if ! command -v docker-compose &> /dev/null; then
-          OS=$(uname -s)
-          ARCH=$(uname -m)
-          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-${OS}-${ARCH}" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-        fi
-      EOF
+    - echo "📦 백엔드 Docker 빌드 & 푸시"
+    - docker build -t $ECR_BACKEND_REPO:latest ./Backend
+    - docker push $ECR_BACKEND_REPO:latest
+
+    - echo "🎨 프론트엔드 Docker 빌드 & 푸시"
+    - docker build -t $ECR_FRONTEND_REPO:latest ./Front
+    - docker push $ECR_FRONTEND_REPO:latest
 
 deploy:
   stage: deploy
@@ -35,18 +37,14 @@ deploy:
     - deploy
   only:
     - be/test/cicd
-  before_script:
-    - echo "$SSH_KEY" > timmy.pem
-    - chmod 400 timmy.pem
   script:
+    - echo "🚀 EC2에서 실행"
     - |
-      ssh -o StrictHostKeyChecking=no -i timmy.pem ubuntu@3.25.70.20 << 'EOF'
-        if [ ! -d /home/ubuntu/project ]; then
-          git clone https://lab.ssafy.com/s12-final/S12P31E103.git /home/ubuntu/project
-        fi
+      ssh -o StrictHostKeyChecking=no -i timmy.pem ubuntu@3.25.70.20 << EOF
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
 
-        cd /home/ubuntu/project
-        git pull origin be/test/cicd
-        docker-compose down || true
-        docker-compose up -d --build
-      EOF
+        docker pull $ECR_BACKEND_REPO:latest
+        docker pull $ECR_FRONTEND_REPO:latest
+
+        docker stop backend || true && docker rm backend ||
