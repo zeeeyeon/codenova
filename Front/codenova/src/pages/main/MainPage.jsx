@@ -8,8 +8,11 @@ import goRoomBtn from "../../assets/images/go_game_button.png";
 import { Player } from "@lottiefiles/react-lottie-player";
 import battleLottie from "../../assets/lottie/battle.json";
 import defendLottie from "../../assets/lottie/defend.json";
-
+import { useNavigate } from "react-router-dom"
 const MainPage = () => {
+
+  const navigate = useNavigate()
+
   return (
     <div
       className="h-screen w-screen bg-cover bg-center"
@@ -65,6 +68,7 @@ const MainPage = () => {
             <img
               src={makeRoomBtn}
               alt="Make Room"
+              onClick={() => navigate("/meteo/landing")}
               className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             />
             <img
