@@ -16,6 +16,8 @@ public enum ResponseCode {
 
     // single
     GET_LANGUAGE_CATEGORIES_SUCCESS(200, HttpStatus.OK, "언어 카테고리 조회에 성공했습니다."),
+    GET_CS_CATEGORIES_SUCCESS(200, HttpStatus.OK, "CS 카테고리 조회에 성공했습니다."),
+
 
 
     INVALID_TOKEN_FORMAT(401, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰 형식입니다."),
