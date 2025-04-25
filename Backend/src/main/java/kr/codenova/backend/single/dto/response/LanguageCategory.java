@@ -8,7 +8,7 @@ import java.util.List;
 public record LanguageCategory(List<String> languages) {
 
     public static LanguageCategory withAllCategories() {
-        List<String> result = new ArrayList<>(Language.toCodeList());
+        List<String> result = new ArrayList<>(Language.toLanguageList());
         result.add("CS");
         return new LanguageCategory(result);
     }
