@@ -196,7 +196,7 @@ const Keyboard = () => {
 
 
     return (
-        <div className = "relative w-[600px] h-[140px] scale-[1.5] origin-top-left">
+        <div className = "relative w-[500px] h-[140px] scale-[1.3] origin-top-left">
             {keyboardLayout.map((key) => (
                 <Key
                     sprite={key.sprite}
