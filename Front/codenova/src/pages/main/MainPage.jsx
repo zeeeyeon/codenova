@@ -9,9 +9,13 @@ import { Player } from "@lottiefiles/react-lottie-player";
 import battleLottie from "../../assets/lottie/battle.json";
 import defendLottie from "../../assets/lottie/defend.json";
 import { useNavigate } from "react-router-dom"
+import { useState } from "react";
+import RoomCodeModal from "../../components/modal/RoomCodeModal";
+
 const MainPage = () => {
 
   const navigate = useNavigate()
+  const [showRoomModal, setShowRoomModal] = useState(false);
 
   return (
     <div
@@ -34,8 +38,12 @@ const MainPage = () => {
 
           {/* 버튼 묶음 */}
           <div className="absolute top-40 w-full flex flex-col items-center gap-2">
-            <img src={singleBtn} alt="Single Mode" className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" />
-            <img src={multiBtn} alt="Multi Mode" className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" />
+            <img src={singleBtn} alt="Single Mode" className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" 
+            onClick={() => navigate("/single/select/language")}
+            />
+            <img src={multiBtn} alt="Multi Mode" className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" 
+            onClick={() => navigate("/multi")}
+            />
           </div>
 
           {/* 로티 애니메이션 - 박스 아래쪽에 고정 */}
@@ -74,6 +82,7 @@ const MainPage = () => {
             <img
               src={goRoomBtn}
               alt="Enter Room"
+              onClick={() => setShowRoomModal(true)}
               className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             />
           </div>
@@ -87,8 +96,10 @@ const MainPage = () => {
           />
         </div>
       </div>
+      {showRoomModal && <RoomCodeModal onClose={() => setShowRoomModal(false)} />}
     </div>
-  );
+
+);
 };
 
 export default MainPage;
