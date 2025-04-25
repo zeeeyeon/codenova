@@ -61,6 +61,9 @@ import windowsImg from '../../assets/images/keyboard/WINDOWS.png'
 import xImg from '../../assets/images/keyboard/X.png'
 import yImg from '../../assets/images/keyboard/Y.png'
 import zImg from '../../assets/images/keyboard/Z.png'
+
+import clickSound from '../../sound/keyboardSound2.mp3'
+
 import { useEffect, useState } from 'react'
 
 
@@ -158,10 +161,22 @@ const Keyboard = () => {
          { id: 'arrowright', top: 100, left: 397, sprite: arrowRightImg }
     ];
 
+    const playSound = () => {
+
+        const audio = new Audio(clickSound)
+        audio.volume = 0.5;
+        audio.play().catch(e => {
+            console.log('오디오 재생 실패', e)
+        })
+    }
+
+
+
     useEffect(() => {
         const handleKeyDown = (e) => {
             // console.log(e.key)
             setPressKey(e.key.toLowerCase());
+            playSound();
         };
 
         const handleKeyUp = () => {
