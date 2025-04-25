@@ -7,6 +7,7 @@ import cImag from '../../assets/images/C.png'
 import CsImg from '../../assets/images/CS.png'
 import SqlImg from '../../assets/images/SQL.png'
 import Keyboard from '../../components/keyboard/Keyboard'
+import Header from "../../components/common/Header"
 
 const SinglePage = () => {
 
@@ -14,8 +15,9 @@ const SinglePage = () => {
         <div className="w-screen h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center"
             style={{ backgroundImage: `url(${backgroundImg})`}}
         >
+            <Header/>
             {/* 타자게임 박스 */}
-            <div className='relative mt-20'>
+            <div className='relative'>
                 <img src={box} alt="타자게임 박스" className="w-[70vw] max-w-5wl h-auto rounded-2xl"/>
 
                 <img src={logo} alt="로고" className="absolute -top-[90px] left-1/2 -translate-x-1/2 w-[20vw] max-w-[300px] h-auto z-10"/>
@@ -44,7 +46,7 @@ const SinglePage = () => {
                     </div>
 
                     {/* 오른쪽 콘텐츠 박스 */}
-                    <div className="w-[20%] border-4 rounded-xl text-white text-center p-2"
+                    <div className="w-[20%] max-h-full border-4 rounded-xl text-white text-center p-2 "
                         style={{
                             borderColor: '#51E2F5'
                         }}
