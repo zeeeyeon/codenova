@@ -6,7 +6,7 @@ import java.util.List;
 public enum Language {
     JAVA, PYTHON, JS, SQL;
 
-    public static List<String> toCodeList() {
+    public static List<String> toLanguageList() {
         return Arrays.stream(values())
                 .map(Enum::name)
                 .toList();
