@@ -16,6 +16,7 @@ public class RoomService {
     // 방 만들기
     public Room createRoom(CreateRoomRequest request) {
         String roomId = UUID.randomUUID().toString();
+        String roomCode = request.getIsPrivate() ? generatedRoomCode() : null;
         Room room = new Room(
                 roomId,
                 request.getRoomTitle(),
@@ -23,7 +24,9 @@ public class RoomService {
                 request.getLimit(),
                 0,
                 request.getIsPrivate(),
-                "waiting");
+                "waiting",
+                roomCode
+                );
         roomMap.put(roomId, room);
         return room;
     }
@@ -63,6 +66,10 @@ public class RoomService {
                 roomMap.remove(roomId);
             }
         }
+    }
+
+    public String generatedRoomCode() {
+        return UUID.randomUUID().toString().substring(0,6).toUpperCase();
     }
 
 }
