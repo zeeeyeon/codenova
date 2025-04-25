@@ -1,6 +1,7 @@
 package kr.codenova.backend.multi.room;
 
 import com.corundumstudio.socketio.SocketIOServer;
+import kr.codenova.backend.multi.dto.CloseRoomRequest;
 import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
 import kr.codenova.backend.multi.dto.broadcast.JoinRoomBroadcast;
 import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
@@ -18,11 +19,16 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class RoomSocketHandler implements SocketEventHandler {
 
-    private final RoomService roomService;
+    private final RoomServiceImpl roomService;
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
     public void registerListeners(SocketIOServer server) {
+
+        server.addEventListener("room_list", Void.class, (client, request, ackSender) -> {
+            Collection<Room> rooms = roomService.getAllRooms();
+            client.sendEvent("room_list", rooms);
+        });
 
         server.addEventListener("create_room", CreateRoomRequest.class, (client, request, ackSender) -> {
 
@@ -61,11 +67,6 @@ public class RoomSocketHandler implements SocketEventHandler {
             }
         });
 
-        server.addEventListener("room_list", Void.class, (client, request, ackSender) -> {
-            Collection<Room> rooms = roomService.getAllRooms();
-            client.sendEvent("room_list", rooms);
-        });
-
         server.addEventListener("leave_room", LeaveRoomRequest.class, (client, request, ackSender) -> {
             roomService.leaveRoom(request.getRoomId());
             client.leaveRoom(request.getRoomId());
@@ -78,6 +79,20 @@ public class RoomSocketHandler implements SocketEventHandler {
                 server.getBroadcastOperations().sendEvent("room_update", updated);
             }
         });
+
+        server.addEventListener("close_room", CloseRoomRequest.class, (client, request, ackSender) -> {
+            roomService.closeRoom(request.getRoomId());
+            client.leaveRoom(request.getRoomId());
+
+            if (roomService.isRoomEmpty(request.getRoomId())) {
+                server.getBroadcastOperations().sendEvent("close_room", request.getRoomId());
+            } else {
+                Room room = roomService.getRoom(request.getRoomId());
+                RoomUpdateBroadcast updated = new RoomUpdateBroadcast(room);
+                server.getBroadcastOperations().sendEvent("room_update", updated);
+            }
+        });
+
     }
 
 }
