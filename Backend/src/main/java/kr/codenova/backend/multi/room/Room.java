@@ -15,4 +15,5 @@ public class Room {
     private Integer currentCount;
     private Boolean isPrivate;
     private String status; // "waiting", "playing"
+    private String roomCode;
 }
