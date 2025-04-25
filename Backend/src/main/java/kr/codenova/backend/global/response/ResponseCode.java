@@ -15,6 +15,12 @@ public enum ResponseCode {
     EXISTED_USER_NICKNAME(400, HttpStatus.OK, "해당 닉네임은 이미 존재하는 닉네임 입니다."),
     GET_USER_PROFILE(200, HttpStatus.OK, "프로필 조회 성공했습니다."),
 
+    // single
+    GET_LANGUAGE_CATEGORIES_SUCCESS(200, HttpStatus.OK, "언어 카테고리 조회에 성공했습니다."),
+    GET_CS_CATEGORIES_SUCCESS(200, HttpStatus.OK, "CS 카테고리 조회에 성공했습니다."),
+
+
+
     INVALID_TOKEN_FORMAT(401, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰 형식입니다."),
     MISSING_MANDATORY_CLAIMS(400, HttpStatus.BAD_REQUEST, "토큰에 필수 클레임이 없습니다."),
 
