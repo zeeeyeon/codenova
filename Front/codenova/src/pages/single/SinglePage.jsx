@@ -24,7 +24,7 @@ const SinglePage = () => {
 
 
                 {/* 콘텐츠 박스들 */}
-                <div className="absolute top-0 left-0 w-full h-full flex gap-4 z-10 px-24 py-32">
+                <div className="absolute top-0 left-0 w-full h-full flex gap-4 z-10 px-24 py-24">
                     {/* 왼쪽 컨텐츠 영역 */}
                     <div className="flex flex-col flex-1 gap-4">
                         <div className="flex-1 border-4 rounded-xl bg-black text-white text-2xl p-4"
@@ -35,7 +35,7 @@ const SinglePage = () => {
                             for i in range(1,10)
                         </div>
                         
-                        <div className="flex-1 border-4 rounded-xl max-h-[220px] text-white p-4 flex justify-center"
+                        <div className="flex-1 border-4 rounded-xl max-h-[180px] text-white p-2 flex justify-center"
                             style={{
                                 borderColor: '#51E2F5'
                             }}
@@ -63,7 +63,7 @@ const SinglePage = () => {
                         </div>
 
                         {/* 시간 */}
-                        <div className="text-3xl mt-2 font-bold">시간</div>
+                        <div className="text-2xl mt-2 font-bold">시간</div>
                         <div className="w-full py-2 rounded-xl border-2 font-bold text-2xl"
                             style={{ borderColor: "#51E2F5"}}    
                         >
@@ -71,7 +71,7 @@ const SinglePage = () => {
                         </div>
 
                         {/* 타수 */}
-                        <div className="text-3xl mt-2 font-bold">타수</div>
+                        <div className="text-2xl mt-2 font-bold">타수</div>
                         <div className="w-full py-2 rounded-xl border-2 font-bold text-2xl"
                             style={{ borderColor: "#51E2F5"}}    
                         >
@@ -79,7 +79,7 @@ const SinglePage = () => {
                         </div>
 
                         {/* 진행률 바 */}
-                        <div className="w-full h-8 rounded-xl overflow-hidden mt-10 border-2"
+                        <div className="w-full h-8 rounded-xl overflow-hidden mt-4 border-2"
                             style={{ borderColor: '#51E2F5'}}
                         >
                             <div className="h-full"
