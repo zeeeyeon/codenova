@@ -42,8 +42,8 @@ const SingleLanguageSelectPage = () => {
         </div>
 
         {/* 취소 버튼 */}
-        <div className='relative w-[16vw] max-w-[300px] mt-20'>
-          <img src={cancelBtn} alt="취소" className='w-full h-full rounded-xl cursor-pointer transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]'/>
+        <div className='relative w-[16vw] max-w-[300px] mt-10'>
+          <img src={cancelBtn} alt="취소" className='w-full h-full rounded-3xl cursor-pointer transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]'/>
         </div>
 
       </div>
