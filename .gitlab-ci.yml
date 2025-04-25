@@ -15,7 +15,7 @@ build-and-push:
   tags:
     - deploy
   only:
-    - be/test/cicd
+    - develop
   script:
     - echo "🔐 AWS CLI 로그인"
     - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
