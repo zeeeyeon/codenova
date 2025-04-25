@@ -15,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import static kr.codenova.backend.global.response.ResponseCode.GET_USER_PROFILE;
+import static kr.codenova.backend.global.response.ResponseCode.SUCCESS_SIGNUP;
 
 @RestController
 @RequestMapping("/api/member")
@@ -28,7 +29,7 @@ public class MemberController {
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@RequestBody @Valid SignupDto signupDto) {
         memberService.signUp(signupDto);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(Response.create(SUCCESS_SIGNUP, null), SUCCESS_SIGNUP.getHttpStatus());
     }
 
     @GetMapping("/profile")
