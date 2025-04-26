@@ -17,7 +17,12 @@ public enum ResponseCode {
     // single
     GET_LANGUAGE_CATEGORIES_SUCCESS(200, HttpStatus.OK, "언어 카테고리 조회에 성공했습니다."),
     GET_CS_CATEGORIES_SUCCESS(200, HttpStatus.OK, "CS 카테고리 조회에 성공했습니다."),
+    GET_SINGLE_BATTLE_CODE_BY_LANGUAGE(200, HttpStatus.OK, "선택한 언어에 맞는 싱글 배틀 코드입니다."),
+    CODE_RESULT_SAVE_SUCCESS(200, HttpStatus.OK, "싱글 코드배틀 결과 저장 완료"),
+    CODE_RESULT_HIGHEST_UPDATE(200, HttpStatus.OK, "최고 기록이 갱신되었습니다!"),
 
+    CODE_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 언어에 대한 코드가 존재하지 않습니다."),
+    FORBIDDEN_SAVE_RESULT_FOR_GUEST(403, HttpStatus.FORBIDDEN, "비회원은 기록을 저장할 수 없습니다."),
 
 
     INVALID_TOKEN_FORMAT(401, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰 형식입니다."),
