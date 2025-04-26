@@ -2,8 +2,31 @@ import logoImage from "../../assets/images/codenova_logo.png";
 import Board from "../../assets/images/board1.jpg";
 import multibg from "../../assets/images/multi_background.png";
 import signupBtn from "../../assets/images/signup_button.png"; // 🎯 버튼 이미지 import
+import { signupApi } from "../../api/authApi";
+import { useState } from "react";
 
 const SignupPage = () => {
+
+  const [id, setId] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleSignup = async () => {
+    if (password !== confirmPassword) {
+      alert("비밀번호가 일치하지 않습니다!");
+      return;
+    }
+
+    try {
+      await signupApi({ id, nickname, password });
+      alert("회원가입 성공!");
+    } catch (err) {
+      console.error(err);
+      alert("회원가입 실패!");
+    }
+  };
+
   return (
     <div
       className="relative h-screen w-screen bg-cover bg-center"
@@ -69,6 +92,7 @@ const SignupPage = () => {
             src={signupBtn}
             alt="Sign Up Button"
             className="w-[10rem] -mt-4 cursor-pointer hover:brightness-110 transition-all duration-150 hover:translate-y-[2px] active:translate-y-[4px]"
+            onClick={handleSignup}
           />
           </div>
         </div>
