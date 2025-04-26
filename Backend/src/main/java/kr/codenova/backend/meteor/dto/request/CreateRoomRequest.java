@@ -13,7 +13,5 @@ import lombok.Setter;
 public class CreateRoomRequest {
     @JsonProperty("isPrivate")
     private boolean isPrivate;
-    @JsonProperty("isHost")
-    private boolean isHost;
     private String nickname;
 }

@@ -12,10 +12,4 @@ import lombok.Setter;
 @NoArgsConstructor
 public class RandomMatchRequest {
     private String nickname;
-    @JsonProperty("isPrivate")
-    private boolean isPrivate;
-    @JsonProperty("isRandom")
-    private boolean isRandom;
-    @JsonProperty("isHost")
-    private boolean isHost;
 }

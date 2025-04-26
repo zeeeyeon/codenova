@@ -7,9 +7,11 @@ import com.corundumstudio.socketio.listener.DisconnectListener;
 import jakarta.annotation.PostConstruct;
 import kr.codenova.backend.meteor.dto.request.CreateRoomRequest;
 import kr.codenova.backend.meteor.dto.request.JoinSecretRoomRequest;
+import kr.codenova.backend.meteor.dto.request.RandomMatchRequest;
 import kr.codenova.backend.meteor.dto.response.CreateRoomResponse;
 import kr.codenova.backend.meteor.dto.response.JoinRoomResponse;
 import kr.codenova.backend.meteor.dto.response.ErrorResponse;
+import kr.codenova.backend.meteor.dto.response.RandomMatchResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -29,6 +31,7 @@ public class MeteorEventHandler {
     private final RoomManager roomManager;
 
 
+
     @PostConstruct
     public void init() {
         server.addConnectListener(listenConnected());
@@ -36,32 +39,36 @@ public class MeteorEventHandler {
 
         // 방 생성 이벤트
         server.addEventListener("createRoom", CreateRoomRequest.class, (client, data, ack) -> handleCreateRoom(client, data));
+        // 방 참가 이벤트
         server.addEventListener("joinSecretRoom", JoinSecretRoomRequest.class, (client, data, ack) -> handleJoinSecretRoom(client, data));
+        // 랜덤 매칭 이벤트
+        server.addEventListener("randomMatch", RandomMatchRequest.class, (client, data, ack) -> handleRandomMatch(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
         String nickname = data.getNickname();
 
         if (nickname == null || nickname.isBlank()) {
-            client.sendEvent("createRoom",
+            client.sendEvent("roomCreate",
                     new ErrorResponse("INVALID_NICKNAME", "닉네임을 입력해주세요."));
             return;
         }
 
         boolean isPrivate = data.isPrivate();
-        boolean isHost = data.isHost();
         String roomId = UUID.randomUUID().toString();
         String roomCode = generateRoomCode();
 
 
         GameRoom room;
+        boolean isHost;
         try {
-            room = new GameRoom(roomId, isPrivate, isHost, roomCode, 4);
+            room = new GameRoom(roomId, isPrivate, roomCode, 4);
             room.addPlayer(new UserInfo(client.getSessionId().toString(), nickname));
             roomManager.addRoom(room);
+            isHost = true;
         } catch (Exception e) {
             log.error("방 생성 실패", e);
-            client.sendEvent("createRoom",
+            client.sendEvent("roomCreate",
                     new ErrorResponse("ROOM_CREATE_FAILED", "서버 오류로 방 생성에 실패했습니다."));
             return;
         }
@@ -70,7 +77,7 @@ public class MeteorEventHandler {
             client.joinRoom(roomId);
         } catch (Exception e) {
             log.error("소켓 방 가입 실패", e);
-            client.sendEvent("createRoom",
+            client.sendEvent("roomCreate",
                     new ErrorResponse("JOIN_ROOM_FAILED", "방에 입장하는 데 실패했습니다."));
             return;
         }
@@ -82,7 +89,7 @@ public class MeteorEventHandler {
                 .roomCode(roomCode)
                 .build();
 
-        client.sendEvent("createRoom", response);
+        client.sendEvent("roomCreate", response);
 
     }
     private void handleJoinSecretRoom(SocketIOClient client, JoinSecretRoomRequest data) {
@@ -117,10 +124,53 @@ public class MeteorEventHandler {
         client.sendEvent("secretRoomJoin", new JoinRoomResponse(room.getRoomId(), room.getPlayers()));
 
         // 2. 같은 방에 있는 다른 유저에게 알림
-        server.getRoomOperations(room.getRoomId()).getClients().stream()
-                .filter(other -> !other.getSessionId().equals(client.getSessionId()))
-                .forEach(other -> other.sendEvent("newUserJoined", newUser));
+        server.getRoomOperations(room.getRoomId()).sendEvent("newUserJoined", client,newUser);
     }
+
+
+    private void handleRandomMatch(SocketIOClient client, RandomMatchRequest data) {
+        String nickname = data.getNickname();
+        if (nickname == null || nickname.isBlank()) {
+            client.sendEvent("matchRandom",
+                    new ErrorResponse("INVALID_NICKNAME", "닉네임을 입력해주세요."));
+            return;
+        }
+
+        // 1️ 방 조회+생성 → 생성 여부까지 RandomRoomResult 로 받는다
+        RoomManager.RandomRoomResult result = roomManager.findOrCreateRandomRoom(
+                () -> UUID.randomUUID().toString(),
+                roomId -> new UserInfo(client.getSessionId().toString(), nickname)
+        );
+
+        GameRoom room  = result.getRoom();
+        boolean isHost = result.isCreated();
+
+        // 2️ 소켓 방에 조인
+        client.joinRoom(room.getRoomId());
+
+        // 3️ non-host 는 players 에 추가하면서 단일 예외 처리
+        if (!isHost) {
+            UserInfo user = new UserInfo(client.getSessionId().toString(), nickname);
+            try {
+                room.addPlayer(user);  // 여기가 유일한 가득 참 체크 지점
+            } catch (IllegalStateException e) {
+                // 동시성으로 찬 경우도 여기서 처리
+                client.sendEvent("matchRandom",
+                        new ErrorResponse("ROOM_FULL", "방이 가득 차서 입장할 수 없습니다."));
+                return;
+            }
+            // 4️ 브로드캐스트
+            server.getRoomOperations(room.getRoomId())
+                    .sendEvent("newUserJoined", client ,user);
+        }
+
+        // 5️ 최종 응답
+        RandomMatchResponse resp =
+                new RandomMatchResponse(room.getRoomId(), isHost, room.getPlayers());
+        client.sendEvent("matchRandom", resp);
+    }
+
+
 
 
     public ConnectListener listenConnected() {
