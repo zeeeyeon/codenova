@@ -9,13 +9,20 @@ import { Player } from "@lottiefiles/react-lottie-player";
 import battleLottie from "../../assets/lottie/battle.json";
 import defendLottie from "../../assets/lottie/defend.json";
 import { useNavigate } from "react-router-dom"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import RoomCodeModal from "../../components/modal/RoomCodeModal";
-
+import { getAccessToken } from "../../utils/tokenUtils";
 const MainPage = () => {
-
   const navigate = useNavigate()
   const [showRoomModal, setShowRoomModal] = useState(false);
+
+  useEffect(() => {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      navigate("/auth/login");
+    }
+  }, [navigate]);
 
   return (
     <div

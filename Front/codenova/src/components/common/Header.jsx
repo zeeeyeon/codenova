@@ -3,9 +3,19 @@ import mypageIcon from "../../assets/images/mypage_icon.png";
 import rankingIcon from "../../assets/images/ranking_icon.png";
 import helpIcon from "../../assets/images/help_icon.png";
 import { useNavigate } from "react-router-dom";
+import useAuthStore from "../../store/authStore";
 const Header = () => {
 
   const navigate = useNavigate()
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = () => {
+    document.cookie = "accessToken=; path=/; max-age=0;";
+
+    logout();
+
+    navigate("/auth/login");
+  }
 
   return (
     <header className="w-full flex justify-between items-center px-3 py-3">
@@ -29,6 +39,9 @@ const Header = () => {
           alt="Help"
           className="w-20 h-20 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
         />
+        <button onClick={handleLogout} className="text-white">
+          로그아웃
+        </button>
       </div>
     </header>
   );
