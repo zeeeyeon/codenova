@@ -21,13 +21,30 @@ public class TypingSpeed {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer speedId;
 
+    private Integer memberId;
+
+    @Enumerated(EnumType.STRING)
     private Language language;
 
     private Double typingSpeed;
 
     private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+    public static TypingSpeed create(int memberId, Language language, double typingSpeed) {
+        return TypingSpeed.builder()
+                .memberId(memberId)
+                .language(language)
+                .typingSpeed(typingSpeed)
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public boolean isUpdatable(double newTypingSpeed) {
+        return newTypingSpeed > this.typingSpeed;
+    }
+
+    public void updateSpeed(double newTypingSpeed) {
+        this.typingSpeed = newTypingSpeed;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
