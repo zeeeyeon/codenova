@@ -1,4 +1,4 @@
-package kr.codenova.backend.single.repository;
+package kr.codenova.backend.common.repository;
 
 import kr.codenova.backend.common.entity.Code;
 import org.springframework.data.jpa.repository.JpaRepository;
