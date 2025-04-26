@@ -25,7 +25,6 @@ public class Report {
     private Integer reportId;
     private Integer memberId;
     private String title;
-    @Lob
     private String content;
     private LocalDateTime createdAt;
 
