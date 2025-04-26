@@ -22,10 +22,16 @@ public enum ResponseCode {
     CODE_RESULT_HIGHEST_UPDATE(200, HttpStatus.OK, "최고 기록이 갱신되었습니다!"),
     GET_CS_CODE_BY_CATEGORY(200, HttpStatus.OK, "CS 문제 5개가 정상적으로 조회되었습니다."),
     CS_REPORT_CREATED(200, HttpStatus.OK, "CS 리포트가 정상적으로 생성되었습니다."),
+    GET_REPORTS_SUCCESS(200, HttpStatus.OK, "리포트 목록 조회에 성공했습니다."),
+    GET_REPORT_DETAIL_SUCCESS(200, HttpStatus.OK, "리포트 상세 조회에 성공했습니다."),
+
+
 
     CODE_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 언어에 대한 코드가 존재하지 않습니다."),
     FORBIDDEN_SAVE_RESULT_FOR_GUEST(403, HttpStatus.FORBIDDEN, "비회원은 기록을 저장할 수 없습니다."),
     GPT_RESPONSE_FAIL(502, HttpStatus.BAD_GATEWAY, "GPT 응답 처리에 실패했습니다."),
+    REPORT_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 리포트를 찾을 수 없습니다."),
+
 
     INVALID_TOKEN_FORMAT(401, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰 형식입니다."),
     MISSING_MANDATORY_CLAIMS(400, HttpStatus.BAD_REQUEST, "토큰에 필수 클레임이 없습니다."),

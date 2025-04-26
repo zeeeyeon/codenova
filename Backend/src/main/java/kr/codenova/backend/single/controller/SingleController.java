@@ -40,8 +40,7 @@ public class SingleController {
     public ResponseEntity<?> saveCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody SingleCodeResultRequest request) {
         if (memberDetails == null || memberDetails.getMember() == null) return new ResponseEntity<>(Response.create(FORBIDDEN_SAVE_RESULT_FOR_GUEST, null), FORBIDDEN_SAVE_RESULT_FOR_GUEST.getHttpStatus());
 
-        int memberId = memberDetails.getMember().getMemberId();
-        boolean isNewRecord = singleService.saveTypingSpeed(memberId, request);
+        boolean isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), request);
         SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.calculateTypingSpeed());
 
         ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SAVE_SUCCESS;
@@ -66,5 +65,17 @@ public class SingleController {
 
         CsKeywordSummaryResponse report = singleService.generateReport(memberDetails.getMember().getMemberId(), request.keywords());
         return new ResponseEntity<>(Response.create(CS_REPORT_CREATED, report), CS_REPORT_CREATED.getHttpStatus());
+    }
+
+    @GetMapping("/reports")
+    public ResponseEntity<?> getReportList(@AuthenticationPrincipal CustomMemberDetails memberDetails) {
+        ReportListResponse titles = singleService.getReportTitles(memberDetails.getMember().getMemberId());
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_REPORTS_SUCCESS, titles), ResponseCode.GET_REPORTS_SUCCESS.getHttpStatus());
+    }
+
+    @GetMapping("/reports/{reportId}")
+    public ResponseEntity<?> getReportDetail(@AuthenticationPrincipal CustomMemberDetails memberDetails, @PathVariable int reportId) {
+        ReportDetailResponse detail = singleService.getReportDetail(memberDetails.getMember().getMemberId(), reportId);
+        return new ResponseEntity<>(Response.create(ResponseCode.GET_REPORT_DETAIL_SUCCESS, detail), ResponseCode.GET_REPORT_DETAIL_SUCCESS.getHttpStatus());
     }
 }
