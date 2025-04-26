@@ -11,4 +11,8 @@ public enum Language {
                 .map(Enum::name)
                 .toList();
     }
+
+    public static boolean isValid(String input) {
+        return Arrays.stream(values()).anyMatch(language -> language.name().equalsIgnoreCase(input));
+    }
 }
