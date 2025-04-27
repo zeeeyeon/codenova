@@ -22,3 +22,23 @@ body {
   padding: 0;
   overflow: hidden; /* 요게 핵심 */
 }
+
+/* custom-scrollbar 클래스용 스크롤바 스타일 */
+/* custom-scrollbar 개선된 버전 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px; /* ✨ 더 얇게 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1B103E; /* ✨ 모달 배경색이랑 완전 맞춤 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #51E2F5;
+  border-radius: 10px;
+  /* border 제거 (불필요) */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #7DEAFD;
+}
