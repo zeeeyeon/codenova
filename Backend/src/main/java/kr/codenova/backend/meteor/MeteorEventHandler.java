@@ -50,6 +50,8 @@ public class MeteorEventHandler {
         server.addEventListener("inputText", InputTextRequest.class, (client, data, ack) -> handleInputText(client, data));
         // 낙하하는 단어 등록 이벤트
         server.addEventListener("fallingWord", FallingWordRequest.class, (client, data, ack) -> handleFallingWord(client, data));
+        // 단어 정답 확인 이벤트
+        server.addEventListener("checkText", InputTextRequest.class, (client, data, ack) -> handleCheckText(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
@@ -334,6 +336,7 @@ public class MeteorEventHandler {
     private void handleCheckText(SocketIOClient client, InputTextRequest data) {
         String text = data.getText();
         String nickname = data.getNickname();
+        String roomId = data.getRoomId();
         String sessionId = client.getSessionId().toString();
         if (text == null || text.isBlank()) {
             log.warn("handleInputText: text를 입력해주세요 ");
@@ -341,16 +344,32 @@ public class MeteorEventHandler {
                     new ErrorResponse("NONE_TEXT", "글자를 입력해주세요."));
             return;
         }
-        // 방 ID 찾기
-        String roomId = client.getAllRooms().stream()
-                .filter(r -> !r.equals(sessionId))
-                .findFirst()
-                .orElse(null);
-        if (roomId == null) return;
+
 
         GameRoom room = roomManager.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+        if (room.getStatus() != GameStatus.PLAYING) {
+            return;
+        }
+        // 맞았는지 체크 & activeWords에서 제거
+        boolean isCorrect = room.removeActiveWord(text);
+        //  누적 점수 계산
+        int updatedScore;
+        if (isCorrect) {
+            // incrementScore 내부에서 점수를 1 올린 후, 올린 뒤의 누적 점수를 리턴
+            updatedScore = room.incrementScore(sessionId);
+        } else {
+            // 오답인 경우에도, 기존 누적 점수는 유지
+            updatedScore = room.getScoreMap().getOrDefault(sessionId, 0);
+        }
 
+        CheckTextResponse response = new CheckTextResponse(
+                nickname,
+                text,
+                isCorrect,
+                updatedScore
+        );
+        server.getRoomOperations(roomId).sendEvent("textCheck", response);
 
 
     }
