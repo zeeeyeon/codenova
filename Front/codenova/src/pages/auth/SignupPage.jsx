@@ -2,8 +2,33 @@ import logoImage from "../../assets/images/codenova_logo.png";
 import Board from "../../assets/images/board1.jpg";
 import multibg from "../../assets/images/multi_background.png";
 import signupBtn from "../../assets/images/signup_button.png"; // 🎯 버튼 이미지 import
+import { signupApi } from "../../api/authApi";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const SignupPage = () => {
+  const navigate = useNavigate();
+  const [id, setId] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleSignup = async () => {
+    if (password !== confirmPassword) {
+      alert("비밀번호가 일치하지 않습니다!");
+      return;
+    }
+
+    try {
+      await signupApi({ id, nickname, password });
+      alert("회원가입 성공!");
+      navigate("/auth/login");
+    } catch (err) {
+      console.error(err);
+      alert("회원가입 실패!");
+    }
+  };
+
   return (
     <div
       className="relative h-screen w-screen bg-cover bg-center"
@@ -28,6 +53,8 @@ const SignupPage = () => {
             <label className="w-[8rem] text-pink-400 text-2xl">ID</label>
             <input
               type="text"
+              value={id}
+              onChange={(e) => setId(e.target.value)}
               className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="Enter your ID"
             />
@@ -38,6 +65,8 @@ const SignupPage = () => {
             <label className="w-[8rem] text-pink-400 text-2xl">Nickname</label>
             <input
               type="text"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
               className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="Enter your nickname"
             />
@@ -48,6 +77,8 @@ const SignupPage = () => {
             <label className="w-[8rem] text-pink-400 text-2xl">Password</label>
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="Enter your password"
             />
@@ -58,6 +89,8 @@ const SignupPage = () => {
             <label className="w-[8rem] text-pink-400 text-2xl">Confirm</label>
             <input
               type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="Re-enter password"
             />
@@ -69,6 +102,7 @@ const SignupPage = () => {
             src={signupBtn}
             alt="Sign Up Button"
             className="w-[10rem] -mt-4 cursor-pointer hover:brightness-110 transition-all duration-150 hover:translate-y-[2px] active:translate-y-[4px]"
+            onClick={handleSignup}
           />
           </div>
         </div>
