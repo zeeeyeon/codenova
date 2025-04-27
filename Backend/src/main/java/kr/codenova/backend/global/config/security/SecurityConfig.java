@@ -70,6 +70,8 @@ public class SecurityConfig {
                             .requestMatchers(
                                     "/api/member/signup",
                                     "/api/member/login",
+                                    "/api/member/check-id/**",
+                                    "/api/member/check-nickname/**",
                                     "/api/single/**")
                             .permitAll()
                             .anyRequest().authenticated();
