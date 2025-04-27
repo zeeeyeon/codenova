@@ -5,15 +5,8 @@ import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import jakarta.annotation.PostConstruct;
-import kr.codenova.backend.meteor.dto.request.CreateRoomRequest;
-import kr.codenova.backend.meteor.dto.request.JoinSecretRoomRequest;
-import kr.codenova.backend.meteor.dto.request.RandomMatchRequest;
-import kr.codenova.backend.meteor.dto.response.CreateRoomResponse;
-import kr.codenova.backend.meteor.dto.response.JoinRoomResponse;
-import kr.codenova.backend.meteor.dto.response.ErrorResponse;
-import kr.codenova.backend.meteor.dto.response.RandomMatchResponse;
-import kr.codenova.backend.meteor.dto.request.StartGameRequest;
-import kr.codenova.backend.meteor.dto.response.StartGameResponse;
+import kr.codenova.backend.meteor.dto.request.*;
+import kr.codenova.backend.meteor.dto.response.*;
 import kr.codenova.backend.meteor.service.WordService;
 import kr.codenova.backend.meteor.entity.room.GameStatus;
 
@@ -51,6 +44,8 @@ public class MeteorEventHandler {
         server.addEventListener("randomMatch", RandomMatchRequest.class, (client, data, ack) -> handleRandomMatch(client, data));
         // 게임 시작 이벤트
         server.addEventListener("startGame", StartGameRequest.class, (client, data, ack) -> handleGameStart(client, data));
+        // 대기방 나가기 이벤트
+        server.addEventListener("exitRoom", ExitRoomRequest.class, (client, data, ack) -> handleExitRoom(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
@@ -65,13 +60,14 @@ public class MeteorEventHandler {
         boolean isPrivate = data.isPrivate();
         String roomId = UUID.randomUUID().toString();
         String roomCode = generateRoomCode();
+        String hostSessionId = client.getSessionId().toString();
 
 
         GameRoom room;
         boolean isHost;
         try {
-            room = new GameRoom(roomId, isPrivate, roomCode, 4);
-            room.addPlayer(new UserInfo(client.getSessionId().toString(), nickname));
+            room = new GameRoom(roomId, isPrivate, roomCode, 4, hostSessionId);
+            room.addPlayer(new UserInfo(hostSessionId, nickname));
             roomManager.addRoom(room);
             isHost = true;
         } catch (Exception e) {
@@ -221,9 +217,50 @@ public class MeteorEventHandler {
 
         server.getRoomOperations(roomId)
                 .sendEvent("gameStart", resp);
+
+
     }
 
+    private void handleExitRoom(SocketIOClient client, ExitRoomRequest data) {
+        String roomId = data.getRoomId();
+        String nickname = data.getNickname();
+        String sessionId = client.getSessionId().toString();
 
+        GameRoom room = roomManager.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+        //
+        boolean wasHost = sessionId.equals(room.getHostSessionId());
+
+        // 1 사용자 제거
+        room.removePlayer(sessionId);
+        client.leaveRoom(roomId);
+
+        // 2 새로운 방장 세션 ID 조회
+
+        UserInfo newHost = null;
+        if (wasHost && !room.getPlayers().isEmpty()) {
+            String newHostSessionId = room.getHostSessionId();
+            newHost = room.getPlayers().stream()
+                    .filter(u -> u.getSessionId().equals(newHostSessionId))
+                    .findFirst()
+                    .orElse(null);
+
+        }
+        // 3 사용자들에게 브로드캐스트
+        ExitRoomResponse response = new ExitRoomResponse(
+                roomId,
+                new UserInfo(sessionId, nickname),
+                newHost,
+                room.getPlayers()
+        );
+        server.getRoomOperations(roomId)
+                .sendEvent("roomExit", response);
+
+        // 나간 유저에게도 응답이 필요하면 추가
+
+
+
+    }
 
     public ConnectListener listenConnected() {
         return (client) -> {
