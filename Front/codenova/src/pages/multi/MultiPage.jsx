@@ -4,7 +4,9 @@ import boardBg from "../../assets/images/board1.jpg";
 import mintBtn from  "../../assets/images/mint_large_btn.png";
 import searchBtn from "../../assets/images/search_btn.png";
 import Header from "../../components/common/Header";
-import MakeRoomModal from "../../components/multi/MakeRoomModal";
+import RoomList from "../../components/multi/RoomList";
+import MakeRoomModal from "../../components/multi/modal/MakeRoomModal";
+// import RoomList from "../../components/multi/RoomList";
 
 
 const MultiPage = () => {
@@ -29,7 +31,7 @@ const MultiPage = () => {
         <img
         src={boardBg}
         alt="board"
-        className="absolute object-cover rounded-2xl"
+        className="absolute object-cover rounded-2xl z-0"
         />
 
         <h1
@@ -37,6 +39,7 @@ const MultiPage = () => {
         >
           Multi Room
         </h1>
+        
         {/* 방 만들기 버튼 */}
         <button
           className="absolute top-[26%] left-[10%] w-[100px] h-[36px] bg-no-repeat bg-contain hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
@@ -61,8 +64,14 @@ const MultiPage = () => {
                 backgroundImage: `url(${searchBtn})`,
                 }}
             />
+
+            
            </div>
 
+           <div className="mt-[4%] w-[80%] h-[60%] overflow-y-auto flex flex-col items-center gap-4 pt-2 z-10">
+            <RoomList />
+            </div>
+                
      </div>
       
     </div>
