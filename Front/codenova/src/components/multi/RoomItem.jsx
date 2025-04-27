@@ -6,7 +6,7 @@ import languageImg from "../../assets/images/multi_language_icon.png";
 import goRoomBtn from "../../assets/images/multi_go_game_btn.png";
 import nogoRoomBtn from "../../assets/images/multi_nogo_game_btn.png";
 
-const RoomItem = ({ room }) => {
+const RoomItem = ({ room, onEnterClick }) => {
   return (
     <div className="w-[248px] h-[160px] bg-[#1B103E] border-4 border-[#51E2F5] rounded-xl px-5 py-3 shadow-md flex flex-col justify-between hover:scale-[1.02] transition">
       
@@ -40,6 +40,7 @@ const RoomItem = ({ room }) => {
           <button 
             className={`w-16 transition  hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] ${room.status !== "waiting" ? "opacity-50 cursor-not-allowed" : ""}`}
             disabled={room.status !== "waiting"}
+            onClick={() => onEnterClick(room)} // ✅ 클릭하면 room 넘김
           >
             <img src={room.status === "waiting" ? goRoomBtn : nogoRoomBtn} alt="go room" />
           </button>
