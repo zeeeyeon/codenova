@@ -6,5 +6,5 @@ import lombok.Data;
 public class JoinRoomRequest {
 
     private String roomId;
-    private Integer memberId;
+    private String nickname;
 }

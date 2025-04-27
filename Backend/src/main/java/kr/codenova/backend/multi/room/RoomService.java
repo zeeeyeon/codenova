@@ -1,6 +1,7 @@
 package kr.codenova.backend.multi.room;
 
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
+import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
 
 import java.util.Collection;
 import java.util.Map;
@@ -16,7 +17,7 @@ public interface RoomService {
     public Room getRoom(String roomId);
 
     // 방에 접속하기
-    public Boolean joinRoom(String roomId);
+    public Room joinRoom(JoinRoomRequest request);
 
     // 빈 방 확인하기
     public Boolean isRoomEmpty(String roomId);
@@ -26,9 +27,6 @@ public interface RoomService {
 
     // 방 나가기 처리
     public void leaveRoom(String roomId);
-
-    // 방 해산
-    public void closeRoom(String roomId);
 
     // 룸 코드 생성
     public String generatedRoomCode();
