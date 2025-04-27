@@ -1,4 +1,4 @@
-package kr.codenova.backend.multi.dto;
+package kr.codenova.backend.multi.dto.response;
 
 import kr.codenova.backend.multi.room.Room;
 import lombok.Data;
