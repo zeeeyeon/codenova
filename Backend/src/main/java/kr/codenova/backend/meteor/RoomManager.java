@@ -25,7 +25,9 @@ public class RoomManager {
     public Optional<GameRoom> findByCode(String roomCode) {
         return Optional.ofNullable(roomsByCode.get(roomCode));
     }
-
+    public Optional<GameRoom> findById(String roomId) {
+        return Optional.ofNullable(roomsById.get(roomId));
+    }
     /**
      * findOrCreateRandomRoom 의 결과를 담을 DTO
      */

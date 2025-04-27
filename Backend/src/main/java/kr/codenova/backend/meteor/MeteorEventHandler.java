@@ -12,6 +12,11 @@ import kr.codenova.backend.meteor.dto.response.CreateRoomResponse;
 import kr.codenova.backend.meteor.dto.response.JoinRoomResponse;
 import kr.codenova.backend.meteor.dto.response.ErrorResponse;
 import kr.codenova.backend.meteor.dto.response.RandomMatchResponse;
+import kr.codenova.backend.meteor.dto.request.StartGameRequest;
+import kr.codenova.backend.meteor.dto.response.StartGameResponse;
+import kr.codenova.backend.meteor.service.WordService;
+import kr.codenova.backend.meteor.entity.room.GameStatus;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -29,6 +34,7 @@ import java.util.UUID;
 public class MeteorEventHandler {
     private final SocketIOServer server;
     private final RoomManager roomManager;
+    private final WordService wordService;
 
 
 
@@ -43,6 +49,8 @@ public class MeteorEventHandler {
         server.addEventListener("joinSecretRoom", JoinSecretRoomRequest.class, (client, data, ack) -> handleJoinSecretRoom(client, data));
         // 랜덤 매칭 이벤트
         server.addEventListener("randomMatch", RandomMatchRequest.class, (client, data, ack) -> handleRandomMatch(client, data));
+        // 게임 시작 이벤트
+        server.addEventListener("startGame", StartGameRequest.class, (client, data, ack) -> handleGameStart(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
@@ -170,6 +178,50 @@ public class MeteorEventHandler {
         client.sendEvent("matchRandom", resp);
     }
 
+    private void handleGameStart(SocketIOClient client, StartGameRequest data) {
+        
+        String roomId = data.getRoomId();
+        GameRoom room = roomManager.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+
+        if (room.getStatus() == GameStatus.PLAYING) {
+            client.sendEvent("gameStart",
+                    new ErrorResponse("ALREADY_STARTED", "이미 게임이 시작된 방입니다."));
+            return;
+        }
+
+        // 1 방장인지 확인
+        String requester = client.getSessionId().toString();
+        UserInfo host = room.getPlayers().get(0);
+        if (!host.getSessionId().equals(requester)) {
+            client.sendEvent("gameStart",
+                    new ErrorResponse("NOT_HOST", "방장만 게임을 시작할 수 있습니다."));
+            return;
+        }
+
+        // 2️ 플레이어 수 확인 (4명일 때만)
+        if (room.getPlayers().size() < room.getMaxPlayers()) {
+            client.sendEvent("gameStart",
+                    new ErrorResponse("NOT_ENOUGH_PLAYERS", "플레이어가 아직 4명 모이지 않았습니다."));
+            return;
+        }
+
+        // 3️ 단어 리스트 조회
+        List<String> fallingWords = wordService.getRandomWords();
+
+        room.start();
+
+        // 4️ 모든 사용자에게 게임 시작 알림
+        StartGameResponse resp = StartGameResponse.builder()
+                .roomId(roomId)
+                .players(room.getPlayers())
+                .fallingWords(fallingWords)
+                .message("게임이 시작되었습니다.")
+                .build();
+
+        server.getRoomOperations(roomId)
+                .sendEvent("gameStart", resp);
+    }
 
 
 
