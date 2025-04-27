@@ -30,4 +30,6 @@ public interface RoomService {
 
     // 룸 코드 생성
     public String generatedRoomCode();
+
+    public Boolean existsRoom(String roomId);
 }
