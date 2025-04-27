@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import modalBg from "../../../assets/images/board1.jpg";
 import makeRoomBtn from "../../../assets/images/make_room_btn.png";
-import cancleBtn from "../../../assets/images/cancle_btn.png";
+import cancleBtn from "../../../assets/images/cancle_btn_2.png";
 
 const MakeRoomModal = ({ onClose }) => {
     const [title, setTitle] = useState("");
