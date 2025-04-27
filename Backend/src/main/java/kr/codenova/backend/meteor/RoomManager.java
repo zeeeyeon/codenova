@@ -60,7 +60,8 @@ public class RoomManager {
             }
             // 없으면 새로 만들고 “created=true” 로
             String roomId = idSupplier.get();
-            GameRoom room = new GameRoom(roomId, false, null, 4);
+            UserInfo host = hostFactory.apply(roomId);
+            GameRoom room = new GameRoom(roomId, false, null, 4, host.getSessionId());
             // 방장 등록
             room.addPlayer(hostFactory.apply(roomId));
             addRoom(room);
