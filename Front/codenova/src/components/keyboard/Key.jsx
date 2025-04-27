@@ -26,7 +26,7 @@ const Key = ({ sprite , label = '', index = 0, className = '', isPressed= false 
                 width: `${keyWidth}px`,
                 height: `${keyHeight}px`,
                 backgroundImage: `url(${sprite})`,
-                backgroundPosition: `-${index * keyWidth}px 0`,
+                // backgroundPosition: `-${index * keyWidth}px 0`,
                 backgroundRepeat: 'no-repeat',
                 backgroundSize: `${keyWidth * 3}px ${keyHeight}px`, //전체 이미지 크기 
                 backgroundPosition: `-${(isPressed ? 1 : 0) * keyWidth}px 0`,

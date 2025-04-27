@@ -1,11 +1,11 @@
-import backgroundImg from '../../assets/images/main_background.avif'
+import backgroundImg from '../../assets/images/single_background.svg'
 import designPattenBtn from '../../assets/images/design_patten_btn.png'
 import networkBtn from '../../assets/images/network_btn.png'
 import dataStrBtn from '../../assets/images/data_str_btn.png'
 import dbBtn from '../../assets/images/db_btn.png'
 import osBtn from '../../assets/images/os_btn.png'
-import box from '../../assets/images/board1.jpg'
 import cancelBtn from '../../assets/images/cancel_btn.png'
+import BoardContainer from '../../components/common/single/BoardContainer'
 
 
 const CsSelectPage = () => {
@@ -14,14 +14,7 @@ const CsSelectPage = () => {
     <div className="w-screen h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center"
       style={{backgroundImage: `url(${backgroundImg})`}}
     >
-
-      <div className='relative w-[50vw] h-[35vw] max-w-5xl py-12 px-6 flex flex-col items-center gap-6 rounded-2xl'
-        style={{
-          backgroundImage: `url(${box})`,
-          backgroundSize: '100% 100%',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
+      <BoardContainer>
         {/* 선택 박스 배경 이미지 */}
         {/* <img src={box} alt="언어선택박스" className='w-full h-full object-cover rounded-2xl'/> */}
 
@@ -42,11 +35,14 @@ const CsSelectPage = () => {
         </div>
 
         {/* 취소 버튼 */}
-        <div className='relative w-[16vw] max-w-[300px] mt-20'>
-          <img src={cancelBtn} alt="취소" className='w-full h-full rounded-xl cursor-pointer transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]'/>
+        <div className='relative w-[16vw] max-w-[300px] mt-10'>
+          <img src={cancelBtn} alt="취소" className='w-full h-full rounded-3xl cursor-pointer transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]'/>
         </div>
 
-      </div>
+      </BoardContainer>
+        
+
+    
     </div>
   )  
 };
