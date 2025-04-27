@@ -48,6 +48,8 @@ public class MeteorEventHandler {
         server.addEventListener("exitRoom", ExitRoomRequest.class, (client, data, ack) -> handleExitRoom(client, data));
         // 실시간 입력 텍스트 전송 이벤트
         server.addEventListener("inputText", InputTextRequest.class, (client, data, ack) -> handleInputText(client, data));
+        // 낙하하는 단어 등록 이벤트
+        server.addEventListener("fallingWord", FallingWordRequest.class, (client, data, ack) -> handleFallingWord(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
@@ -267,6 +269,8 @@ public class MeteorEventHandler {
     private void handleInputText(SocketIOClient client, InputTextRequest data) {
         String text = data.getText();
         String nickname = data.getNickname();
+        String roomId = data.getRoomId();
+//        String sessionId = client.getSessionId().toString();
 
         if (text == null || text.isBlank()) {
             log.warn("handleInputText: text를 입력해주세요 ");
@@ -275,11 +279,18 @@ public class MeteorEventHandler {
         InputTextResponse response = new InputTextResponse(text, nickname);
         // 클라이언트가 속한 방 ID 찾기
         //    getAllRooms()에는 세션ID(=client.getSessionId().toString())도 포함되므로, 이를 제외하고 방 ID를 꺼냄.
-        String roomId = client.getAllRooms().stream()
-                .filter(r -> !r.equals(client.getSessionId().toString()))
-                .findFirst()
-                .orElse(null);
+//        String roomId = client.getAllRooms().stream()
+//                .filter(r -> !r.equals(sessionId))
+//                .findFirst()
+//                .orElse(null);
 
+
+        GameRoom room = roomManager.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+
+        if (room.getStatus() != GameStatus.PLAYING) {
+            return;
+        }
         if (roomId != null) {
             // 해당 방에 이벤트 브로드캐스트
             server.getRoomOperations(roomId)
@@ -287,6 +298,61 @@ public class MeteorEventHandler {
         } else {
             log.warn("handleInputText: 클라이언트가 어느 방에도 속해있지 않습니다. sessionId={}", client.getSessionId());
         }
+    }
+
+    private void handleFallingWord(SocketIOClient client, FallingWordRequest data) {
+        String word = data.getWord();
+//        String sessionId = client.getSessionId().toString();
+        String roomId = data.getRoomId();
+
+        // 방 ID 찾기
+//        String roomId = client.getAllRooms().stream()
+//                .filter(r -> !r.equals(sessionId))
+//                .findFirst()
+//                .orElse(null);
+//        if (roomId == null){
+//            log.warn("handleInputText: 클라이언트가 어느 방에도 속하지 않았습니다. sessionId={}", sessionId);
+//            return;
+//        }
+
+
+        GameRoom room = roomManager.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+
+        if (room.getStatus() != GameStatus.PLAYING) {
+            return;
+        }
+
+        // 낙하하는 단어 리스트에 추가
+        room.addActiveWord(word);
+        FallingWordResponse response = new FallingWordResponse(word);
+
+        server.getRoomOperations(roomId).sendEvent("wordFalling", response);
+
+    }
+
+    private void handleCheckText(SocketIOClient client, InputTextRequest data) {
+        String text = data.getText();
+        String nickname = data.getNickname();
+        String sessionId = client.getSessionId().toString();
+        if (text == null || text.isBlank()) {
+            log.warn("handleInputText: text를 입력해주세요 ");
+            client.sendEvent("textCheck",
+                    new ErrorResponse("NONE_TEXT", "글자를 입력해주세요."));
+            return;
+        }
+        // 방 ID 찾기
+        String roomId = client.getAllRooms().stream()
+                .filter(r -> !r.equals(sessionId))
+                .findFirst()
+                .orElse(null);
+        if (roomId == null) return;
+
+        GameRoom room = roomManager.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+
+
+
     }
 
     public ConnectListener listenConnected() {
