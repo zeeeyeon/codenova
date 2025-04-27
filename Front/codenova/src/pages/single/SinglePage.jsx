@@ -1,4 +1,4 @@
-import backgroundImg from '../../assets/images/main_background.avif'
+import backgroundImg from '../../assets/images/single_background.jpg'
 import box from '../../assets/images/board1.jpg'
 import logo from '../../assets/images/logo.png'
 import pythonImg from '../../assets/images/python.png'
@@ -91,6 +91,7 @@ const SinglePage = () => {
                             >
                             </div>
                         </div>
+                        
                         <div className="text-2xl w-full mt-4">진행률: 80%</div>
 
                     </div>

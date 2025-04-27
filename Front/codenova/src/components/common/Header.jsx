@@ -18,7 +18,7 @@ const Header = () => {
   }
 
   return (
-    <header className="w-full flex justify-between items-center px-3 py-3">
+    <header className="fixed top-0 left-0 w-full flex justify-between items-center px-3 py-3">
       {/* 왼쪽 로고 */}
       <img src={logo} alt="Logo" className="w-40 cursor-pointer hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" onClick={() => navigate("/main")} />
 
