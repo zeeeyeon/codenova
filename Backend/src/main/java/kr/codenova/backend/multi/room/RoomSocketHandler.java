@@ -1,10 +1,8 @@
 package kr.codenova.backend.multi.room;
 
 import com.corundumstudio.socketio.SocketIOServer;
-import kr.codenova.backend.multi.dto.CloseRoomRequest;
-import kr.codenova.backend.multi.dto.CreateRoomResponse;
+import kr.codenova.backend.multi.dto.response.CreateRoomResponse;
 import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
-import kr.codenova.backend.multi.dto.broadcast.JoinRoomBroadcast;
 import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
@@ -20,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor

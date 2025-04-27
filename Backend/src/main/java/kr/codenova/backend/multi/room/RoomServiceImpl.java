@@ -24,16 +24,19 @@ public class RoomServiceImpl implements RoomService {
     public Room createRoom(CreateRoomRequest request) {
         String roomId = UUID.randomUUID().toString();
         String roomCode = request.getIsLocked() ? generatedRoomCode() : null;
-        Room room = new Room(
-                roomId,
-                request.getTitle(),
-                request.getLanguage(),
-                request.getMaxNum(),
-                0,
-                request.getIsLocked(),
-                false,
-                roomCode
-                );
+
+        Room room = Room.builder()
+                .roomId(roomId)
+                .roomTitle(request.getTitle())
+                .language(request.getLanguage())
+                .maxCount(request.getMaxNum())
+                .currentCount(0)
+                .isLocked(request.getIsLocked())
+                .isStarted(false)
+                .roomCode(roomCode)
+                .build();
+
+        room.setOwnerNickname(request.getNickname());
         roomMap.put(roomId, room);
         return room;
     }
@@ -58,6 +61,9 @@ public class RoomServiceImpl implements RoomService {
 
         // 3. 입장 처리 (currentCount 증가)
         room.setCurrentCount(room.getCurrentCount() + 1);
+
+        // 입장하면 userReadtStatus에 추가
+        room.getUserReadyStatus().put(request.getNickname(), false);
 
         // 4. (필요시) room 객체 업데이트
         roomMap.put(room.getRoomId(), room);

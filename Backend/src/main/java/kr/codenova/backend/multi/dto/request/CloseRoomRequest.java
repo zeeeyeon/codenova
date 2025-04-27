@@ -1,4 +1,4 @@
-package kr.codenova.backend.multi.dto;
+package kr.codenova.backend.multi.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
