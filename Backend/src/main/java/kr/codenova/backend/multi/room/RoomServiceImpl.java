@@ -97,4 +97,9 @@ public class RoomServiceImpl implements RoomService {
         return UUID.randomUUID().toString().substring(0,6).toUpperCase();
     }
 
+    public Boolean existsRoom(String roomId) {
+        Room room = roomMap.get(roomId);
+        return room != null && room.getCurrentCount() > 0;
+    }
+
 }
