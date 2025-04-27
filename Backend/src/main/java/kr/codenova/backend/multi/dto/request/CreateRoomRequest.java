@@ -4,9 +4,11 @@ import lombok.Data;
 
 @Data
 public class CreateRoomRequest {
-    private String roomTitle;
+    private String title;
+    private String nickname;
     private String language;
-    private Integer limit;
+    private Integer maxNum;
 //    @JsonProperty("isPrivate")
-    private Boolean isPrivate;
+    private Boolean isLocked;
+    private String roomCode;
 }

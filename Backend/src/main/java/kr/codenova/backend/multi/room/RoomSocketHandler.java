@@ -2,9 +2,14 @@ package kr.codenova.backend.multi.room;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.multi.dto.CloseRoomRequest;
+import kr.codenova.backend.multi.dto.CreateRoomResponse;
 import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
 import kr.codenova.backend.multi.dto.broadcast.JoinRoomBroadcast;
 import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
+import kr.codenova.backend.multi.dto.response.RoomListResponse;
+import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
+import kr.codenova.backend.multi.exception.RoomFullException;
+import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import kr.codenova.backend.multi.socket.SocketEventHandler;
 import kr.codenova.backend.multi.dto.broadcast.RoomUpdateBroadcast;
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
@@ -14,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -25,48 +32,57 @@ public class RoomSocketHandler implements SocketEventHandler {
     @Override
     public void registerListeners(SocketIOServer server) {
 
+        // 방 목록 조회
         server.addEventListener("room_list", Void.class, (client, request, ackSender) -> {
             Collection<Room> rooms = roomService.getAllRooms();
-            client.sendEvent("room_list", rooms);
+            List<RoomListResponse> responseList = rooms.stream()
+                            .map(room -> new RoomListResponse(
+                                    room.getRoomId(),
+                                    room.getRoomTitle(),
+                                    room.getCurrentCount(),
+                                    room.getMaxCount(),
+                                    room.getLanguage(),
+                                    room.getIsLocked(),
+                                    room.getIsStarted()))
+                                    .toList();
+            ackSender.sendAckData(responseList); // 요청한 클라이언트에게 응답
         });
 
+        // 방 생성
         server.addEventListener("create_room", CreateRoomRequest.class, (client, request, ackSender) -> {
 
             Room newRoom = roomService.createRoom(request);
 
             log.info("방 생성 : " + newRoom.toString());
 
-            RoomUpdateBroadcast broadcast = new RoomUpdateBroadcast(newRoom);
-
+            RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(newRoom);
+            CreateRoomResponse response = new CreateRoomResponse(newRoom);
             // 응답으로 roomId 전달
-            ackSender.sendAckData(newRoom.getRoomId());
-
-            System.out.println("Room Created: " + request.getRoomTitle());
+            ackSender.sendAckData(response);
+            log.info("방 생성 : " + request.getTitle());
             server.getBroadcastOperations().sendEvent("room_update", broadcast);
         });
 
+        // 방 입장
         server.addEventListener("join_room", JoinRoomRequest.class, (client, request, ackSender) -> {
-            boolean success = roomService.joinRoom(request.getRoomId());
+            try {
+                Room room = roomService.joinRoom(request);
 
-            if(success) {
-                client.joinRoom(request.getRoomId());
+                client.joinRoom(room.getRoomId());
 
-                JoinRoomBroadcast broadcast = new JoinRoomBroadcast(
-                        request.getMemberId(),
-                        roomService.getRoom(request.getRoomId()).getCurrentCount()
-                );
+                ackSender.sendAckData("joined");
 
-                server.getRoomOperations(request.getRoomId()).sendEvent("room_joined", broadcast);
-
-                Room room = roomService.getRoom(request.getRoomId());
-                RoomUpdateBroadcast updated = new RoomUpdateBroadcast(room);
-                server.getBroadcastOperations().sendEvent("room_update", updated);
-
-                // 응답으로 현재 인원 수 반환
-                ackSender.sendAckData(room.getCurrentCount());
+                RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
+                server.getBroadcastOperations().sendEvent("room_updated", broadcast);
+            } catch (RoomNotFoundException | RoomFullException e) {
+                // 소켓 클라이언트에 에러 전송
+                client.sendEvent("error", new SocketErrorResponse(e.getMessage()));
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("알 수 없는 오류가 발생했습니다."));
             }
         });
 
+        // 방 퇴장
         server.addEventListener("leave_room", LeaveRoomRequest.class, (client, request, ackSender) -> {
             roomService.leaveRoom(request.getRoomId());
             client.leaveRoom(request.getRoomId());
@@ -75,23 +91,12 @@ public class RoomSocketHandler implements SocketEventHandler {
                 server.getBroadcastOperations().sendEvent("room_removed", request.getRoomId());
             } else {
                 Room room = roomService.getRoom(request.getRoomId());
-                RoomUpdateBroadcast updated = new RoomUpdateBroadcast(room);
+                RoomUpdateBroadcast updated = RoomUpdateBroadcast.from(room);
                 server.getBroadcastOperations().sendEvent("room_update", updated);
             }
         });
 
-        server.addEventListener("close_room", CloseRoomRequest.class, (client, request, ackSender) -> {
-            roomService.closeRoom(request.getRoomId());
-            client.leaveRoom(request.getRoomId());
 
-            if (roomService.isRoomEmpty(request.getRoomId())) {
-                server.getBroadcastOperations().sendEvent("close_room", request.getRoomId());
-            } else {
-                Room room = roomService.getRoom(request.getRoomId());
-                RoomUpdateBroadcast updated = new RoomUpdateBroadcast(room);
-                server.getBroadcastOperations().sendEvent("room_update", updated);
-            }
-        });
 
     }
 

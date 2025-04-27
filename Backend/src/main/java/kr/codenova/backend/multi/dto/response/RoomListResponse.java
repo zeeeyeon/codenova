@@ -1,19 +1,19 @@
-package kr.codenova.backend.multi.room;
+package kr.codenova.backend.multi.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class Room {
+@AllArgsConstructor
+public class RoomListResponse {
+
     private String roomId;
-    private String roomTitle;
-    private String language;
-    private Integer maxCount;
+    private String title;
     private Integer currentCount;
+    private Integer maxCount;
+    private String langauge;
     private Boolean isLocked;
     private Boolean isStarted;
-    private String roomCode;
 }
