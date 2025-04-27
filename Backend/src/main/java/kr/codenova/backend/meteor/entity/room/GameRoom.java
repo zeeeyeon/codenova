@@ -2,8 +2,12 @@ package kr.codenova.backend.meteor.entity.room;
 
 import kr.codenova.backend.meteor.entity.user.UserInfo;
 import lombok.Getter;
+
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 @Getter
 public class GameRoom {
@@ -14,6 +18,10 @@ public class GameRoom {
     private final String roomCode;
     private final int maxPlayers;
     private final List<UserInfo> players = new CopyOnWriteArrayList<>();
+    // 현재 사용자들의 점수 관리
+    private final Map<String, Integer> scoreMap = new ConcurrentHashMap<>();
+    // 현재 화면에 낙하중인 단어 목록
+    private final List<String> activeFallingWords = new CopyOnWriteArrayList<>();
 
 
     public GameRoom(String roomId, boolean isPrivate, String roomCode, int maxPlayers, String hostSessionId) {
@@ -38,6 +46,7 @@ public class GameRoom {
             throw new IllegalStateException("방이 가득 찼습니다.");
         }
         players.add(user);
+        scoreMap.put(user.getSessionId(), 0);
     }
     public void removePlayer(String sessionId) {
         players.removeIf(u -> u.getSessionId().equals(sessionId));
@@ -56,4 +65,29 @@ public class GameRoom {
                 && status == GameStatus.WAITING
                 && players.size() < 4;
     }
+    // 단어 올바르게 맞혔을 때 호출해서 score 증가
+
+    public int incrementScore(String sessionId) {
+        int newScore = scoreMap.merge(sessionId, 1, Integer::sum);
+        return newScore;
+    }
+    // 게임 종료시 전체 점수 조회
+
+    public Map<String, Integer> getScoreMap() {
+        return Collections.unmodifiableMap(scoreMap);
+    }
+
+    // 낙하하는 단어 등록
+    public void addActiveWord(String word) {
+        activeFallingWords.add(word);
+    }
+    // 단어 맞출 경우 제거
+    public boolean removeActiveWord(String word) {
+        return activeFallingWords.remove(word);
+    }
+    // 현재 낙하중인 단어 리스트 조회
+    public List<String> getActiveFallingWords() {
+        return Collections.unmodifiableList(activeFallingWords);
+    }
+
 }
