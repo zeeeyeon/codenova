@@ -13,6 +13,8 @@ public enum ResponseCode {
     EXISTED_USER_ID(400, HttpStatus.OK, "아미 존재하는 아이디입니다."),
     EXISTED_USER_NICKNAME(400, HttpStatus.OK, "해당 닉네임은 이미 존재하는 닉네임 입니다."),
     GET_USER_PROFILE(200, HttpStatus.OK, "프로필 조회 성공했습니다."),
+    AVAILABLE_ID(200,HttpStatus.OK, "사용가능한 아이디입니다"),
+    AVAILABLE_NICKNAME(200,HttpStatus.OK, "사용가능한 닉네임입니다"),
 
     // single
     GET_LANGUAGE_CATEGORIES_SUCCESS(200, HttpStatus.OK, "언어 카테고리 조회에 성공했습니다."),
