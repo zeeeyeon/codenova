@@ -24,15 +24,17 @@ public class GameRoom {
     public boolean isFull() {
         return players.size() >= maxPlayers;
     }
-
+    public void start() {
+        if (players.size() < maxPlayers) {
+            throw new IllegalStateException("플레이어가 모두 모이지 않았습니다.");
+        }
+        this.status = GameStatus.PLAYING;
+    }
     public void addPlayer(UserInfo user) {
         if (isFull()) {
             throw new IllegalStateException("방이 가득 찼습니다.");
         }
         players.add(user);
-        if (players.size() == maxPlayers) {
-            status = GameStatus.PLAYING;
-        }
     }
 
     /**
