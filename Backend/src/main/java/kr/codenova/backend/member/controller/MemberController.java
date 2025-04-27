@@ -1,6 +1,7 @@
 package kr.codenova.backend.member.controller;
 
 import jakarta.validation.Valid;
+import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
 import kr.codenova.backend.member.dto.SignupDto;
 import kr.codenova.backend.member.dto.MemberProfileDto;
@@ -42,5 +43,24 @@ public class MemberController {
         return new ResponseEntity<>(Response.create(GET_USER_PROFILE, responseDto), GET_USER_PROFILE.getHttpStatus());
     }
 
+    @GetMapping("/check-id/{id}")
+    public ResponseEntity<?> checkId(@PathVariable String id) {
+        boolean available = memberService.isIdExist(id);
+        ResponseCode code = available ? ResponseCode.AVAILABLE_ID : ResponseCode.EXISTED_USER_ID;
+        return new ResponseEntity<>(
+                Response.create(code, null),
+                code.getHttpStatus()
+        );
+    }
+
+    @GetMapping("/check-nickname/{nickname}")
+    public ResponseEntity<?> checkNickname(@PathVariable String nickname) {
+        boolean available = memberService.isNicknameExist(nickname);
+        ResponseCode code = available ? ResponseCode.AVAILABLE_NICKNAME : ResponseCode.EXISTED_USER_NICKNAME;
+        return new ResponseEntity<>(
+                Response.create(code, null),
+                code.getHttpStatus()
+        );
+    }
 }
 
