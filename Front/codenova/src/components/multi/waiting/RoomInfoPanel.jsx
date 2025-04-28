@@ -30,11 +30,11 @@ const RoomInfoPanel = ({ isPublic, roomCode, language, currentPeople, standardPe
           <div className="space-y-3 flex flex-col items-center text-white text-xl">
             <div className="flex items-center gap-2">
               <img src={languageIcon} alt="language" className="w-7 h-7" />
-              <span className="text-base">{language}</span>
+              <span className="">{language}</span>
             </div>
             <div className="flex items-center gap-2">
               <img src={peopleIcon} alt="people" className="w-7 h-7" />
-              <span className="text-base">{currentPeople} / {standardPeople}</span>
+              <span className="">{currentPeople} / {standardPeople} 명</span>
             </div>
           </div>
         ) : (
