@@ -24,13 +24,15 @@ const LoginPage = () => {
       }
   
       const accessToken = rawToken.split(' ')[1]
+      const nickname = response.data.content.nickname
+      // console.log(nickname)
       document.cookie = `accessToken=${accessToken}; path=/; max-age=86400;`;
 
       login({
-        user: { id }, 
+        nickname,
         token: accessToken,
       });
-  
+
       navigate("/main")
     } catch (err) {
       console.error(err)
