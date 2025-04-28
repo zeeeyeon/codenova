@@ -24,12 +24,12 @@ const RoomCodeModal = ({ onClose }) => {
     // ✅ joinSecretRoom emit
     joinMeteoRoom(
       { roomCode: roomCodeInput, nickname },
-      (players) => {
-        console.log("✅ 방 입장 성공:", players);
+      (roomData) => {
+        console.log("✅ 방 입장 성공:", roomData);
 
         // 메테오 대기 페이지로 이동
         navigate("/meteo/landing", {
-          state: { roomCode: roomCodeInput, players },
+          state: { roomCode: roomCodeInput, roomId: roomData.roomId , players: roomData.players },
         });
 
         onClose(); // 모달 닫기
