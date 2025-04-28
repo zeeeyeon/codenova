@@ -1,6 +1,10 @@
 package kr.codenova.backend.multi.game;
 
 import com.corundumstudio.socketio.SocketIOServer;
+import kr.codenova.backend.common.entity.Code;
+import kr.codenova.backend.common.repository.CodeRepository;
+import kr.codenova.backend.global.exception.CustomException;
+import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.multi.dto.broadcast.GameCountdownBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.GameResultBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.TypingStartBroadcast;
@@ -27,7 +31,7 @@ public class GameService {
 
     private final RoomService roomService;
     private final SocketIOServer server;
-    private final GameContentRepository gameContentRepository;
+    private final CodeRepository codeRepository;
 
     // 방 별로 완료한 유저들의 결과 저장
     private final Map<String, List<GameResultBroadcast.UserResultStatus>> finishedUserResults = new ConcurrentHashMap<>();
@@ -132,7 +136,7 @@ public class GameService {
             TypingStartBroadcast typingStart = new TypingStartBroadcast(
                     roomId,
                     LocalDateTime.now(),
-                    getGameContent() // 게임 본문 가져오기
+                    getGameContent(room.getLanguage()) // 게임 본문 가져오기
             );
             server.getRoomOperations(roomId)
                     .sendEvent("typing_start", typingStart);
@@ -202,8 +206,8 @@ public class GameService {
     }
 
     // 12. 게임 본문 가져오기
-    public String getGameContent() {
-        Code randomCode = gameContentRepository.findRandomContent();
+    public String getGameContent(String language) {
+        Code randomCode = codeRepository.findRandomByLanguage(language).orElseThrow(() -> new CustomException(ResponseCode.CODE_NOT_FOUND));
         if (randomCode != null) {
             return randomCode.getContent();
         } else {
