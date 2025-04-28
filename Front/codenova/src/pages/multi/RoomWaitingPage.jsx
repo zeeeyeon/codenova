@@ -29,7 +29,7 @@ const RoomWaitingPage = () => {
       } = state || {}; 
 
       const dummyUsers = [
-        { slot: 1, nickname: "동현갈비", profileImage: "url1", typing: "???타수", isReady: true },
+        { slot: 1, nickname: "동현갈비", profileImage: "url1", typing: "???타수", isReady: true, isHost: true },
         { slot: 2, nickname: "과일왕자이과람", profileImage: "url2", typing: "???타수", isReady: false },
         { slot: 3, nickname: "TIMMY이지연", profileImage: "url3", typing: "???타수", isReady: true },
         { slot: 4, empty: true }
