@@ -3,11 +3,9 @@ package kr.codenova.backend.meteor.entity.room;
 import kr.codenova.backend.meteor.entity.user.UserInfo;
 import lombok.Getter;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 @Getter
 public class GameRoom {
@@ -23,6 +21,7 @@ public class GameRoom {
     // 현재 화면에 낙하중인 단어 목록
     private final List<String> activeFallingWords = new CopyOnWriteArrayList<>();
 
+    private final Queue<String> fallingWords = new ConcurrentLinkedQueue<>();
 
     public GameRoom(String roomId, boolean isPrivate, String roomCode, int maxPlayers, String hostSessionId) {
         this.roomId = roomId;
@@ -88,6 +87,15 @@ public class GameRoom {
     // 현재 낙하중인 단어 리스트 조회
     public List<String> getActiveFallingWords() {
         return Collections.unmodifiableList(activeFallingWords);
+    }
+    // 게임 시작 시 50단어를 큐에 담아두기
+    public void initFallingwords(List<String> words) {
+        fallingWords.clear();
+        fallingWords.addAll(words);
+    }
+    // 다음에 떨어질 단어 하나를 꺼내기
+    public String pollNextWord() {
+        return fallingWords.poll();
     }
 
 }
