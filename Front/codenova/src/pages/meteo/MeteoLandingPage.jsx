@@ -8,13 +8,13 @@ import UserBoard from "../../assets/images/board2.jpg"
 const MeteoLandingPage = () => {
     return (
         <div
-            className="w-screen h-screen bg-cover bg-center bg-no-repeat"
+            className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
             style={{
             backgroundImage: `url(${MeteoBg})`,
             }}>
         <Header/>
         
-        <div className="relative flex justify-center items-center">
+        <div className="relative flex justify-center items-center mt-28">
         <img src={MeteoBoard} className="w-[66rem] rounded-2xl shadow-xl z-0" alt="meteoBoard"/>
         <div className="absolute top-[2%] left-1/2 -translate-x-1/2 z-20 text-1C1C1C text-3xl font-bold">
         지구를 지켜라!

@@ -5,6 +5,7 @@ import signupBtn from "../../assets/images/signup_button.png"; // 🎯 버튼 �
 import { signupApi } from "../../api/authApi";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { checkIdApi, checkNicknameApi } from "../../api/authApi";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -13,6 +14,52 @@ const SignupPage = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [idCheck, setIdCheck] = useState(null);
+  const [nicknameCheck, setNicknameCheck] = useState(null);
+
+  const handleIdCheck = async () => {
+    if (!id) {
+      alert("ID를 입력하세요!");
+      return;
+    }
+    try {
+      const response = await checkIdApi({ id });
+      const { code, message } = response.data.status;
+  
+      if (code === 200) {
+        setIdCheck(true);
+        alert("사용 가능한 ID입니다!");
+      } else {
+        setIdCheck(false);
+        alert(message || "ID 중복입니다!");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("서버 에러입니다.");
+    }
+  };
+
+  const handleNicknameCheck = async () => {
+    if (!nickname) {
+      alert("닉네임을 입력하세요!");
+      return;
+    }
+    try {
+      const response = await checkNicknameApi({ nickname });
+      const { code, message } = response.data.status;
+  
+      if (code === 200) {
+        setNicknameCheck(true);
+        alert("사용 가능한 닉네임입니다!");
+      } else {
+        setNicknameCheck(false);
+        alert(message || "닉네임 중복입니다!");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("서버 에러입니다.");
+    }
+  };
   const handleSignup = async () => {
     if (password !== confirmPassword) {
       alert("비밀번호가 일치하지 않습니다!");
@@ -54,10 +101,21 @@ const SignupPage = () => {
             <input
               type="text"
               value={id}
-              onChange={(e) => setId(e.target.value)}
+              onChange={(e) => {
+                setId(e.target.value);
+                setIdCheck(null);
+              }}
               className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="Enter your ID"
             />
+            <button
+              onClick={handleIdCheck}
+              className=" active:scale-95 text-xl"
+            >
+              ✅
+            </button>
+            {idCheck === true && <span className="text-green-400 text-xl ">⭕</span>}
+            {idCheck === false && <span className="text-red-400 text-xl">❌</span>}
           </div>
 
           {/* Nickname */}
@@ -70,6 +128,14 @@ const SignupPage = () => {
               className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="Enter your nickname"
             />
+            <button
+              onClick={handleNicknameCheck}
+              className="active:scale-95 text-xl"
+            >
+              ✅
+            </button>
+            {nicknameCheck === true && <span className="text-green-400 text-xl">⭕</span>}
+            {nicknameCheck === false && <span className="text-red-400 text-xl">❌</span>}
           </div>
 
           {/* Password */}
