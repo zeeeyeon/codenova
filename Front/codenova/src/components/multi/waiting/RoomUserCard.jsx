@@ -4,6 +4,7 @@ import rocket1 from "../../../assets/images/multi_rocket_1.png";
 import rocket2 from "../../../assets/images/multi_rocket_2.png";
 import rocket3 from "../../../assets/images/multi_rocket_3.png";
 import rocket4 from "../../../assets/images/multi_rocket_4.png";
+import crownIcon from "../../../assets/images/multi_host_icon.png";
 
 const rockets = [rocket1, rocket2, rocket3, rocket4];
 
@@ -12,7 +13,15 @@ const RoomUserCard = ({ user }) => {
   const rocketImage = rockets[user.slot - 1];
 
   return (
-    <div className="w-[200px] h-[200px] rounded-2xl overflow-hidden relative flex flex-col items-center justify-center">
+    <div className="w-[200px] h-[200px] rounded-2xl  relative flex flex-col items-center justify-center">
+       {!isEmptySlot && user.isHost && (
+    <img 
+      src={crownIcon} 
+      alt="Host" 
+      className="absolute top-[-50px] left-1/2 transform -translate-x-1/2 w-16 h-16 z-20" 
+    />
+  )}
+      
       {/* 테두리 배경 */}
       <img
         src={userProfileBg}
@@ -25,6 +34,8 @@ const RoomUserCard = ({ user }) => {
         <div className="absolute top-1 left-1/2 transform -translate-x-1/2 text-2xl">
           No.{user.slot}
         </div>
+
+        
       )}
 
       {/* 메인 내용 */}
@@ -33,6 +44,8 @@ const RoomUserCard = ({ user }) => {
           <div className="text-5xl text-gray-400">-</div> 
         ) : (
           <>
+
+          
             <img
               src={rocketImage}
               alt="Rocket"
