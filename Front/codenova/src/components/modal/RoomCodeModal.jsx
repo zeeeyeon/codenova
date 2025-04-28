@@ -1,9 +1,46 @@
-import React from "react";
+import React, { useState } from "react";
 import modalBg from "../../assets/images/board3.png";
 import enterBtn from "../../assets/images/go_game_button.png";
 import randomBtn from "../../assets/images/gorandom_button.png";
+import useAuthStore from "../../store/authStore";
+import { useNavigate } from "react-router-dom";
+import { joinMeteoRoom } from "../../sockets/meteoSocket";
 
 const RoomCodeModal = ({ onClose }) => {
+  const [roomCodeInput, setRoomCodeInput] = useState("");
+  const nickname = useAuthStore((state) => state.user?.nickname);
+  const navigate = useNavigate();
+
+  const handleEnterRoom = () => {
+    if (!roomCodeInput) {
+      alert("방코드를 입력하세요!");
+      return;
+    }
+    if (!nickname) {
+      alert("닉네임이 없습니다!");
+      return;
+    }
+
+    // ✅ joinSecretRoom emit
+    joinMeteoRoom(
+      { roomCode: roomCodeInput, nickname },
+      (players) => {
+        console.log("✅ 방 입장 성공:", players);
+
+        // 메테오 대기 페이지로 이동
+        navigate("/meteo/landing", {
+          state: { roomCode: roomCodeInput, players },
+        });
+
+        onClose(); // 모달 닫기
+      },
+      (errorMessage) => {
+        console.error("❌ 방 입장 실패:", errorMessage);
+        alert(errorMessage);
+      }
+    );
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* 어두운 배경 */}
@@ -30,8 +67,10 @@ const RoomCodeModal = ({ onClose }) => {
 
         <input
           type="text"
-          placeholder="ROOM123"
+          placeholder="ROOM코드"
           className="mt-4 w-64 h-10 px-3 rounded text-black text-lg text-center"
+          value={roomCodeInput}
+          onChange={(e) => setRoomCodeInput(e.target.value)}
         />
 
         <div className="flex gap-4 mt-6">
@@ -39,6 +78,7 @@ const RoomCodeModal = ({ onClose }) => {
             src={enterBtn}
             alt="입장하기"
             className="w-[8rem] cursor-pointer hover:brightness-110 hover:scale-105 transition-transform"
+            onClick={handleEnterRoom}
           />
           <img
             src={randomBtn}
