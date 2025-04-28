@@ -12,6 +12,10 @@ import { useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react";
 import RoomCodeModal from "../../components/modal/RoomCodeModal";
 import { getAccessToken } from "../../utils/tokenUtils";
+import socket from "../../sockets/socketClient";
+import { createMeteoRoom } from "../../sockets/meteoSocket";
+import useAuthStore from "../../store/authStore";
+
 const MainPage = () => {
   const navigate = useNavigate()
   const [showRoomModal, setShowRoomModal] = useState(false);
@@ -24,6 +28,32 @@ const MainPage = () => {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    console.log("Socket connected?", socket.connected); // true or false 출력
+  }, []);
+
+  const nickname = useAuthStore((state) => state.user?.nickname)
+  // console.log(nickname)
+  const handleCreateMeteoRoom = () => {
+    if (!nickname) {
+      alert("닉네임이 없습니다.");
+      navigate("/auth/login");
+      return;
+    }
+    console.log("방 생성 요청 emit 보냄");
+    createMeteoRoom(
+      { isPrivate: true, nickname }, // 닉네임 넘겨서 createRoom emit
+      (roomData) => {
+        console.log("✅ 방 생성 성공:", roomData);
+        navigate("/meteo/landing", { state: { roomCode: roomData.roomCode, roomId: roomData.roomId } });
+      },
+      (errorMessage) => {
+        console.error("❌ 방 생성 실패:", errorMessage);
+        alert(errorMessage);
+      }
+    );
+  };
+    
   return (
     <div
       className="h-screen w-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
@@ -83,7 +113,7 @@ const MainPage = () => {
             <img
               src={makeRoomBtn}
               alt="Make Room"
-              onClick={() => navigate("/meteo/landing")}
+              onClick={handleCreateMeteoRoom}
               className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             />
             <img
