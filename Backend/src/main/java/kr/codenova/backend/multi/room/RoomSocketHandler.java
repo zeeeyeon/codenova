@@ -8,7 +8,7 @@ import kr.codenova.backend.multi.dto.response.RoomListResponse;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
 import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
-import kr.codenova.backend.multi.socket.SocketEventHandler;
+import kr.codenova.backend.global.socket.SocketEventHandler;
 import kr.codenova.backend.multi.dto.broadcast.RoomUpdateBroadcast;
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
 import lombok.RequiredArgsConstructor;
