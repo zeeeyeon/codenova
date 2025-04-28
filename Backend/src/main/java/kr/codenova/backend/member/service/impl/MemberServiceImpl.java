@@ -36,4 +36,13 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.save(signupDto.toUserEntity(passwordEncoder));
 
     }
+    @Override
+    public boolean isIdExist(String idColumn) {
+        return memberRepository.findByIdColumn(idColumn).isEmpty();
+    }
+
+    @Override
+    public boolean isNicknameExist(String nickname) {
+        return memberRepository.findByNickname(nickname).isEmpty();
+    }
 }
