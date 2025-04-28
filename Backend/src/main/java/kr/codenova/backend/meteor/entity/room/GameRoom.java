@@ -91,7 +91,9 @@ public class GameRoom {
     // 게임 시작 시 50단어를 큐에 담아두기
     public void initFallingwords(List<String> words) {
         fallingWords.clear();
-        fallingWords.addAll(words);
+        if (words != null) {
+            fallingWords.addAll(words);
+        }
     }
     // 다음에 떨어질 단어 하나를 꺼내기
     public String pollNextWord() {

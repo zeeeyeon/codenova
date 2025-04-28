@@ -8,6 +8,7 @@ import jakarta.annotation.PostConstruct;
 import kr.codenova.backend.meteor.dto.request.*;
 import kr.codenova.backend.meteor.dto.request.CreateRoomRequest;
 import kr.codenova.backend.meteor.dto.response.*;
+import kr.codenova.backend.meteor.service.WordDropScheduler;
 import kr.codenova.backend.meteor.service.WordService;
 import kr.codenova.backend.meteor.entity.room.GameStatus;
 
@@ -31,6 +32,7 @@ public class MeteorEventHandler implements SocketEventHandler {
 
     private final RoomManager roomManager;
     private final WordService wordService;
+    private final WordDropScheduler wordDropScheduler;
 
     private SocketIOServer server() {
         return SocketIOServerProvider.getServer();
@@ -211,6 +213,11 @@ public class MeteorEventHandler implements SocketEventHandler {
 
         // 3️ 단어 리스트 조회
         List<String> fallingWords = wordService.getRandomWords();
+        if (fallingWords == null || fallingWords.isEmpty()) {
+            client.sendEvent("gameStart",
+                    new ErrorResponse("NO_WORDS", "게임을 시작할 단어가 부족합니다."));
+            return;
+        }
         room.initFallingwords(fallingWords);
         room.start();
 
@@ -219,6 +226,9 @@ public class MeteorEventHandler implements SocketEventHandler {
                 .roomId(roomId)
                 .players(room.getPlayers())
                 .fallingWords(fallingWords)
+                .initialLives(5)
+                .initialDropInterval(2000)
+                .initialFallDuration(10000)
                 .message("게임이 시작되었습니다.")
                 .build();
 
@@ -226,6 +236,11 @@ public class MeteorEventHandler implements SocketEventHandler {
                 .sendEvent("gameStart", resp);
 
         // 일정 시간 마다 다음 단어를 꺼내서 푸시
+        wordDropScheduler.startDrooping(
+                roomId,
+                resp.getInitialDropInterval(),
+                resp.getInitialFallDuration()
+        );
     }
 
     private void handleExitRoom(SocketIOClient client, ExitRoomRequest data) {
