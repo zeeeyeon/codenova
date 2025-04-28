@@ -121,17 +121,21 @@ public class RoomServiceImpl implements RoomService {
             return;
         }
 
-        // ✅ [추가] 퇴장 알림 브로드캐스트 (퇴장 전)
-        getServer().getRoomOperations(request.getRoomId()).sendEvent("leave_notice",
-                new NoticeBroadcast(
-                        request.getRoomId(),
-                        request.getNickname(),
-                        request.getNickname() + "님이 퇴장했습니다."
-                )
-        );
-
         // ✅ 현재 인원 감소
         room.setCurrentCount(Math.max(room.getCurrentCount() - 1, 0));
+
+        // ✅ [추가] 퇴장 알림 - 본인 제외하고 전송
+        getServer().getRoomOperations(request.getRoomId())
+                .getClients()
+                .stream()
+                .filter(c -> !c.getSessionId().equals(client.getSessionId())) // 본인 제외
+                .forEach(otherClient ->
+                        otherClient.sendEvent("leave_notice", new NoticeBroadcast(
+                                request.getRoomId(),
+                                request.getNickname(),
+                                request.getNickname() + "님이 퇴장했습니다."
+                        ))
+                );
 
         // ✅ 클라이언트 방 나가기
         client.leaveRoom(request.getRoomId());

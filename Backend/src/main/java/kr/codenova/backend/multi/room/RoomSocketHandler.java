@@ -1,23 +1,17 @@
 package kr.codenova.backend.multi.room;
 
 import com.corundumstudio.socketio.SocketIOServer;
-import kr.codenova.backend.multi.dto.response.CreateRoomResponse;
 import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
 import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
-import kr.codenova.backend.multi.dto.response.RoomListResponse;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
 import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import kr.codenova.backend.global.socket.SocketEventHandler;
-import kr.codenova.backend.multi.dto.broadcast.RoomUpdateBroadcast;
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
