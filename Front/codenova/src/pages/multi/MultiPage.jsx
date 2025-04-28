@@ -115,6 +115,7 @@ const MultiPage = () => {
           standardPeople = {selectedRoom.standardPeople}
           onClose={handleCloseEnterModal}
           onEnter={handleConfirmEnter}
+          correctRoomCode={selectedRoom.roomCode}
         />
       )}
     </div>
