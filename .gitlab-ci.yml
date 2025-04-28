@@ -14,8 +14,9 @@ frontend-build-and-push:
   stage: build
   tags:
     - deploy
-  only:
-    - develop
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      when: always
   script:
     - echo "ECR 로그인"
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
@@ -28,8 +29,9 @@ backend-build-and-push:
   stage: build
   tags:
     - deploy
-  only:
-    - develop-be
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop-be"'
+      when: always
   script:
     - echo "ECR 로그인"
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
@@ -42,9 +44,9 @@ deploy:
   stage: deploy
   tags:
     - deploy
-  only:
-    - develop
-    - develop-be
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "develop-be"'
+      when: always
   script:
     - echo "EC2 SSH 접속 후 Pull & Run"
     - |
