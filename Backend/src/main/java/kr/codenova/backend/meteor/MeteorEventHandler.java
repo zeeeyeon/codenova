@@ -10,6 +10,7 @@ import kr.codenova.backend.meteor.dto.response.*;
 import kr.codenova.backend.meteor.service.WordService;
 import kr.codenova.backend.meteor.entity.room.GameStatus;
 
+import kr.codenova.backend.multi.dto.request.SendChatRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -55,6 +56,8 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().addEventListener("fallingWord", FallingWordRequest.class, (client, data, ack) -> handleFallingWord(client, data));
         // 단어 정답 확인 이벤트
         server().addEventListener("checkText", InputTextRequest.class, (client, data, ack) -> handleCheckText(client, data));
+        // 채팅 이벤트
+        server().addEventListener("sendChat", SendChatRequest.class, (client, data, ack) -> handleSendChat(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
@@ -374,6 +377,26 @@ public class MeteorEventHandler implements SocketEventHandler {
         );
         server().getRoomOperations(roomId).sendEvent("textCheck", response);
 
+
+    }
+    private void handleSendChat(SocketIOClient client, SendChatRequest data) {
+        String message = data.getMessage();
+        String nickname = data.getNickname();
+        String roomId   = data.getRoomId();
+
+        if(message == null || message.trim().isEmpty()) {
+            client.sendEvent("chatSend", new ErrorResponse("NONE_CHAT", "메시지를 입력해주세요."));
+            return;
+        }
+
+        GameRoom room = roomManager.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+
+        SendChatResponse response = new SendChatResponse(
+                nickname,
+                message
+        );
+        server().getRoomOperations(roomId).sendEvent("chatSend", client, response);
 
     }
 
