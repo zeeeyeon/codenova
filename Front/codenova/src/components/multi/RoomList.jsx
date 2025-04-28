@@ -7,10 +7,10 @@ const dummyRooms = [
     { id : 1, title: "찡이방 한판뜨자!", currentPeople: 2, standardPeople: 4, language : "Python", isPublic: false, status: "waiting"},
     { id : 2, title: "아무나 들어오셈!", currentPeople: 1, standardPeople: 2, language : "Java", isPublic: true, status: "waiting"},
     { id : 3, title: "다함께 코드노바!", currentPeople: 2, standardPeople: 2, language : "JavaScript", isPublic: false, status: "playing"},
-    { id : 4, title: "아무나 들어오셈!", currentPeople: 2, standardPeople: 2, language : "JavaScript", isPublic: false, status: "playing"},
-    { id : 4, title: "아무나 들어오셈!", currentPeople: 2, standardPeople: 2, language : "JavaScript", isPublic: false, status: "playing"},
-    { id : 4, title: "아무나 들어오셈!", currentPeople: 2, standardPeople: 2, language : "JavaScript", isPublic: false, status: "playing"},
-    { id : 4, title: "아무나 들어오셈!", currentPeople: 2, standardPeople: 2, language : "JavaScript", isPublic: false, status: "playing"},
+    { id : 4, title: "아무나 들어오셈!", currentPeople: 1, standardPeople: 2, language : "JavaScript", isPublic: true, status: "playing"},
+    { id : 5, title: "아무나 들어오셈!", currentPeople: 1, standardPeople: 2, language : "JavaScript", isPublic: true, status: "waiting"},
+    { id : 6, title: "아무나 들어오셈!", currentPeople: 2, standardPeople: 2, language : "JavaScript", isPublic: false, status: "playing"},
+    { id : 7, title: "아무나 들어오셈!", currentPeople: 2, standardPeople: 2, language : "JavaScript", isPublic: false, status: "playing"},
 ]
 
 
