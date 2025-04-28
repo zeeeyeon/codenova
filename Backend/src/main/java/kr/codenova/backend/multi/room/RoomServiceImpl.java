@@ -96,7 +96,7 @@ public class RoomServiceImpl implements RoomService {
 
         // ✅ 방 정보 브로드캐스트
         RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
-        getServer().getBroadcastOperations().sendEvent("room_updated", broadcast);
+        getServer().getBroadcastOperations().sendEvent("room_update", broadcast);
 
         // ✅ [추가] 입장 알림 브로드캐스트
         getServer().getRoomOperations(request.getRoomId()).sendEvent("join_notice",

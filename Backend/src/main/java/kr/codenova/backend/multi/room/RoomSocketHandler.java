@@ -51,6 +51,10 @@ public class RoomSocketHandler implements SocketEventHandler {
         server.addEventListener("join_room", JoinRoomRequest.class, (client, request, ackSender) -> {
             try {
                 roomService.joinRoom(request, client, ackSender);
+            } catch (RoomNotFoundException e) {
+                client.sendEvent("error", new SocketErrorResponse("방을 찾을 수 없습니다."));
+            } catch (RoomFullException e) {
+                client.sendEvent("error", new SocketErrorResponse("방이 가득 찼습니다."));
             } catch (Exception e) {
                 client.sendEvent("error", new SocketErrorResponse("방 입장 실패"));
             }
