@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.codenova.backend.global.response.Response;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
 import kr.codenova.backend.member.dto.LoginDto;
+import kr.codenova.backend.member.dto.LoginResDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -71,8 +72,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             FilterChain chain, Authentication authResult) throws IOException, ServletException {
         CustomMemberDetails userDetails = (CustomMemberDetails) authResult.getPrincipal();
         String token = JwtProcess.create(userDetails);
+        LoginResDto dto = new LoginResDto(userDetails.getNickname());
 
-        Response<?> responseBody = Response.create(SUCCESS_LOGIN, null);
+        Response<?> responseBody = Response.create(SUCCESS_LOGIN, dto);
 
         response.addHeader("Authorization", token);
         response.setContentType("application/json");
