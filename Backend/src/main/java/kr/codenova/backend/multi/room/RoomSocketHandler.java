@@ -41,7 +41,7 @@ public class RoomSocketHandler implements SocketEventHandler {
         // 방 생성
         server.addEventListener("create_room", CreateRoomRequest.class, (client, request, ackSender) -> {
             try {
-                roomService.createRoom(request, ackSender);
+                roomService.createRoom(client, request, ackSender);
             } catch (Exception e) {
                 client.sendEvent("error", new SocketErrorResponse("방 생성 실패"));
             }

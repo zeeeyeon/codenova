@@ -15,11 +15,11 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ChatSocketHandler implements SocketEventHandler {
 
-    private final ChatService chatService;
     private final RoomService roomService;
 
     @Override
     public void registerListeners(SocketIOServer server) {
+
         server.addEventListener("send_chat", SendChatRequest.class,  (client, request, ackSender) -> {
             try {
 
@@ -48,7 +48,6 @@ public class ChatSocketHandler implements SocketEventHandler {
                 client.sendEvent("error", new SocketErrorResponse("채팅 전송 중 오류가 발생했습니다."));
             }
         });
-
 
     }
 }

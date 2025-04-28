@@ -6,13 +6,10 @@ import kr.codenova.backend.common.repository.CodeRepository;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
 import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
-import kr.codenova.backend.multi.dto.broadcast.GameCountdownBroadcast;
-import kr.codenova.backend.multi.dto.broadcast.GameResultBroadcast;
-import kr.codenova.backend.multi.dto.broadcast.TypingStartBroadcast;
+import kr.codenova.backend.multi.dto.broadcast.*;
 import kr.codenova.backend.multi.dto.request.FinishGameRequest;
 import kr.codenova.backend.multi.dto.request.ProgressUpdateRequest;
 import kr.codenova.backend.multi.dto.request.ReadyGameRequest;
-import kr.codenova.backend.multi.dto.broadcast.ReadyGameBroadcast;
 import kr.codenova.backend.multi.dto.request.StartGameRequest;
 import kr.codenova.backend.multi.exception.InvalidGameStartException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
@@ -66,7 +63,7 @@ public class GameServiceImpl implements GameService {
         if (allReady) {
             // ✅ 모두 준비 완료 -> ready_all 브로드캐스트
             getServer().getRoomOperations(request.getRoomId())
-                    .sendEvent("ready_all", "모든 참가자가 준비를 완료했습니다!");
+                    .sendEvent("ready_all", new ReadyAllBroadcast("모든 참가자가 준비를 완료했습니다!"));
         }
     }
 
