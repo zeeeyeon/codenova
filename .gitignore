@@ -67,4 +67,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+!.gitlab-ci.yml
+!docker-compose.yml
+
 # End of https://www.toptal.com/developers/gitignore/api/windows,react,visualstudiocode
