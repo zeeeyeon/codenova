@@ -5,6 +5,7 @@ import lockImg from "../../assets/images/black_lock_icon.png";
 import unlockImg from "../../assets/images/black_unlock_icon.png";
 import RoomUserList from "../../components/multi/waiting/RoomUserList";
 import Header from "../../components/common/Header";
+import RoomChatBox from "../../components/multi/waiting/RoomChatBox";
 
 const RoomWaitingPage = () => {
     const {roomId} = useParams(); // url에 담긴 roomId 읽어오기
@@ -48,9 +49,15 @@ const RoomWaitingPage = () => {
             />
             <h2 className="text-2xl">{roomTitle}</h2>
           </div>
-          <div className="mt-10">
-            <RoomUserList users={dummyUsers} />
-          </div>
+          {/* 사용자 리스트 */}
+  <div className="w-full flex justify-center mt-10">
+    <RoomUserList users={dummyUsers} />
+  </div>
+
+  {/* 채팅박스 */}
+  <div className="w-[90%] flex justify-start items-start gap-6 z-10 pl-6">
+    <RoomChatBox />
+  </div>
         </div>
         </div>
     );
