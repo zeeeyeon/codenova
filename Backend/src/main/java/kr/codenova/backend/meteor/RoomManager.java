@@ -21,6 +21,12 @@ public class RoomManager {
             roomsByCode.put(room.getRoomCode(), room);
         }
     }
+    public void removeRoom(String roomId) {
+        GameRoom room = roomsById.remove(roomId);
+        if (room != null && room.getRoomCode() != null) {
+            roomsByCode.remove(room.getRoomCode());
+        }
+    }
 
     public Optional<GameRoom> findByCode(String roomCode) {
         return Optional.ofNullable(roomsByCode.get(roomCode));

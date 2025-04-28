@@ -8,6 +8,7 @@ import jakarta.annotation.PostConstruct;
 import kr.codenova.backend.meteor.dto.request.*;
 import kr.codenova.backend.meteor.dto.request.CreateRoomRequest;
 import kr.codenova.backend.meteor.dto.response.*;
+import kr.codenova.backend.meteor.service.GameEndService;
 import kr.codenova.backend.meteor.service.WordDropScheduler;
 import kr.codenova.backend.meteor.service.WordService;
 import kr.codenova.backend.meteor.entity.room.GameStatus;
@@ -21,9 +22,11 @@ import kr.codenova.backend.meteor.entity.user.UserInfo;
 import kr.codenova.backend.global.socket.SocketEventHandler;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -33,6 +36,8 @@ public class MeteorEventHandler implements SocketEventHandler {
     private final RoomManager roomManager;
     private final WordService wordService;
     private final WordDropScheduler wordDropScheduler;
+    private final GameEndService gameEndService;
+
 
     private SocketIOServer server() {
         return SocketIOServerProvider.getServer();
@@ -59,6 +64,8 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().addEventListener("checkText", InputTextRequest.class, (client, data, ack) -> handleCheckText(client, data));
         // 채팅 이벤트
         server().addEventListener("sendChat", SendChatRequest.class, (client, data, ack) -> handleSendChat(client, data));
+        // 목숨 차감 이벤트
+        server().addEventListener("lifeLost", RemoveWordRequest.class, (client, data, ack) -> handleRemoveWord(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
@@ -151,7 +158,7 @@ public class MeteorEventHandler implements SocketEventHandler {
             return;
         }
 
-        // 1️ 방 조회+생성 → 생성 여부까지 RandomRoomResult 로 받는다
+        // 1️. 방 조회+생성 → 생성 여부까지 RandomRoomResult 로 받는다
         RoomManager.RandomRoomResult result = roomManager.findOrCreateRandomRoom(
                 () -> UUID.randomUUID().toString(),
                 roomId -> new UserInfo(client.getSessionId().toString(), nickname)
@@ -160,10 +167,10 @@ public class MeteorEventHandler implements SocketEventHandler {
         GameRoom room  = result.getRoom();
         boolean isHost = result.isCreated();
 
-        // 2️ 소켓 방에 조인
+        // 2️. 소켓 방에 조인
         client.joinRoom(room.getRoomId());
 
-        // 3️ non-host 는 players 에 추가하면서 단일 예외 처리
+        // 3️. non-host 는 players 에 추가하면서 단일 예외 처리
         if (!isHost) {
             UserInfo user = new UserInfo(client.getSessionId().toString(), nickname);
             try {
@@ -176,7 +183,7 @@ public class MeteorEventHandler implements SocketEventHandler {
             }
         }
 
-        // 5️ 방에 있는 사람들에게 사용자 리스트 브로드캐스트
+        // 5️. 방에 있는 사람들에게 사용자 리스트 브로드캐스트
         RandomMatchResponse resp =
                 new RandomMatchResponse(room.getRoomId(), isHost, room.getPlayers());
         server().getRoomOperations(room.getRoomId()).sendEvent("matchRandom", resp);
@@ -195,7 +202,7 @@ public class MeteorEventHandler implements SocketEventHandler {
             return;
         }
 
-        // 1 방장인지 확인
+        // 1. 방장인지 확인
         String requester = client.getSessionId().toString();
         UserInfo host = room.getPlayers().get(0);
         if (!host.getSessionId().equals(requester)) {
@@ -204,14 +211,14 @@ public class MeteorEventHandler implements SocketEventHandler {
             return;
         }
 
-        // 2️ 플레이어 수 확인 (4명일 때만)
+        // 2️. 플레이어 수 확인 (4명일 때만)
         if (room.getPlayers().size() < room.getMaxPlayers()) {
             client.sendEvent("gameStart",
                     new ErrorResponse("NOT_ENOUGH_PLAYERS", "플레이어가 아직 4명 모이지 않았습니다."));
             return;
         }
 
-        // 3️ 단어 리스트 조회
+        // 3️. 단어 리스트 조회
         List<String> fallingWords = wordService.getRandomWords();
         if (fallingWords == null || fallingWords.isEmpty()) {
             client.sendEvent("gameStart",
@@ -221,7 +228,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         room.initFallingwords(fallingWords);
         room.start();
 
-        // 4️ 모든 사용자에게 게임 시작 알림
+        // 4️. 모든 사용자에게 게임 시작 알림
         StartGameResponse resp = StartGameResponse.builder()
                 .roomId(roomId)
                 .players(room.getPlayers())
@@ -235,7 +242,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().getRoomOperations(roomId)
                 .sendEvent("gameStart", resp);
 
-        // 일정 시간 마다 다음 단어를 꺼내서 푸시
+        // 5.일정 시간 마다 다음 단어를 꺼내서 푸시
         wordDropScheduler.startDrooping(
                 roomId,
                 resp.getInitialDropInterval(),
@@ -253,11 +260,11 @@ public class MeteorEventHandler implements SocketEventHandler {
         //
         boolean wasHost = sessionId.equals(room.getHostSessionId());
 
-        // 1 사용자 제거
+        // 1. 사용자 제거
         room.removePlayer(sessionId);
         client.leaveRoom(roomId);
 
-        // 2 새로운 방장 세션 ID 조회
+        // 2. 새로운 방장 세션 ID 조회
 
         UserInfo newHost = null;
         if (wasHost && !room.getPlayers().isEmpty()) {
@@ -268,7 +275,7 @@ public class MeteorEventHandler implements SocketEventHandler {
                     .orElse(null);
 
         }
-        // 3 사용자들에게 브로드캐스트
+        // 3. 사용자들에게 브로드캐스트
         ExitRoomResponse response = new ExitRoomResponse(
                 roomId,
                 new UserInfo(sessionId, nickname),
@@ -337,9 +344,9 @@ public class MeteorEventHandler implements SocketEventHandler {
         if (room.getStatus() != GameStatus.PLAYING) {
             return;
         }
-        // 맞았는지 체크 & activeWords에서 제거
+        // 1. 맞았는지 체크 & activeWords에서 제거
         boolean isCorrect = room.removeActiveWord(text);
-        //  누적 점수 계산
+        //  2. 누적 점수 계산
         int updatedScore;
         if (isCorrect) {
             // incrementScore 내부에서 점수를 1 올린 후, 올린 뒤의 누적 점수를 리턴
@@ -378,6 +385,28 @@ public class MeteorEventHandler implements SocketEventHandler {
         );
         server().getRoomOperations(roomId).sendEvent("chatSend", client, response);
 
+    }
+
+    private void handleRemoveWord(SocketIOClient client, RemoveWordRequest data) {
+        String roomId = data.getRoomId();
+        String word = data.getWord();
+
+        GameRoom room = roomManager.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+        // 1. 낙하중인 리스트에서 단어 삭제
+        room.removeActiveWord(word);
+
+        // 2. 목숨 하나 삭제하고 남은 목숨 반환
+        int currentLife = room.loseLife();
+        RemoveWordResponse response = new RemoveWordResponse(
+                currentLife
+        );
+        server().getRoomOperations(roomId).sendEvent("lostLife", response);
+        // 3. 목숨이 0이면 게임 종료
+        if (currentLife <= 0 ) {
+            wordDropScheduler.cancel(roomId);
+            gameEndService.endGame(roomId,false);
+        }
     }
 
     public ConnectListener listenConnected() {
