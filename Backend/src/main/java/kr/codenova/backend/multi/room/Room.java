@@ -23,6 +23,8 @@ public class Room {
     private String roomCode;
 
     private String ownerNickname; // ✅ 방장 닉네임
+
+    @Builder.Default
     private Map<String, Boolean> userReadyStatus = new HashMap<>(); // ✅ 참가자 닉네임 → 준비 상태
 
 }
