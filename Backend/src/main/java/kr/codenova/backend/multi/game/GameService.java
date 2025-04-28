@@ -3,6 +3,7 @@ package kr.codenova.backend.multi.game;
 import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.common.entity.Code;
 import kr.codenova.backend.common.repository.CodeRepository;
+import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
 import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.multi.dto.broadcast.GameCountdownBroadcast;
@@ -30,8 +31,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GameService {
 
     private final RoomService roomService;
-    private final SocketIOServer server;
     private final CodeRepository codeRepository;
+
+    private SocketIOServer getServer() {
+        return SocketIOServerProvider.getServer();
+    }
 
     // 방 별로 완료한 유저들의 결과 저장
     private final Map<String, List<GameResultBroadcast.UserResultStatus>> finishedUserResults = new ConcurrentHashMap<>();
@@ -53,7 +57,7 @@ public class GameService {
         readyStatus.put(request.getNickname(), !current);
 
         ReadyGameBroadcast broadcast = buildReadyBroadcast(request.getRoomId());
-        server.getRoomOperations(request.getRoomId())
+        getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("ready_status_update", broadcast);
 
         // ✅ 모두 준비 완료됐는지 체크
@@ -61,7 +65,7 @@ public class GameService {
 
         if (allReady) {
             // ✅ 모두 준비 완료 -> ready_all 브로드캐스트
-            server.getRoomOperations(request.getRoomId())
+            getServer().getRoomOperations(request.getRoomId())
                     .sendEvent("ready_all", "모든 참가자가 준비를 완료했습니다!");
         }
     }
@@ -94,7 +98,7 @@ public class GameService {
                 "모두 준비되었습니다. 곧 시작합니다.",
                 3
         );
-        server.getRoomOperations(request.getRoomId())
+        getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("game_started", countdown);
 
         delayedTypingStart(request.getRoomId());
@@ -138,7 +142,7 @@ public class GameService {
                     LocalDateTime.now(),
                     getGameContent(room.getLanguage()) // 게임 본문 가져오기
             );
-            server.getRoomOperations(roomId)
+            getServer().getRoomOperations(roomId)
                     .sendEvent("typing_start", typingStart);
 
         } catch (InterruptedException e) {
@@ -149,7 +153,7 @@ public class GameService {
 
     // 6. 게임 진행률 업데이트
     public void updateProgress(ProgressUpdateRequest request) {
-        server.getRoomOperations(request.getRoomId())
+        getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("progress_update", request);
     }
 
@@ -159,7 +163,7 @@ public class GameService {
 
         if (isAllUsersFinished(request.getRoomId())) {
             GameResultBroadcast broadcast = summarizeGameResult(request.getRoomId());
-            server.getRoomOperations(request.getRoomId())
+            getServer().getRoomOperations(request.getRoomId())
                     .sendEvent("game_result", broadcast);
         }
     }
