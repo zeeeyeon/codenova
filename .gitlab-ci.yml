@@ -1,0 +1,63 @@
+stages:
+  - build
+  - push
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+
+before_script:
+  - echo "$SSH_KEY" > K12E103T.pem
+  - chmod 400 K12E103T.pem
+
+frontend-build-and-push:
+  stage: build
+  tags:
+    - deploy
+  only:
+    - develop
+  script:
+    - echo "ECR 로그인"
+    - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
+
+    - echo "프론트 빌드"
+    - docker build -t $ECR_FRONTEND_REPO:latest ./Front/codenova
+    - docker push $ECR_FRONTEND_REPO:latest
+
+backend-build-and-push:
+  stage: build
+  tags:
+    - deploy
+  only:
+    - develop-be
+  script:
+    - echo "ECR 로그인"
+    - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
+
+    - echo "백엔드 빌드"
+    - docker build -t $ECR_BACKEND_REPO:latest ./Backend
+    - docker push $ECR_BACKEND_REPO:latest
+
+deploy:
+  stage: deploy
+  tags:
+    - deploy
+  only:
+    - develop
+    - develop-be
+  script:
+    - echo "EC2 SSH 접속 후 Pull & Run"
+    - |
+      ssh -o StrictHostKeyChecking=no -i K12E103T.pem ubuntu@$EC2_HOST << EOF
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
+
+        docker pull $ECR_BACKEND_REPO:latest || true
+        docker pull $ECR_FRONTEND_REPO:latest || true
+
+        docker stop backend || true && docker rm backend || true
+        docker stop frontend || true && docker rm frontend || true
+
+        docker run -d --name backend -p 8080:8080 $ECR_BACKEND_REPO:latest || true
+        docker run -d --name frontend -p 3000:3000 $ECR_FRONTEND_REPO:latest || true
+      EOF
