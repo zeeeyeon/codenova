@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -22,6 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class WordDropScheduler {
     private final RoomManager roomManager;
     private final TaskScheduler taskScheduler;
+    private final GameEndService gameEndService;
     private SocketIOServer server() {
         return SocketIOServerProvider.getServer();
     }
@@ -40,6 +42,7 @@ public class WordDropScheduler {
         ScheduledFuture<?> spawnFuture = taskScheduler.scheduleAtFixedRate(() ->{
             String word = room.pollNextWord();
             if (word == null) {
+                gameEndService.endGame(roomId, true);
                 cancel(roomId);
                 return;
             }
