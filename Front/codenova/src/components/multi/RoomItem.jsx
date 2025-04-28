@@ -40,7 +40,7 @@ const RoomItem = ({ room, onEnterClick }) => {
           <button 
             className={`w-16 transition  hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] ${room.status !== "waiting" ? "opacity-50 cursor-not-allowed" : ""}`}
             disabled={room.status !== "waiting"}
-            onClick={() => onEnterClick(room)} // ✅ 클릭하면 room 넘김
+            onClick={() => onEnterClick(room)} // 클릭하면 room 넘김
           >
             <img src={room.status === "waiting" ? goRoomBtn : nogoRoomBtn} alt="go room" />
           </button>
