@@ -12,11 +12,11 @@ import java.util.List;
 
 public interface RoomService {
 
-    // 방 만들기
-    public void createRoom(CreateRoomRequest request, AckRequest ackSender);
-
     // 방 목록 조회
     public List<RoomListResponse> getRoomList();
+
+    // 방 만들기
+    public void createRoom(SocketIOClient client, CreateRoomRequest request, AckRequest ackSender);
 
     // 방 조회
     public Room getRoom(String roomId);

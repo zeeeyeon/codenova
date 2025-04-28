@@ -9,4 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LeaveRoomRequest {
     private String roomId;
+    private String nickname;
 }

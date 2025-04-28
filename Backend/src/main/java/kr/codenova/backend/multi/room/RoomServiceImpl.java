@@ -4,6 +4,7 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
+import kr.codenova.backend.multi.dto.broadcast.NoticeBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.RoomUpdateBroadcast;
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
 import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
@@ -33,7 +34,7 @@ public class RoomServiceImpl implements RoomService {
     }
 
     // 방 생성
-    public void createRoom(CreateRoomRequest request, AckRequest ackSender) {
+    public void createRoom(SocketIOClient client, CreateRoomRequest request, AckRequest ackSender) {
         String roomId = UUID.randomUUID().toString();
         String roomCode = request.getIsLocked() ? generatedRoomCode() : null;
 
@@ -42,7 +43,7 @@ public class RoomServiceImpl implements RoomService {
                 .roomTitle(request.getTitle())
                 .language(request.getLanguage())
                 .maxCount(request.getMaxNum())
-                .currentCount(0)
+                .currentCount(1)
                 .isLocked(request.getIsLocked())
                 .isStarted(false)
                 .roomCode(roomCode)
@@ -52,7 +53,11 @@ public class RoomServiceImpl implements RoomService {
 
         RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
         CreateRoomResponse response = new CreateRoomResponse(room);
-        // 응답으로 roomId 전달
+
+        // ✅ 클라이언트 방 입장시키기
+        client.joinRoom(roomId);
+
+        // 응답으로 roomId, roomCode 전달
         ackSender.sendAckData(response);
 
 
@@ -83,7 +88,7 @@ public class RoomServiceImpl implements RoomService {
         room.getUserReadyStatus().put(request.getNickname(), false);
         roomMap.put(room.getRoomId(), room);
 
-        // ✅ 입장 성공 시 클라이언트 방 조인
+        // ✅ 클라이언트 방 조인
         client.joinRoom(room.getRoomId());
 
         // ✅ 응답
@@ -92,6 +97,15 @@ public class RoomServiceImpl implements RoomService {
         // ✅ 방 정보 브로드캐스트
         RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
         getServer().getBroadcastOperations().sendEvent("room_updated", broadcast);
+
+        // ✅ [추가] 입장 알림 브로드캐스트
+        getServer().getRoomOperations(request.getRoomId()).sendEvent("join_notice",
+                new NoticeBroadcast(
+                        request.getRoomId(),
+                        request.getNickname(),
+                        request.getNickname() + "님이 입장했습니다."
+                )
+        );
     }
 
     // 전체 방 목록 조회
@@ -106,6 +120,15 @@ public class RoomServiceImpl implements RoomService {
             log.warn("존재하지 않는 방입니다: {}", request.getRoomId());
             return;
         }
+
+        // ✅ [추가] 퇴장 알림 브로드캐스트 (퇴장 전)
+        getServer().getRoomOperations(request.getRoomId()).sendEvent("leave_notice",
+                new NoticeBroadcast(
+                        request.getRoomId(),
+                        request.getNickname(),
+                        request.getNickname() + "님이 퇴장했습니다."
+                )
+        );
 
         // ✅ 현재 인원 감소
         room.setCurrentCount(Math.max(room.getCurrentCount() - 1, 0));
