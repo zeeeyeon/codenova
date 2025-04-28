@@ -7,11 +7,6 @@ plugins {
 group = 'kr.codenova'
 version = '0.0.1-SNAPSHOT'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
 
 repositories {
     mavenCentral()
@@ -36,7 +31,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
 
     // SOCKETIO -NETTY
-    implementation 'com.corundumstudio.socketio:netty-socketio:1.7.19'
+    implementation 'com.corundumstudio.socketio:netty-socketio:2.0.3'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'

@@ -16,4 +16,3 @@ public enum Language {
         return Arrays.stream(values()).anyMatch(language -> language.name().equalsIgnoreCase(input));
     }
 }
-
