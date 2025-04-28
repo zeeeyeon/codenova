@@ -69,7 +69,10 @@ public class SecurityConfig {
                             .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                             .requestMatchers(
                                     "/api/member/signup",
-                                    "/api/user/login")
+                                    "/api/member/login",
+                                    "/api/member/check-id/**",
+                                    "/api/member/check-nickname/**",
+                                    "/api/single/**")
                             .permitAll()
                             .anyRequest().authenticated();
 
