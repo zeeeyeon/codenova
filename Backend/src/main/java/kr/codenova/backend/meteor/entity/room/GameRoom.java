@@ -7,6 +7,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+
 @Getter
 public class GameRoom {
     private final String roomId;
@@ -22,6 +24,11 @@ public class GameRoom {
     private final List<String> activeFallingWords = new CopyOnWriteArrayList<>();
 
     private final Queue<String> fallingWords = new ConcurrentLinkedQueue<>();
+
+    // 팀 목숨 관리
+    private AtomicInteger life = new AtomicInteger();
+
+    private static final int INITIAL_LIVES = 5;
 
     public GameRoom(String roomId, boolean isPrivate, String roomCode, int maxPlayers, String hostSessionId) {
         this.roomId = roomId;
@@ -39,6 +46,7 @@ public class GameRoom {
             throw new IllegalStateException("플레이어가 모두 모이지 않았습니다.");
         }
         this.status = GameStatus.PLAYING;
+        this.life.set(INITIAL_LIVES);
     }
     public void addPlayer(UserInfo user) {
         if (isFull()) {
@@ -91,11 +99,26 @@ public class GameRoom {
     // 게임 시작 시 50단어를 큐에 담아두기
     public void initFallingwords(List<String> words) {
         fallingWords.clear();
-        fallingWords.addAll(words);
+        if (words != null) {
+            fallingWords.addAll(words);
+        }
     }
     // 다음에 떨어질 단어 하나를 꺼내기
     public String pollNextWord() {
         return fallingWords.poll();
     }
+    // 목숨 하나 삭제하고 남은 목숨 수 반환
+    public int loseLife(){
+        return life.decrementAndGet();
+    }
+    // 현재 남아 있는 목숨 수 반환
+    public int getLife() {
+        return life.get();
+    }
+    // 목숨이 0인지 확인
+    public boolean isGameOver() {
+        return life.get() <= 0;
+    }
+
 
 }

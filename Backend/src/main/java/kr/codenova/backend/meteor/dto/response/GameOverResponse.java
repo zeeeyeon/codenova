@@ -5,11 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class FallingWordResponse {
-    private String word;
-    private long fallDuration;
+public class GameOverResponse {
+    private boolean isSuccess;
+    private List<PlayerResult> results;
+
 }
