@@ -2,7 +2,7 @@ package kr.codenova.backend.global.config.socket;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.Transport;
-import kr.codenova.backend.multi.socket.SocketEventHandler;
+import kr.codenova.backend.global.socket.SocketEventHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
