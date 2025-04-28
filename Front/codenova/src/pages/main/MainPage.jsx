@@ -26,13 +26,13 @@ const MainPage = () => {
 
   return (
     <div
-      className="h-screen w-screen bg-cover bg-center"
+      className="h-screen w-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
       style={{ backgroundImage: `url(${multibg})` }}
     >
       <Header />
 
       {/* 보드 2개 (배틀모드 / 협력모드) */}
-      <div className="flex justify-center items-center gap-20 mt-12">
+      <div className="flex justify-center items-center gap-20 mt-44">
         {/* 배틀모드 박스 */}
         <div className="relative w-[24rem] h-[30rem] shadow-2xl rounded-2xl">
           <img src={boardImage} alt="Battle Mode Board" className="w-full h-full rounded-2xl" />
