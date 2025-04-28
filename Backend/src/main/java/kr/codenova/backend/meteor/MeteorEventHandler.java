@@ -15,7 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import kr.codenova.backend.meteor.entity.room.GameRoom;
 import kr.codenova.backend.meteor.entity.user.UserInfo;
-
+import kr.codenova.backend.global.socket.SocketEventHandler;
+import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -24,34 +25,36 @@ import java.util.UUID;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class MeteorEventHandler {
-    private final SocketIOServer server;
+public class MeteorEventHandler implements SocketEventHandler {
+
     private final RoomManager roomManager;
     private final WordService wordService;
 
+    private SocketIOServer server() {
+        return SocketIOServerProvider.getServer();
+    }
 
-
-    @PostConstruct
-    public void init() {
-        server.addConnectListener(listenConnected());
-        server.addDisconnectListener(listenDisconnected());
+    @Override
+    public void registerListeners(SocketIOServer server) {
+        server().addConnectListener(listenConnected());
+        server().addDisconnectListener(listenDisconnected());
 
         // 방 생성 이벤트
-        server.addEventListener("createRoom", CreateRoomRequest.class, (client, data, ack) -> handleCreateRoom(client, data));
+        server().addEventListener("createRoom", CreateRoomRequest.class, (client, data, ack) -> handleCreateRoom(client, data));
         // 방 참가 이벤트
-        server.addEventListener("joinSecretRoom", JoinSecretRoomRequest.class, (client, data, ack) -> handleJoinSecretRoom(client, data));
+        server().addEventListener("joinSecretRoom", JoinSecretRoomRequest.class, (client, data, ack) -> handleJoinSecretRoom(client, data));
         // 랜덤 매칭 이벤트
-        server.addEventListener("randomMatch", RandomMatchRequest.class, (client, data, ack) -> handleRandomMatch(client, data));
+        server().addEventListener("randomMatch", RandomMatchRequest.class, (client, data, ack) -> handleRandomMatch(client, data));
         // 게임 시작 이벤트
-        server.addEventListener("startGame", StartGameRequest.class, (client, data, ack) -> handleGameStart(client, data));
+        server().addEventListener("startGame", StartGameRequest.class, (client, data, ack) -> handleGameStart(client, data));
         // 대기방 나가기 이벤트
-        server.addEventListener("exitRoom", ExitRoomRequest.class, (client, data, ack) -> handleExitRoom(client, data));
+        server().addEventListener("exitRoom", ExitRoomRequest.class, (client, data, ack) -> handleExitRoom(client, data));
         // 실시간 입력 텍스트 전송 이벤트
-        server.addEventListener("inputText", InputTextRequest.class, (client, data, ack) -> handleInputText(client, data));
+        server().addEventListener("inputText", InputTextRequest.class, (client, data, ack) -> handleInputText(client, data));
         // 낙하하는 단어 등록 이벤트
-        server.addEventListener("fallingWord", FallingWordRequest.class, (client, data, ack) -> handleFallingWord(client, data));
+        server().addEventListener("fallingWord", FallingWordRequest.class, (client, data, ack) -> handleFallingWord(client, data));
         // 단어 정답 확인 이벤트
-        server.addEventListener("checkText", InputTextRequest.class, (client, data, ack) -> handleCheckText(client, data));
+        server().addEventListener("checkText", InputTextRequest.class, (client, data, ack) -> handleCheckText(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
@@ -134,7 +137,7 @@ public class MeteorEventHandler {
         client.sendEvent("secretRoomJoin", new JoinRoomResponse(room.getRoomId(), room.getPlayers()));
 
         // 2. 같은 방에 있는 다른 유저에게 알림
-        server.getRoomOperations(room.getRoomId()).sendEvent("newUserJoined", client,newUser);
+        server().getRoomOperations(room.getRoomId()).sendEvent("newUserJoined", client,newUser);
     }
 
 
@@ -170,7 +173,7 @@ public class MeteorEventHandler {
                 return;
             }
             // 4️ 브로드캐스트
-            server.getRoomOperations(room.getRoomId())
+            server().getRoomOperations(room.getRoomId())
                     .sendEvent("newUserJoined", client ,user);
         }
 
@@ -221,7 +224,7 @@ public class MeteorEventHandler {
                 .message("게임이 시작되었습니다.")
                 .build();
 
-        server.getRoomOperations(roomId)
+        server().getRoomOperations(roomId)
                 .sendEvent("gameStart", resp);
 
 
@@ -259,7 +262,7 @@ public class MeteorEventHandler {
                 newHost,
                 room.getPlayers()
         );
-        server.getRoomOperations(roomId)
+        server().getRoomOperations(roomId)
                 .sendEvent("roomExit", response);
 
         // 나간 유저에게도 응답이 필요하면 추가
@@ -295,7 +298,7 @@ public class MeteorEventHandler {
         }
         if (roomId != null) {
             // 해당 방에 이벤트 브로드캐스트
-            server.getRoomOperations(roomId)
+            server().getRoomOperations(roomId)
                     .sendEvent("textInput", client, response);
         } else {
             log.warn("handleInputText: 클라이언트가 어느 방에도 속해있지 않습니다. sessionId={}", client.getSessionId());
@@ -329,7 +332,7 @@ public class MeteorEventHandler {
         room.addActiveWord(word);
         FallingWordResponse response = new FallingWordResponse(word);
 
-        server.getRoomOperations(roomId).sendEvent("wordFalling", response);
+        server().getRoomOperations(roomId).sendEvent("wordFalling", response);
 
     }
 
@@ -369,7 +372,7 @@ public class MeteorEventHandler {
                 isCorrect,
                 updatedScore
         );
-        server.getRoomOperations(roomId).sendEvent("textCheck", response);
+        server().getRoomOperations(roomId).sendEvent("textCheck", response);
 
 
     }
@@ -392,4 +395,6 @@ public class MeteorEventHandler {
     private String generateRoomCode() {
         return UUID.randomUUID().toString().substring(0, 6).toUpperCase();
     }
+
+
 }

@@ -1,7 +1,7 @@
 package kr.codenova.backend.meteor.service.impl;
 
 import kr.codenova.backend.meteor.service.WordService;
-import kr.codenova.backend.meteor.repository.CsRepository;
+import kr.codenova.backend.common.repository.CsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;

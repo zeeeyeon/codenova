@@ -40,6 +40,9 @@ public class SocketConfig {
 
         SocketIOServer server = new SocketIOServer(config);
 
+        // ✅ 서버 생성 후 Provider에 등록
+        SocketIOServerProvider.setServer(server);
+
         // ✅ 모든 핸들러 리스너 등록
         for (SocketEventHandler handler : socketEventHandlers) {
             handler.registerListeners(server);
