@@ -1,4 +1,5 @@
-import { useParams, useLocation } from "react-router-dom"; // 라우터의 파라미터 읽어오기
+import { useParams, useLocation, useNavigate } from "react-router-dom"; // 라우터의 파라미터 읽어오기
+import {useState} from "react";
 import multiBg from "../../assets/images/multi_background.png";
 import boardBg from "../../assets/images/board1.jpg";
 import lockImg from "../../assets/images/black_lock_icon.png";
@@ -6,18 +7,26 @@ import unlockImg from "../../assets/images/black_unlock_icon.png";
 import RoomUserList from "../../components/multi/waiting/RoomUserList";
 import Header from "../../components/common/Header";
 import RoomChatBox from "../../components/multi/waiting/RoomChatBox";
+import RoomInfoPanel from "../../components/multi/waiting/RoomInfoPanel";
 
 const RoomWaitingPage = () => {
     const {roomId} = useParams(); // url에 담긴 roomId 읽어오기
     const {state} = useLocation();  // navigate할때 보낸 데이터
+    const navigate = useNavigate();
+    const [isReady, setIsReady] = useState(false); 
+
+    const handleLeaveRoom = () => {
+        navigate("/multi"); // multi 페이지로 이동
+      };
 
     const {
         roomTitle,
         isPublic,
         language,
         currentPeople,
-        standardPeople
-      } = state || {};  // state가 없을 수도 있으니까 안전하게
+        standardPeople,
+        roomCode
+      } = state || {}; 
 
       const dummyUsers = [
         { slot: 1, nickname: "동현갈비", profileImage: "url1", typing: "???타수", isReady: true },
@@ -57,6 +66,16 @@ const RoomWaitingPage = () => {
   {/* 채팅박스 */}
   <div className="w-[90%] flex justify-start items-start gap-6 z-10 pl-6">
     <RoomChatBox />
+    <RoomInfoPanel 
+        isPublic={isPublic} 
+        roomTitle={roomTitle} 
+        language={language} 
+        currentPeople={currentPeople} 
+        standardPeople={standardPeople}
+        roomCode={roomCode}
+        onLeave={handleLeaveRoom}
+        isReady={isReady}
+        onReady={() => setIsReady(prev => !prev)} />
   </div>
         </div>
         </div>
