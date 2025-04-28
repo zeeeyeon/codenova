@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import MeteoBg from "../../assets/images/meteo_bg.png"
 import Header from "../../components/common/Header"
 import MeteoBoard from "../../assets/images/board1.jpg"
@@ -8,6 +8,7 @@ import Profile1 from "../../assets/images/profile1.png"
 import Profile2 from "../../assets/images/profile2.png"
 import Profile3 from "../../assets/images/profile3.png"
 import Profile4 from "../../assets/images/profile4.png"
+import socket from "../../sockets/socketClient"
 
 const MeteoLandingPage = () => {
     const location = useLocation();
@@ -15,20 +16,56 @@ const MeteoLandingPage = () => {
     const navigate = useNavigate();
 
     const profileImages = [Profile1, Profile2, Profile3, Profile4];
-    useEffect(() => {
-        if (!roomCode) {
-            alert("방코드가 없습니다.");
-            navigate("/meteo/main");
-        }
-    }, [roomCode, navigate]);
 
-    // 일단 임시로 users 배열 준비 (나중에 소켓으로 받을 거야)
-    const users = [
-        { nickname: "가람" },
-        { nickname: "동현갈비" },
-        { nickname: "TIMMY이지연" },
-        null, // 4번 슬롯은 비어있음
-    ];
+    useEffect(() => {
+    if (!roomCode) {
+        alert("방코드가 없습니다.");
+        navigate("/meteo/main");
+    }
+
+    if (location.state?.players) {
+        const players = location.state.players;
+        const newUsers = Array(4).fill(null);
+        players.forEach((player, idx) => {
+        if (idx < 4) {
+            newUsers[idx] = { nickname: player.nickname };
+        }
+        });
+        setUsers(newUsers);
+    }
+
+    // 방 처음 진입했을 때
+    socket.once("secretRoomJoin", (roomData) => {
+        console.log("🛰️ [secretRoomJoin 수신]", roomData);
+        const newUsers = Array(4).fill(null);
+        roomData.players.forEach((player, idx) => {
+        if (idx < 4) {
+            newUsers[idx] = { nickname: player.nickname };
+        }
+        });
+        setUsers(newUsers);
+    });
+
+    // 다른 사람이 새로 들어올 때
+    socket.on("JoinSecretRoomBroadcast", (roomData) => {
+        console.log("🛰️ [JoinSecretRoomBroadcast 수신]", roomData);
+        const newUsers = Array(4).fill(null);
+        roomData.players.forEach((player, idx) => {
+        if (idx < 4) {
+            newUsers[idx] = { nickname: player.nickname };
+        }
+        });
+        setUsers(newUsers);
+    });
+
+    return () => {
+        socket.off("JoinSecretRoomBroadcast");
+    };
+    }, [roomCode, navigate, location.state]);
+
+
+    // user 실시간 업뎃 배열
+    const [users, setUsers] = useState([null, null, null, null]);
 
     return (
         <div
@@ -46,30 +83,26 @@ const MeteoLandingPage = () => {
 
 
         <div className="absolute top-[15%] grid grid-cols-4 gap-9 z-10">
-        {Array(4).fill(0).map((_, idx) => (
+        {users.map((user, idx) => (
             <div key={idx} className="relative w-48 h-auto">
-            {/* 🖼 UserBoard 이미지 */}
             <img
                 src={UserBoard}
                 alt={`user-board-${idx}`}
                 className="w-full h-auto rounded-xl shadow-md"
             />
 
-            {/* 🔥 No.1 텍스트 (이미지 위에 고정) */}
             <div className="absolute top-1 left-1/2 transform -translate-x-1/2 text-black text-xl">
                 No.{idx + 1}
             </div>
 
-            {/* 🌟 유저 프로필 이미지 (고정) */}
             <img
-            src={profileImages[idx]}   // 여기가 포인트!
-            alt={`user-profile-${idx}`}
-            className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto"
+                src={profileImages[idx]}
+                alt={`user-profile-${idx}`}
+                className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto"
             />
 
-            {/* 🔥 닉네임 (이미지 위에 고정) */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-m">
-                {users[idx] ? users[idx].nickname : "-"}
+                {user ? user.nickname : "-"}
             </div>
             </div>
         ))}
@@ -90,8 +123,8 @@ const MeteoLandingPage = () => {
                     className="w-[10rem] h-[8rem] border-4 rounded-xl flex flex-col items-center justify-center text-white text-2xl"
                     style={{ borderColor: "#01FFFE" }}
                 >
-                <p className="text-xl mb-1">방코드</p> {/* 위에 설명글 작게 */}
-                <p className="text-3xl">{roomCode ? roomCode : "없음"}</p> {/* 아래 진짜 코드 크게 */}
+                <p className="text-xl mb-1">방코드</p> 
+                <p className="text-3xl">{roomCode ? roomCode : "없음"}</p> 
                 </div>
 
                 <div
