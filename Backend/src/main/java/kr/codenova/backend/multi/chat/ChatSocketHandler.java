@@ -4,7 +4,7 @@ import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.multi.dto.broadcast.SendChatBroadcast;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
 import kr.codenova.backend.multi.room.RoomService;
-import kr.codenova.backend.multi.socket.SocketEventHandler;
+import kr.codenova.backend.global.socket.SocketEventHandler;
 import kr.codenova.backend.multi.dto.request.SendChatRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
