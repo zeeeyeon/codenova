@@ -1,17 +1,11 @@
 package kr.codenova.backend.multi.game;
 
 import com.corundumstudio.socketio.SocketIOServer;
-import kr.codenova.backend.multi.dto.broadcast.GameResultBroadcast;
 import kr.codenova.backend.multi.dto.request.*;
-import kr.codenova.backend.multi.dto.broadcast.GameCountdownBroadcast;
-import kr.codenova.backend.multi.dto.broadcast.ReadyGameBroadcast;
-import kr.codenova.backend.multi.dto.broadcast.TypingStartBroadcast;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
-import kr.codenova.backend.multi.socket.SocketEventHandler;
+import kr.codenova.backend.global.socket.SocketEventHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor

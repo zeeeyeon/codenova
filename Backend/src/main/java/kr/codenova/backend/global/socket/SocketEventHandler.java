@@ -1,4 +1,4 @@
-package kr.codenova.backend.multi.socket;
+package kr.codenova.backend.global.socket;
 
 import com.corundumstudio.socketio.SocketIOServer;
 
