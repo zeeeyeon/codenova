@@ -1,7 +1,15 @@
 package kr.codenova.backend.multi.room;
 
+import com.corundumstudio.socketio.AckRequest;
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIOServer;
+import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
+import kr.codenova.backend.multi.dto.broadcast.RoomUpdateBroadcast;
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
 import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
+import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
+import kr.codenova.backend.multi.dto.response.CreateRoomResponse;
+import kr.codenova.backend.multi.dto.response.RoomListResponse;
 import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import org.slf4j.Logger;
@@ -9,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,9 +28,12 @@ public class RoomServiceImpl implements RoomService {
     private final Map<String, Room> roomMap = new ConcurrentHashMap<>();
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private SocketIOServer getServer() {
+        return SocketIOServerProvider.getServer();
+    }
 
     // 방 생성
-    public Room createRoom(CreateRoomRequest request) {
+    public void createRoom(CreateRoomRequest request, AckRequest ackSender) {
         String roomId = UUID.randomUUID().toString();
         String roomCode = request.getIsLocked() ? generatedRoomCode() : null;
 
@@ -36,9 +48,19 @@ public class RoomServiceImpl implements RoomService {
                 .roomCode(roomCode)
                 .build();
 
+        log.info("방 생성 : " + room.toString());
+
+        RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
+        CreateRoomResponse response = new CreateRoomResponse(room);
+        // 응답으로 roomId 전달
+        ackSender.sendAckData(response);
+
+
         room.setOwnerNickname(request.getNickname());
         roomMap.put(roomId, room);
-        return room;
+
+        log.info("방 생성 : " + request.getTitle());
+        getServer().getBroadcastOperations().sendEvent("room_update", broadcast);
     }
 
     // 방 조회
@@ -47,34 +69,29 @@ public class RoomServiceImpl implements RoomService {
     }
 
     // 방 입장
-    public Room joinRoom(JoinRoomRequest request) {
-        // 1. 방 조회
+    public void joinRoom(JoinRoomRequest request, SocketIOClient client, AckRequest ackSender) {
         Room room = roomMap.get(request.getRoomId());
-        if(room == null) {
+        if (room == null) {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
 
-        // 2. 최대 인원 체크
         if (room.getCurrentCount() >= room.getMaxCount()) {
             throw new RoomFullException("방이 가득 찼습니다.");
         }
 
-        // 3. 입장 처리 (currentCount 증가)
         room.setCurrentCount(room.getCurrentCount() + 1);
-
-        // 입장하면 userReadtStatus에 추가
         room.getUserReadyStatus().put(request.getNickname(), false);
-
-        // 4. (필요시) room 객체 업데이트
         roomMap.put(room.getRoomId(), room);
 
-        return room;
-    }
+        // ✅ 입장 성공 시 클라이언트 방 조인
+        client.joinRoom(room.getRoomId());
 
-    // 빈 방 확인하기
-    public Boolean isRoomEmpty(String roomId) {
-        Room room = roomMap.get(roomId);
-        return room != null && room.getCurrentCount() <= 0;
+        // ✅ 응답
+        ackSender.sendAckData("joined");
+
+        // ✅ 방 정보 브로드캐스트
+        RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
+        getServer().getBroadcastOperations().sendEvent("room_updated", broadcast);
     }
 
     // 전체 방 목록 조회
@@ -83,19 +100,26 @@ public class RoomServiceImpl implements RoomService {
     }
 
     // 방 퇴장
-    public void leaveRoom(String roomId) {
-        Room room = roomMap.get(roomId);
+    public void leaveRoom(LeaveRoomRequest request, SocketIOClient client) {
+        Room room = roomMap.get(request.getRoomId());
         if (room == null) {
-            log.warn("존재하지 않는 방입니다: {}", roomId);
+            log.warn("존재하지 않는 방입니다: {}", request.getRoomId());
             return;
         }
 
-        // 현재 인원 감소 (음수 방지)
+        // ✅ 현재 인원 감소
         room.setCurrentCount(Math.max(room.getCurrentCount() - 1, 0));
 
-        // 인원이 0명이면 방 삭제
+        // ✅ 클라이언트 방 나가기
+        client.leaveRoom(request.getRoomId());
+
+        // ✅ 방 삭제 or 업데이트 브로드캐스트
         if (room.getCurrentCount() == 0) {
-            roomMap.remove(roomId);
+            roomMap.remove(request.getRoomId());
+            getServer().getBroadcastOperations().sendEvent("room_removed", request.getRoomId());
+        } else {
+            RoomUpdateBroadcast updated = RoomUpdateBroadcast.from(room);
+            getServer().getBroadcastOperations().sendEvent("room_update", updated);
         }
     }
 
@@ -108,4 +132,18 @@ public class RoomServiceImpl implements RoomService {
         return room != null && room.getCurrentCount() > 0;
     }
 
+    public List<RoomListResponse> getRoomList() {
+        Collection<Room> rooms = getAllRooms();
+         return rooms.stream()
+                .map(room -> new RoomListResponse(
+                        room.getRoomId(),
+                        room.getRoomTitle(),
+                        room.getCurrentCount(),
+                        room.getMaxCount(),
+                        room.getLanguage(),
+                        room.getIsLocked(),
+                        room.getIsStarted()))
+                .toList();
+
+    }
 }
