@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class FallingWordRequest {
-    private String roomId;
+public class RemoveWordRequest {
     private String word;
+    private String roomId;
 }

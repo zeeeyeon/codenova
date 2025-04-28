@@ -9,7 +9,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class FallingWordResponse {
-    private String word;
-    private long fallDuration;
+public class RemoveWordResponse {
+    private Integer lifesLeft;
 }

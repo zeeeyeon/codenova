@@ -8,7 +8,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class WordServceImpi implements WordService {
+public class WordServceImpl implements WordService {
     private final CsRepository csRepository;
 
     @Override
