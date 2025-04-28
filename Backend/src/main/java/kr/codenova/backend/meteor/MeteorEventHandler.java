@@ -6,6 +6,7 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import jakarta.annotation.PostConstruct;
 import kr.codenova.backend.meteor.dto.request.*;
+import kr.codenova.backend.meteor.dto.request.CreateRoomRequest;
 import kr.codenova.backend.meteor.dto.response.*;
 import kr.codenova.backend.meteor.service.WordService;
 import kr.codenova.backend.meteor.entity.room.GameStatus;
@@ -52,8 +53,6 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().addEventListener("exitRoom", ExitRoomRequest.class, (client, data, ack) -> handleExitRoom(client, data));
         // 실시간 입력 텍스트 전송 이벤트
         server().addEventListener("inputText", InputTextRequest.class, (client, data, ack) -> handleInputText(client, data));
-        // 낙하하는 단어 등록 이벤트
-        server().addEventListener("fallingWord", FallingWordRequest.class, (client, data, ack) -> handleFallingWord(client, data));
         // 단어 정답 확인 이벤트
         server().addEventListener("checkText", InputTextRequest.class, (client, data, ack) -> handleCheckText(client, data));
         // 채팅 이벤트
@@ -136,11 +135,9 @@ public class MeteorEventHandler implements SocketEventHandler {
         UserInfo newUser = new UserInfo(client.getSessionId().toString(), nickname);
         room.addPlayer(newUser);
 
-        // 1. 본인에게 입장 성공 응답
-        client.sendEvent("secretRoomJoin", new JoinRoomResponse(room.getRoomId(), room.getPlayers()));
+        // 전체 사용자에게 방에 있는 사용자 리스트 브로드캐스트
+        server().getRoomOperations(room.getRoomId()).sendEvent("secretRoomJoin", new JoinRoomResponse(room.getRoomId(), room.getPlayers()));
 
-        // 2. 같은 방에 있는 다른 유저에게 알림
-        server().getRoomOperations(room.getRoomId()).sendEvent("newUserJoined", client,newUser);
     }
 
 
@@ -175,15 +172,13 @@ public class MeteorEventHandler implements SocketEventHandler {
                         new ErrorResponse("ROOM_FULL", "방이 가득 차서 입장할 수 없습니다."));
                 return;
             }
-            // 4️ 브로드캐스트
-            server().getRoomOperations(room.getRoomId())
-                    .sendEvent("newUserJoined", client ,user);
         }
 
-        // 5️ 최종 응답
+        // 5️ 방에 있는 사람들에게 사용자 리스트 브로드캐스트
         RandomMatchResponse resp =
                 new RandomMatchResponse(room.getRoomId(), isHost, room.getPlayers());
-        client.sendEvent("matchRandom", resp);
+        server().getRoomOperations(room.getRoomId()).sendEvent("matchRandom", resp);
+
     }
 
     private void handleGameStart(SocketIOClient client, StartGameRequest data) {
@@ -216,7 +211,7 @@ public class MeteorEventHandler implements SocketEventHandler {
 
         // 3️ 단어 리스트 조회
         List<String> fallingWords = wordService.getRandomWords();
-
+        room.initFallingwords(fallingWords);
         room.start();
 
         // 4️ 모든 사용자에게 게임 시작 알림
@@ -230,7 +225,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().getRoomOperations(roomId)
                 .sendEvent("gameStart", resp);
 
-
+        // 일정 시간 마다 다음 단어를 꺼내서 푸시
     }
 
     private void handleExitRoom(SocketIOClient client, ExitRoomRequest data) {
@@ -308,36 +303,6 @@ public class MeteorEventHandler implements SocketEventHandler {
         }
     }
 
-    private void handleFallingWord(SocketIOClient client, FallingWordRequest data) {
-        String word = data.getWord();
-//        String sessionId = client.getSessionId().toString();
-        String roomId = data.getRoomId();
-
-        // 방 ID 찾기
-//        String roomId = client.getAllRooms().stream()
-//                .filter(r -> !r.equals(sessionId))
-//                .findFirst()
-//                .orElse(null);
-//        if (roomId == null){
-//            log.warn("handleInputText: 클라이언트가 어느 방에도 속하지 않았습니다. sessionId={}", sessionId);
-//            return;
-//        }
-
-
-        GameRoom room = roomManager.findById(roomId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
-
-        if (room.getStatus() != GameStatus.PLAYING) {
-            return;
-        }
-
-        // 낙하하는 단어 리스트에 추가
-        room.addActiveWord(word);
-        FallingWordResponse response = new FallingWordResponse(word);
-
-        server().getRoomOperations(roomId).sendEvent("wordFalling", response);
-
-    }
 
     private void handleCheckText(SocketIOClient client, InputTextRequest data) {
         String text = data.getText();
