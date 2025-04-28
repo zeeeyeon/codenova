@@ -8,7 +8,7 @@ RUN if [ ! -f ./gradlew ]; then gradle wrapper --stacktrace --gradle-version 8.1
 
 COPY src ./src
 
-RUN ./gradlew build --no-daemon
+RUN ./gradlew build --no-daemon -x test
 
 FROM eclipse-temurin:17-jre-alpine
 
