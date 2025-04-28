@@ -17,5 +17,8 @@ public class StartGameResponse {
     private String roomId;
     private List<UserInfo> players;
     private List<String> fallingWords;
+    private int initialLives;
+    private long initialDropInterval; // 새로운 단어 스폰 간격(밀리초 단위)
+    private long initialFallDuration; // 한 단어가 바닥까지 도달하는게 걸리는 시간
     private String message;
 }

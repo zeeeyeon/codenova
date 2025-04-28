@@ -11,4 +11,5 @@ import lombok.Setter;
 @NoArgsConstructor
 public class FallingWordResponse {
     private String word;
+    private long fallDuration;
 }
