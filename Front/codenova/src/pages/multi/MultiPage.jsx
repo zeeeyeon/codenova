@@ -36,6 +36,7 @@ const MultiPage = () => {
           language: selectedRoom.language,
           currentPeople: selectedRoom.currentPeople,
           standardPeople: selectedRoom.standardPeople,
+          
         },
       });  
     } else {
@@ -47,6 +48,7 @@ const MultiPage = () => {
           language: selectedRoom.language,
           currentPeople: selectedRoom.currentPeople,
           standardPeople: selectedRoom.standardPeople,
+          roomCode: selectedRoom.roomCode,
         },});  
     }
     setSelectedRoom(null);
