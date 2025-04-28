@@ -4,6 +4,7 @@ import kr.codenova.backend.meteor.entity.room.GameRoom;
 import kr.codenova.backend.meteor.entity.user.UserInfo;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +27,9 @@ public class RoomManager {
         if (room != null && room.getRoomCode() != null) {
             roomsByCode.remove(room.getRoomCode());
         }
+    }
+    public Collection<GameRoom> findAllRooms() {
+        return roomsById.values();
     }
 
     public Optional<GameRoom> findByCode(String roomCode) {
