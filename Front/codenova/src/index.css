@@ -42,3 +42,8 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #7DEAFD;
 }
+
+pre {
+  font-size: 17px; /* 조금만 키우기 */
+  line-height: 1.6; /* 줄간격도 약간 */
+}
