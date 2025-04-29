@@ -16,6 +16,8 @@ import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import kr.codenova.backend.multi.room.Room;
 import kr.codenova.backend.multi.room.RoomService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +31,8 @@ public class GameServiceImpl implements GameService {
 
     private final RoomService roomService;
     private final CodeRepository codeRepository;
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private SocketIOServer getServer() {
         return SocketIOServerProvider.getServer();
@@ -133,12 +137,15 @@ public class GameServiceImpl implements GameService {
             if (room == null) {
                 return; // ✅ 3초 대기하는 동안 방이 없어졌으면 아무것도 안 함
             }
+            log.info("roomId : " + roomId);
 
             TypingStartBroadcast typingStart = new TypingStartBroadcast(
                     roomId,
                     LocalDateTime.now(),
                     getGameContent(room.getLanguage()) // 게임 본문 가져오기
             );
+            log.info("typingStart : " + typingStart);
+
             getServer().getRoomOperations(roomId)
                     .sendEvent("typing_start", typingStart);
 

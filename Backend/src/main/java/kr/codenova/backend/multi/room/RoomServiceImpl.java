@@ -54,6 +54,8 @@ public class RoomServiceImpl implements RoomService {
         RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
         CreateRoomResponse response = new CreateRoomResponse(room);
 
+        room.getUserReadyStatus().put(request.getNickname(), false);
+
         // ✅ 클라이언트 방 입장시키기
         client.joinRoom(roomId);
 
