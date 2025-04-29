@@ -45,18 +45,13 @@ const MeteoLandingPage = () => {
     if (!roomCode || !roomId || !players || players.length === 0 || !nickname || !socket) {
       console.warn("❗ 방 정보 없음 또는 소켓 없음 → 메인으로 이동");
   
-      // 소켓 끊기
-      if (socket) {
-        socket.disconnect();
-      }
-  
       // localStorage 정리
       localStorage.removeItem("meteoRoomCode");
       localStorage.removeItem("meteoRoomId");
   
       // 메인 페이지로 이동
       navigate("/main");
-      return; // ❗❗ 여기서 return해서 아래 코드 안타게 해야 함
+      return; 
     }
 
     // 처음 입장했을 때 players가 있다면 users 설정
