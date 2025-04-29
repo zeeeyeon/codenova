@@ -1,11 +1,6 @@
 import backgroundImg from '../../assets/images/single_background.jpg'
 import box from '../../assets/images/board1.jpg'
 import logo from '../../assets/images/logo.png'
-import pythonImg from '../../assets/images/python.png'
-import javaImg from '../../assets/images/Java.png'
-import cImg from '../../assets/images/C.png'
-import csImg from '../../assets/images/CS.png'
-import sqlImg from '../../assets/images/SQL.png'
 import Keyboard from '../../components/keyboard/Keyboard'
 import Header from "../../components/common/Header"
 
@@ -21,9 +16,9 @@ import python from 'highlight.js/lib/languages/python';
 import sql from 'highlight.js/lib/languages/sql';
 import 'highlight.js/styles/atom-one-dark.css';
 import '../../styles/single/SinglePage.css';
+import ProgressBox from '../../components/single/ProgressBox'
 
-import { calculateWPM, calculateCPM, getSpeedProgress, getProgress } from '../../utils/typingUtils';
-import { formatTime } from '../../utils/formatTimeUtils'
+import { calculateCPM, getProgress } from '../../utils/typingUtils';
 import FinishPage from '../single/modal/FinishPage';
 
 // 등록
@@ -51,8 +46,6 @@ const SinglePage = () => {
     const inputAreaRef = useRef(null);
     const [isFocused, setIsFocused] = useState(false);
 
-    // 언어별 캐릭터 이미지
-    const [langImg, setLangImg] = useState(null) 
 
     // 시간 및 달성률 상태관리
     const [startTime, setStartTime] = useState(null);
@@ -89,7 +82,6 @@ const SinglePage = () => {
 
     useEffect(() => {
         if (lang) {
-            getLangImg(lang);
             authApi.get('/api/single/code', {params: {language: lang.toUpperCase()}})
                 .then(res => {
                     console.log("api 결과", res.data)
@@ -187,14 +179,6 @@ const SinglePage = () => {
         else if (key === 'Backspace') //백스페이스 누르면 지우기
             setCurrentInput((prev) => prev.slice(0,-1));
     };
-
-    const getLangImg = (lang) => {
-        if (lang === "java") setLangImg(javaImg);
-        else if (lang === "python") setLangImg(pythonImg);
-        else if (lang === "c") setLangImg(cImg);
-        else if (lang === "sql") setLangImg(sqlImg);
-        else setLangImg(csImg);
-    }
 
     useEffect(() => {
         let timer;
@@ -356,77 +340,11 @@ const SinglePage = () => {
                     </div>
 
                     {/* 오른쪽 콘텐츠 박스 */}
-                    <div className="w-[20%] max-h-full border-4 rounded-xl text-white text-center p-2 "
-                        style={{
-                            borderColor: '#51E2F5'
-                        }}
-                    >
-                        {/* 캐릭터 */}
-                        <div className="w-full flex flex-col items-center gap-3 text-white text-center">
-
-                            <img 
-                                src={langImg}
-                                alt="캐릭터"
-                                className="w-full rounded-xl border-2"
-                                style={{ borderColor : '#51E2F5'}} 
-                            />
-                        </div>
-
-                        {/* 시간 */}
-                        <div className="text-2xl mt-2 font-bold">시간</div>
-                        <div className="w-full py-2 rounded-xl border-2 text-2xl"
-                            style={{ borderColor: "#51E2F5"}}    
-                        >
-                            {formatTime(elapsedTime)}
-                        </div>
-
-                        {/* 타수 */}
-                        {/* <div className="text-2xl mt-2 font-bold">타수</div>
-                        <div className="w-full py-2 rounded-xl border-2 font-bold text-2xl"
-                            style={{ borderColor: "#51E2F5"}}    
-                        >
-                            {cpm}
-                        </div> */}
-
-                        <div className="w-full py-2 text-2xl mt-4"
-                            style={{ borderColor: "#51E2F5"}}    
-                        >
-                            타수 : {cpm}
-                        </div>
-
-                        {/* 기본 흐릿한 배경 */}
-                        <div className="w-full h-4 rounded-md"
-                            style={{
-                                background: `linear-gradient(
-                                    to right,
-                                    rgba(81, 226, 245, 1) ${getSpeedProgress(cpm)}%, 
-                                    rgba(81, 226, 245, 0.3) ${getSpeedProgress(cpm)}%
-                                  )`,
-                                  transition: 'background 0.3s ease',
-                                  borderColor: '#51E2F5'
-                            }}
-                        />
-
-                        {/* 진행률 바 */}
-                        <div className="w-full h-8 rounded-xl overflow-hidden mt-8 border-2"
-                            style={{ 
-                                borderColor: '#51E2F5'
-                                
-                            }}
-                        >
-                            <div className="w-full h-full"
-                                style={{ 
-                                    borderColor: "#51E2F5",
-                                    backgroundColor: "#51E2F5",
-                                    width: `${progress}%`
-                                }}
-                            >
-                            </div>
-                        </div>
-                        
-                        <div className="text-2xl w-full mt-4">진행률: {progress}%</div>
-
-                    </div>
+                    <ProgressBox 
+                        lang={lang}
+                        elapsedTime={elapsedTime}
+                        cpm={cpm} 
+                        progress={progress} />
                 </div>
             </div>
 
