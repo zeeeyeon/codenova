@@ -1,4 +1,4 @@
-package kr.codenova.backend.multi.dto.request;
+package kr.codenova.backend.multi.dto.broadcast;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LeaveRoomRequest {
+public class ChangeHostBroadcast {
     private String roomId;
-    private String nickname;
+    private String newHostNickname;
 }

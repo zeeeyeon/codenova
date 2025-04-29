@@ -17,7 +17,7 @@ public class RoomUpdateBroadcast {
     private Integer maxCount;
     private Integer currentCount;
     private String language;
-    private boolean isStarted; // "waiting", "playing"
+    private Boolean isStarted;
     private Boolean isLocked; // true = 비공개, false = 공개
 
     public static RoomUpdateBroadcast from(Room room) {
