@@ -11,6 +11,7 @@ const TypingBox = ({ elapsedTime, onFinish }) => {
         }
       }, 1000);`;
 
+  const inputRef = useRef(null);
 
   const lines = targetCode.split("\n"); // 줄 단위로 분리
   const [currentLine, setCurrentLine] = useState(0);  // 현재 타이핑해야할 인덱스
@@ -25,7 +26,13 @@ const TypingBox = ({ elapsedTime, onFinish }) => {
 
   const isCorrect = trimmedCurrentLine.startsWith(trimmedUserInput); // 현재 입력 맞게 입력되고있는지(줄 앞 공백 무시시)
 
-
+  
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus(); // 자동 포커스
+    }
+  }, []);
+  
   // 사용자 입력값 업뎃
   const handleInputChange = (e) => {
     // if (!gameStarted) return;  // 게임 시작 전 입력 막기
@@ -55,6 +62,12 @@ const TypingBox = ({ elapsedTime, onFinish }) => {
     }
   }, [currentLine]);
 
+  const minutes = Math.floor(elapsedTime / 60000);
+  const seconds = Math.floor((elapsedTime % 60000) / 1000);
+  const milliseconds = Math.floor((elapsedTime % 1000));
+
+  const elapsedTimeFormatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(3, '0')}`;
+
 
 
 
@@ -72,17 +85,17 @@ const TypingBox = ({ elapsedTime, onFinish }) => {
         className="flex-1 min-h-[125px] overflow-y-auto custom-scrollbar">
 
             {/* 🕒 타이머 표시 */}
-  <div className="absolute top-2 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
-    ⏱ {elapsedTime}s
-  </div>
+            <div className="absolute top-4 right-12 bg-black bg-opacity-80 text-white px-3 py-2 rounded-full border border-white text-lg">
+            ⏱ {elapsedTimeFormatted}
+            </div>
 
           <pre className="text-left whitespace-pre-wrap font-mono text-base leading-relaxed break-words text-lg">
           {lines.map((line, idx) => {
-  if (idx === currentLine) {
-    // 현재 입력 중인 줄
-    const originalIndent = currentLineText.length - trimmedCurrentLine.length;
-    const indentSpaces = currentLineText.slice(0, originalIndent);
-    const content = trimmedCurrentLine;
+            if (idx === currentLine) {
+                // 현재 입력 중인 줄
+                const originalIndent = currentLineText.length - trimmedCurrentLine.length;
+                const indentSpaces = currentLineText.slice(0, originalIndent);
+                const content = trimmedCurrentLine;
 
     return (
       <div key={idx} className="flex items-center">
@@ -118,6 +131,7 @@ const TypingBox = ({ elapsedTime, onFinish }) => {
 
         {/* 입력창 */}
         <input
+          ref={inputRef}
           type="text"
           spellCheck={false}
           value={userInput}
