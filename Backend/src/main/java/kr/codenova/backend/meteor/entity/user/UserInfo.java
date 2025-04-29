@@ -10,5 +10,5 @@ import lombok.Setter;
 public class UserInfo {
     private final String sessionId;
     private final String nickname;
-    private final boolean isHost;
+    private final Boolean isHost;
 }
