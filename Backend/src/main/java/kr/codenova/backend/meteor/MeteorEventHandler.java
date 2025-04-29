@@ -303,14 +303,27 @@ public class MeteorEventHandler implements SocketEventHandler {
         }
 
         // 3. 사용자들에게 브로드캐스트
-        ExitRoomResponse response = new ExitRoomResponse(
-                roomId,
-                leftUser,
-                newHost,
-                updatedPlayers
-        );
-        server().getRoomOperations(roomId)
-                .sendEvent("roomExit", response);
+        if (room.getStatus() == GameStatus.PLAYING) {
+            ExitGameResponse response = new ExitGameResponse(
+                    roomId,
+                    leftUser,
+                    updatedPlayers
+            );
+            server().getRoomOperations(roomId)
+                    .sendEvent("gameLeave", response);
+
+
+        }else {
+            ExitRoomResponse response = new ExitRoomResponse(
+                    roomId,
+                    leftUser,
+                    newHost,
+                    updatedPlayers
+            );
+            server().getRoomOperations(roomId)
+                    .sendEvent("roomExit", response);
+        }
+
 
         // 나간 유저에게도 응답이 필요하면 추가
 
@@ -372,16 +385,9 @@ public class MeteorEventHandler implements SocketEventHandler {
             return;
         }
         // 1. 맞았는지 체크 & activeWords에서 제거
-        boolean isCorrect = room.removeActiveWord(text);
+        boolean isCorrect = room.checkWordAndUpdateScore(text, sessionId);
         //  2. 누적 점수 계산
-        int updatedScore;
-        if (isCorrect) {
-            // incrementScore 내부에서 점수를 1 올린 후, 올린 뒤의 누적 점수를 리턴
-            updatedScore = room.incrementScore(sessionId);
-        } else {
-            // 오답인 경우에도, 기존 누적 점수는 유지
-            updatedScore = room.getScoreMap().getOrDefault(sessionId, 0);
-        }
+        int updatedScore = room.getScoreMap().getOrDefault(sessionId, 0);
 
         CheckTextResponse response = new CheckTextResponse(
                 nickname,
@@ -421,18 +427,15 @@ public class MeteorEventHandler implements SocketEventHandler {
         GameRoom room = roomManager.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
         // 1. 낙하중인 리스트에서 단어 삭제
-        room.removeActiveWord(word);
+        boolean isGameOver = room.handleWordMissAndCheckGameOver(word);
 
         // 2. 목숨 하나 삭제하고 남은 목숨 반환
-        int currentLife = room.loseLife();
-        RemoveWordResponse response = new RemoveWordResponse(
-                currentLife
-        );
+        RemoveWordResponse response = new RemoveWordResponse(room.getLife());
         server().getRoomOperations(roomId).sendEvent("lostLife", response);
         // 3. 목숨이 0이면 게임 종료
-        if (currentLife <= 0 ) {
+        if (isGameOver) {
             wordDropScheduler.cancel(roomId);
-            gameEndService.endGame(roomId,false);
+            gameEndService.endGame(roomId, false);
         }
     }
 
