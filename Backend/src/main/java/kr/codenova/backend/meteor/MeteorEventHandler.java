@@ -420,9 +420,49 @@ public class MeteorEventHandler implements SocketEventHandler {
         return client -> {
             String sessionId = client.getSessionId().toString();
             log.info("disconnect: " + sessionId);
-            client.disconnect();
+
+            // 1) 연결 끊긴 세션을 가진 유저를 방에서 제거
+            roomManager.findAllRooms().forEach(room -> {
+                boolean wasInRoom = room.getPlayers().stream()
+                        .anyMatch(u -> u.getSessionId().equals(sessionId));
+                if (!wasInRoom) return;
+
+                // 2) 나간 사용자 정보 찾아두기
+                UserInfo exitingUser = room.getPlayers().stream()
+                        .filter(u -> u.getSessionId().equals(sessionId))
+                        .findFirst()
+                        .orElse(new UserInfo(sessionId, "Unknown"));
+
+                // 3) 방에서 플레이어 제거 (호스트 변경 포함)
+                room.removePlayer(sessionId);
+                client.leaveRoom(room.getRoomId());
+
+
+
+                // 4) 방에 아무도 없으면 방 삭제
+                if (room.getPlayers().isEmpty()) {
+                    roomManager.removeRoom(room.getRoomId());
+                    return;
+                }
+
+                UserInfo newHost = room.getPlayers().stream()
+                        .filter(u -> u.getSessionId().equals(room.getHostSessionId()))
+                        .findFirst()
+                        .orElse(null);
+
+                // 5) 나머지 사람들에게 퇴장 알림
+                ExitRoomResponse response = new ExitRoomResponse(
+                        room.getRoomId(),
+                        exitingUser,
+                        newHost, // 새 방장
+                        room.getPlayers()
+                );
+                server().getRoomOperations(room.getRoomId())
+                        .sendEvent("playerDisconnected", response);
+            });
         };
     }
+
 
     private String generateRoomCode() {
         return UUID.randomUUID().toString().substring(0, 6).toUpperCase();
