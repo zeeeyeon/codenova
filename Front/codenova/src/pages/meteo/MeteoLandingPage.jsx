@@ -62,17 +62,29 @@ const MeteoLandingPage = () => {
     };
     socket.on("secretRoomJoin", handleSecretRoomJoin);
 
-    // 방 나가기(roomExit) 수신 시
-    onRoomExit((currentPlayers) => {
+    onRoomExit((data) => {
+      const { currentPlayers, leftUser } = data;
+    
+      const mySessionId = socket.id;   // ✅ 먼저 socket.id를 mySessionId에 저장
+    
       console.log("🛰️ [roomExit 수신] 현재 인원:", currentPlayers);
-      updateUsersFromPlayers(currentPlayers);
-
-      // ✅ 방 나가면 localStorage 삭제 + 메인으로 이동
-      localStorage.removeItem("meteoRoomCode");
-      localStorage.removeItem("meteoRoomId");
-      navigate("/main");
+      console.log("내 세션 ID:", mySessionId, "나간 사람 세션 ID:", leftUser.sessionId);
+    
+      if (currentPlayers) {
+        updateUsersFromPlayers(currentPlayers);
+      }
+    
+      if (leftUser.sessionId === mySessionId) {
+        console.log("✅ 내가 나갔음. 메인으로 이동.");
+        localStorage.removeItem("meteoRoomCode");
+        localStorage.removeItem("meteoRoomId");
+        navigate("/main");
+      } else {
+        console.log("✅ 상대방이 나감. 현재 방 유지.");
+      }
     });
-
+    
+    
     return () => {
       socket.off("secretRoomJoin", handleSecretRoomJoin);
       offRoomExit();
@@ -82,7 +94,7 @@ const MeteoLandingPage = () => {
     };
   }, [roomCode, nickname, players, navigate]);
 
-  // 🛫 방 나가기 버튼 클릭
+  // 방 나가기 버튼 클릭
   const handleExitRoom = () => {
     const savedRoomId = localStorage.getItem("meteoRoomId");
     const savedNickname = nickname;
@@ -94,9 +106,14 @@ const MeteoLandingPage = () => {
       exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
     } else {
       console.error("❌ [방 나가기] roomId 또는 nickname 없음", { savedRoomId, savedNickname });
-      navigate("/meteo/main");
     }
+
+    // ❗ emit 보내고 바로 메인으로 튕기기
+    localStorage.removeItem("meteoRoomCode");
+    localStorage.removeItem("meteoRoomId");
+    navigate("/main");
   };
+
 
   return (
     <div
