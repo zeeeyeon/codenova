@@ -1,33 +1,50 @@
 // src/sockets/socketClient.js
 import { io } from "socket.io-client";
 
-// 로컬 서버 주소 + 포트
+let socket = null; // 소켓 객체를 초기엔 null로
+
 const SERVER_URL = "http://localhost:9092";
 
-// 소켓 연결 생성
-const socket = io(SERVER_URL, {
-  transports: ["websocket"], // 웹소켓만 사용
-  withCredentials: true,     // 쿠키 인증 필요 시 true, 필요없으면 false
-});
+// 소켓 연결 함수
+export const connectSocket = () => {
+  if (!socket) {
+    socket = io(SERVER_URL, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
 
-// 연결 성공 시
-socket.on('connect', () => {
-  console.log(`[Socket Connected] ID: ${socket.id}`);
-});
+    socket.on('connect', () => {
+      console.log(`[Socket Connected] ID: ${socket.id}`);
+    });
 
-// 연결 끊길 시
-socket.on('disconnect', (reason) => {
-  console.log(`[Socket Disconnected] Reason: ${reason}`);
-});
+    socket.on('disconnect', (reason) => {
+      console.log(`[Socket Disconnected] Reason: ${reason}`);
+    });
 
-// 재연결 성공 시
-socket.on('reconnect', (attempt) => {
-  console.log(`[Socket Reconnected] Attempts: ${attempt}`);
-});
+    socket.on('reconnect', (attempt) => {
+      console.log(`[Socket Reconnected] Attempts: ${attempt}`);
+    });
 
-// 재연결 시도할 때
-socket.on('reconnect_attempt', (attempt) => {
-  console.log(`[Socket Reconnect Attempt] Attempt: ${attempt}`);
-});
+    socket.on('reconnect_attempt', (attempt) => {
+      console.log(`[Socket Reconnect Attempt] Attempt: ${attempt}`);
+    });
+  }
+};
 
-export default socket;
+// 소켓 가져오기
+export const getSocket = () => {
+  if (!socket || !socket.connected) {
+    console.warn("⚠️ Socket is not connected.");
+    return null;
+  }
+  return socket;
+};
+
+// ✅ 소켓 연결 끊기
+export const disconnectSocket = () => {
+  if (socket) {
+    socket.disconnect();
+    socket = null; // socket 객체 비워버리기
+    console.log("[Socket Disconnected] by logout");
+  }
+};

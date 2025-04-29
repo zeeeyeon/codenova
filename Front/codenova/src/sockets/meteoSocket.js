@@ -1,16 +1,15 @@
-import socket from "./socketClient";
-
+import { getSocket } from "./socketClient";
 // 방 생성
 export const createMeteoRoom = ({ isPrivate, nickname }, onSuccess, onError) => {
   console.log("[createMeteoRoom] createRoom emit 보냄", { isPrivate, nickname });
-  socket.emit("createRoom", { isPrivate, nickname });
+  getSocket().emit("createRoom", { isPrivate, nickname });
 
-  socket.once("roomCreate", (roomData) => {
+  getSocket().once("roomCreate", (roomData) => {
     console.log("[createMeteoRoom] roomCreated 수신", roomData);
     onSuccess(roomData);
   });
 
-  socket.once("error", (error) => {
+  getSocket().once("error", (error) => {
     console.error("[createMeteoRoom] error 수신", error);
     onError(error.message);
   });
@@ -19,14 +18,15 @@ export const createMeteoRoom = ({ isPrivate, nickname }, onSuccess, onError) => 
 // 방 참가
 export const joinMeteoRoom = ({ roomCode, nickname }, onSuccess, onError) => {
   console.log("[joinMeteoRoom] joinSecretRoom emit:", { roomCode, nickname });
-  socket.emit("joinSecretRoom", { roomCode, nickname });
+  getSocket().emit("joinSecretRoom", { roomCode, nickname });
 
-  socket.once("secretRoomJoin", (roomData) => {
+  getSocket().once("secretRoomJoin", (roomData) => {
     console.log("[joinMeteoRoom] secretRoomJoin 수신:", roomData);
     onSuccess(roomData);
+    console.log("🔥 [joinMeteoRoom] secretRoomJoin 수신:", roomData);
   });
 
-  socket.once("error", (error) => {
+  getSocket().once("error", (error) => {
     console.error("[joinMeteoRoom] error 수신", error);
     onError(error.message);
   });
@@ -39,12 +39,12 @@ export const exitMeteoRoom = ({ roomId, nickname }) => {
     return;
   }
   console.log("[exitMeteoRoom] exitRoom emit 보냄", { roomId, nickname });
-  socket.emit("exitRoom", { roomId, nickname });
+  getSocket().emit("exitRoom", { roomId, nickname });
 };
 
 // 방 나가기 응답 수신
 export const onRoomExit = (callback) => {
-  socket.on("roomExit", (data) => {
+  getSocket().on("roomExit", (data) => {
     console.log("[onRoomExit] roomExit 수신", data);
     callback(data);
   });
@@ -52,5 +52,27 @@ export const onRoomExit = (callback) => {
 
 // 방 나가기 리스너 해제
 export const offRoomExit = () => {
-  socket.off("roomExit");
+  getSocket().off("roomExit");
+};
+
+// 게임시작 요청 (방장)
+export const startMeteoGame = (roomId) => {
+  const socket = getSocket();
+  if (!socket) return;
+  socket.emit("startGame", { roomId });
+  console.log("🚀 [startGame emit] roomId:", roomId);
+};
+
+// 게임 시작 수신 리스너 등록
+export const onMeteoGameStart = (callback) => {
+  const socket = getSocket();
+  if (!socket) return;
+  socket.on("gameStart", callback);
+};
+
+// 게임 시작 리스너 해제
+export const offMeteoGameStart = () => {
+  const socket = getSocket();
+  if (!socket) return;
+  socket.off("gameStart");
 };
