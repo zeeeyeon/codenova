@@ -10,6 +10,5 @@ import java.util.List;
 @AllArgsConstructor
 public class RandomMatchResponse {
     private String roomId;
-    private boolean isHost;
     private List<UserInfo> players;
 }
