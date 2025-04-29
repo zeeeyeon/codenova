@@ -4,6 +4,8 @@ import rankingIcon from "../../assets/images/ranking_icon.png";
 import helpIcon from "../../assets/images/help_icon.png";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
+import { disconnectSocket } from "../../sockets/socketClient";
+
 const Header = () => {
 
   const navigate = useNavigate()
@@ -13,7 +15,7 @@ const Header = () => {
     document.cookie = "accessToken=; path=/; max-age=0;";
 
     logout();
-
+    disconnectSocket();
     navigate("/auth/login");
   }
 

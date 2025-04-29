@@ -20,26 +20,32 @@ const RoomCodeModal = ({ onClose }) => {
       alert("닉네임이 없습니다!");
       return;
     }
-
-    // ✅ joinSecretRoom emit
+  
     joinMeteoRoom(
       { roomCode: roomCodeInput, nickname },
       (roomData) => {
         console.log("✅ 방 입장 성공:", roomData);
-
-        // 메테오 대기 페이지로 이동
+  
+        // ✅ 성공했을 때만 로컬스토리지 저장
+        localStorage.setItem("meteoRoomCode", roomCodeInput);
+        localStorage.setItem("meteoRoomId", roomData.roomId);
+  
         navigate("/meteo/landing", {
-          state: { roomCode: roomCodeInput, roomId: roomData.roomId , players: roomData.players },
+          state: { roomCode: roomCodeInput, roomId: roomData.roomId, players: roomData.players },
         });
-
+  
         onClose(); // 모달 닫기
       },
       (errorMessage) => {
         console.error("❌ 방 입장 실패:", errorMessage);
-        alert(errorMessage);
+        alert("❌ 방 코드가 틀렸습니다.");
+  
+        // ✅ 실패하면 input 초기화 (선택사항)
+        setRoomCodeInput(""); 
       }
     );
   };
+  
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
