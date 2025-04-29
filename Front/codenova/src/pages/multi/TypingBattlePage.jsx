@@ -6,16 +6,33 @@ import boardBg from "../../assets/images/board1.jpg";
 import logo from "../../assets/images/logo.png";
 import TypingBox from "../../components/multi/game/TypingBox";
 import ProgressBoard from "../../components/multi/game/ProgressBoard";
+import rocket1 from "../../assets/images/multi_rocket_1.png";
+import rocket2 from "../../assets/images/multi_rocket_2.png";
+import rocket3 from "../../assets/images/multi_rocket_3.png";
+import rocket4 from "../../assets/images/multi_rocket_4.png";
+
+
 
 const TypingBattlePage = () => {
   const { roomId } = useParams();  // ✅ roomId 읽어오기
   const [countdown, setCountdown] = useState(5);
   const [gameStarted, setGameStarted] = useState(false);
 
-  const [startTime, setStartTime] = useState(null);
-  const [elapsedTime, setElapsedTime] = useState(0);
+  const [startTime, setStartTime] = useState(null); // 게임 시작 순간간
+  const [elapsedTime, setElapsedTime] = useState(0); // 밀리초 단위
   const [timeRunning, setTimeRunning] = useState(false); // 타이머 실행 중 여부
 
+    // 임시데이터
+    const dummyUsers = [
+        { nickname: "과일왕자이과람", rocketImage: rocket1, progress: 10 },
+        { nickname: "애옹이볼쫘압", rocketImage: rocket2, progress: 35 },
+        { nickname: "유단비공쮸", rocketImage: rocket3, progress: 55 },
+        { nickname: "갈비나라지연공주", rocketImage: rocket4, progress: 80 },
+      ];
+      
+
+
+  // 카운트다운
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => {
@@ -24,23 +41,22 @@ const TypingBattlePage = () => {
       return () => clearTimeout(timer);
     } else {
       setGameStarted(true); // 카운트다운 끝나면 게임 시작
+      setTimeRunning(true); // 타이머도 시작!
+      setStartTime(Date.now()); // 현재시간 기록
     }
   }, [countdown]);
 
+  // 게임 시작 실시간 경과 시간 업뎃
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setGameStarted(true); // 카운트다운 끝나면 게임 시작
-      setTimeRunning(true); // ✅ 타이머도 시작!
+    if (timeRunning) {
+      const interval = setInterval(() => {
+        setElapsedTime(Date.now() - startTime); // 밀리초 단위 경과 시간
+      }, 10); // 10ms마다 업데이트(밀리초 보여주려고)
+      return () => clearInterval(interval);
     }
-  }, [countdown]);
-  
-  
+  }, [timeRunning, startTime]);
 
+  
 
   return (
     <div
@@ -48,34 +64,37 @@ const TypingBattlePage = () => {
     style={{ backgroundImage: `url(${multiBg})` }}
   >
     <Header />
-    <h1 className="text-2xl text-center">Typing Battle 시작! (Room ID: {roomId})</h1>
-    {/* 🖤 카운트다운 오버레이 (전체화면 기준!) */}
-  {!gameStarted && (
-    <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-      <div className="text-9xl font-bold text-white animate-pulse">
-        {countdown > 0 ? countdown : "Start!"}
-      </div>
-    </div>
-  )}
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[66vw] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
+    {/* <h1 className="text-2xl text-center">Typing Battle 시작! (Room ID: {roomId})</h1> */}
+    {/* 카운트다운 오버레이  */}
+        {!gameStarted && (
+            <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+            <div className="text-9xl font-bold text-white animate-pulse">
+                {countdown > 0 ? countdown : "Start!"}
+            </div>
+            </div>
+        )}
+    <div className="absolute top-[53%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[66vw] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
       <img src={boardBg} alt="board" className="absolute object-cover rounded-2xl z-0" />
   
       {/* 컨텐츠 */}
-      <div className="relative z-10 w-full h-full flex flex-col justify-between px-20 py-6 top-[-18%]">
+      <div className="relative z-10 w-full h-full flex flex-col justify-between px-20 py-6 top-[-16%]">
         
         {/* 로고 */}
         <div className="flex justify-center mb-4">
-          <img src={logo} alt="logo" className="w-[260px]" />
+          <img src={logo} alt="logo" className="w-[240px]" />
         </div>
   
         {/* 타이핑 박스 */}
         <div className="h-[40%] flex items-center justify-center ">
-        <TypingBox elapsedTime={elapsedTime} onFinish={() => setTimeRunning(false)} />
+        <TypingBox
+            gameStarted = {gameStarted} 
+            elapsedTime={elapsedTime} 
+            onFinish={() => setTimeRunning(false)} />
         </div>
   
         {/* 진행 보드 */}
-        <div className="h-[50%] flex items-center justify-center bg-green-300">
-          <ProgressBoard />
+        <div className="h-[50%] flex items-center justify-center">
+          <ProgressBoard users={dummyUsers}/>
         </div>
   
       </div>
