@@ -12,10 +12,11 @@ const TypingBattlePage = () => {
   const [countdown, setCountdown] = useState(5);
   const [gameStarted, setGameStarted] = useState(false);
 
-  const [startTime, setStartTime] = useState(null);
-  const [elapsedTime, setElapsedTime] = useState(0);
+  const [startTime, setStartTime] = useState(null); // 게임 시작 순간간
+  const [elapsedTime, setElapsedTime] = useState(0); // 밀리초 단위
   const [timeRunning, setTimeRunning] = useState(false); // 타이머 실행 중 여부
 
+  // 카운트다운운
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => {
@@ -24,23 +25,22 @@ const TypingBattlePage = () => {
       return () => clearTimeout(timer);
     } else {
       setGameStarted(true); // 카운트다운 끝나면 게임 시작
+      setTimeRunning(true); // 타이머도 시작!
+      setStartTime(Date.now()); // 현재시간 기록록
     }
   }, [countdown]);
 
+  // 게임 시작 실시간 경과 시간 업뎃뎃
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setGameStarted(true); // 카운트다운 끝나면 게임 시작
-      setTimeRunning(true); // ✅ 타이머도 시작!
+    if (timeRunning) {
+      const interval = setInterval(() => {
+        setElapsedTime(Date.now() - startTime); // 밀리초 단위 경과 시간
+      }, 10); // 10ms마다 업데이트(밀리초 보여주려고고)
+      return () => clearInterval(interval);
     }
-  }, [countdown]);
-  
-  
+  }, [timeRunning, startTime]);
 
+  
 
   return (
     <div
@@ -49,14 +49,14 @@ const TypingBattlePage = () => {
   >
     <Header />
     <h1 className="text-2xl text-center">Typing Battle 시작! (Room ID: {roomId})</h1>
-    {/* 🖤 카운트다운 오버레이 (전체화면 기준!) */}
-  {!gameStarted && (
-    <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-      <div className="text-9xl font-bold text-white animate-pulse">
-        {countdown > 0 ? countdown : "Start!"}
-      </div>
-    </div>
-  )}
+    {/* 카운트다운 오버레이  */}
+        {!gameStarted && (
+            <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+            <div className="text-9xl font-bold text-white animate-pulse">
+                {countdown > 0 ? countdown : "Start!"}
+            </div>
+            </div>
+        )}
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[66vw] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
       <img src={boardBg} alt="board" className="absolute object-cover rounded-2xl z-0" />
   
