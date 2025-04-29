@@ -2,6 +2,10 @@ package kr.codenova.backend.global.config.socket;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.Transport;
+import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import kr.codenova.backend.global.socket.SocketEventHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +41,14 @@ public class SocketConfig {
         config.setBossThreads(1);
         config.setWorkerThreads(8);
 
+        JacksonJsonSupport jacksonJsonSupport = new JacksonJsonSupport(new JavaTimeModule()) {
+            @Override
+            protected void init(ObjectMapper objectMapper) {
+                super.init(objectMapper);
+                objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            }
+        };
+        config.setJsonSupport(jacksonJsonSupport);
 
         SocketIOServer server = new SocketIOServer(config);
 

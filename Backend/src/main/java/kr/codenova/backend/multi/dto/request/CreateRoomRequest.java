@@ -10,5 +10,4 @@ public class CreateRoomRequest {
     private Integer maxNum;
 //    @JsonProperty("isPrivate")
     private Boolean isLocked;
-    private String roomCode;
 }

@@ -7,7 +7,9 @@ import lombok.Data;
 public class CreateRoomResponse {
 
     private String roomId;
+    private String roomCode;
     public CreateRoomResponse(Room newRoom) {
         this.roomId = newRoom.getRoomId();
+        this.roomCode = newRoom.getRoomCode();
     }
 }
