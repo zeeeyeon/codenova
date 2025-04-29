@@ -82,23 +82,24 @@ const MeteoGamePage = () => {
 
   return (
     <div
-      className="w-screen h-screen bg-cover bg-center bg-no-repeat relative overflow-visible"
+      className="w-screen h-screen bg-cover bg-center bg-no-repeat relative overflow-hidden"
       style={{ backgroundImage: `url(${MeteoGameBg})` }}
     >
-      {/* 1) 전체 폭 컨테이너, overflow-visible */}
-      <div className="absolute inset-0 pointer-events-none">
-        {fallingWords.map(({ id, word, fallDuration, left }) => (
-          <FallingWord
-            key={id}
-            word={word}
-            duration={fallDuration}
-            // 0~100% 전체 화면 기준
-            left={`${left}%`}
-            groundY={groundY}
-            onEnd={() => handleWordEnd(id)}
-          />
-        ))}
-      </div>
+    <div
+      className="absolute top-0 left-1/2 -translate-x-1/2
+                 w-4/5 h-full relative overflow-hidden"
+    >
+      {fallingWords.map(({ id, word, fallDuration, left }) => (
+        <FallingWord
+          key={id}
+          word={word}
+          duration={fallDuration}
+          left={left}         // 숫자형(예: 23.5)
+          groundY={groundY}
+          onEnd={() => handleWordEnd(id)}
+        />
+      ))}
+    </div>
 
       {/* 플레이어 애니메이션 */}
       <div ref={playersRef} className="absolute bottom-14 left-1 flex z-20">
