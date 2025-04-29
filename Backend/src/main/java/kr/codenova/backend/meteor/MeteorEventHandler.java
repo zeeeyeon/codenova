@@ -294,10 +294,13 @@ public class MeteorEventHandler implements SocketEventHandler {
         UserInfo leftUser = new UserInfo(sessionId, nickname, wasHost);
 
         // 5. 새 방장 정보
-        UserInfo newHost = updatedPlayers.stream()
-                .filter(UserInfo::getIsHost)
-                .findFirst()
-                .orElse(null);
+        UserInfo newHost = null;
+        if (wasHost && !room.getPlayers().isEmpty()) {
+                 newHost = updatedPlayers.stream()
+                    .filter(UserInfo::getIsHost)
+                    .findFirst()
+                    .orElse(null);
+        }
 
         // 3. 사용자들에게 브로드캐스트
         ExitRoomResponse response = new ExitRoomResponse(
