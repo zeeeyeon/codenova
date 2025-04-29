@@ -272,23 +272,42 @@ public class MeteorEventHandler implements SocketEventHandler {
         room.removePlayer(sessionId);
         client.leaveRoom(roomId);
 
-        // 2. 새로운 방장 세션 ID 조회
+        // 만약 모든 사용자가 나갔다면 방 삭제
+        if (room.getPlayers().isEmpty()) {
+            roomManager.removeRoom(roomId);
+            return;
+        }
 
+        // 2. 새로운 방장 세션 ID 조회
+        String newHostSessionId = room.getHostSessionId();
+
+        // 3. isHost가 업데이트 된 플레이어 목록
+        List<UserInfo> updatedPlayers = room.getPlayers().stream()
+                .map(u -> new UserInfo(
+                        u.getSessionId(),
+                        u.getNickname(),
+                        u.getSessionId().equals(newHostSessionId)
+                ))
+                .collect(Collectors.toList());
+
+        // 4. 퇴장한 플레이어 정보
+        UserInfo leftUser = new UserInfo(sessionId, nickname, wasHost);
+
+        // 5. 새 방장 정보
         UserInfo newHost = null;
         if (wasHost && !room.getPlayers().isEmpty()) {
-            String newHostSessionId = room.getHostSessionId();
-            newHost = room.getPlayers().stream()
-                    .filter(u -> u.getSessionId().equals(newHostSessionId))
+                 newHost = updatedPlayers.stream()
+                    .filter(UserInfo::getIsHost)
                     .findFirst()
                     .orElse(null);
-
         }
+
         // 3. 사용자들에게 브로드캐스트
         ExitRoomResponse response = new ExitRoomResponse(
                 roomId,
-                new UserInfo(sessionId, nickname, wasHost),
+                leftUser,
                 newHost,
-                room.getPlayers()
+                updatedPlayers
         );
         server().getRoomOperations(roomId)
                 .sendEvent("roomExit", response);
