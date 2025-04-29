@@ -4,6 +4,7 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
+import kr.codenova.backend.multi.dto.broadcast.ChangeHostBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.NoticeBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.RoomUpdateBroadcast;
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
@@ -17,27 +18,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class RoomServiceImpl implements RoomService {
 
     private final Map<String, Room> roomMap = new ConcurrentHashMap<>();
+    private final Map<String, String> userRoomMap = new ConcurrentHashMap<>();
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private SocketIOServer getServer() {
         return SocketIOServerProvider.getServer();
     }
 
-    // 방 생성
+    /**
+     * 방 생성
+     * 1. 방 생성 시 즉시 방장 지정
+     * 2. 유저-방 매핑 정보 저장 (userRoomMap 활용)
+     * 3. 유저 입장 시간 기록 (자동 방장 위임에 필요)
+     *
+     * 이 userRoomMap은 나중에 방장이 나갔을 때 해당 유저가 어떤 방에 있었는지 빠르게 찾는 데 사용할 수 있으며,
+     * 특히 연결 해제 이벤트 처리 시에도 유용합니다.
+     */
     public void createRoom(SocketIOClient client, CreateRoomRequest request, AckRequest ackSender) {
         String roomId = UUID.randomUUID().toString();
         String roomCode = request.getIsLocked() ? generatedRoomCode() : null;
+        String sessionId = client.getSessionId().toString();
 
+        // 방 생성 시 즉시 방장 지정
         Room room = Room.builder()
                 .roomId(roomId)
                 .roomTitle(request.getTitle())
@@ -47,27 +57,38 @@ public class RoomServiceImpl implements RoomService {
                 .isLocked(request.getIsLocked())
                 .isStarted(false)
                 .roomCode(roomCode)
+                .ownerNickname(request.getNickname())
                 .build();
 
         log.info("방 생성 : " + room.toString());
 
-        RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
-        CreateRoomResponse response = new CreateRoomResponse(room);
-
+        // 유저 준비 상태 초기화
         room.getUserReadyStatus().put(request.getNickname(), false);
 
-        // ✅ 클라이언트 방 입장시키기
+        // 유저 입장 시간 기록 (자동 방장 위임에 필요)
+        if (room.getUserJoinTimes() == null) {
+            room.setUserJoinTimes(new HashMap<>());
+        }
+        room.getUserJoinTimes().put(request.getNickname(), System.currentTimeMillis());
+
+        // 유저-방 매핑 정보 저장
+        userRoomMap.put(sessionId, roomId);
+
+        // 클라이언트 방 입장시키기
         client.joinRoom(roomId);
 
-        // 응답으로 roomId, roomCode 전달
+        // 응답 생성 및 전송
+        CreateRoomResponse response = new CreateRoomResponse(room);
         ackSender.sendAckData(response);
 
-
-        room.setOwnerNickname(request.getNickname());
+        // 방 정보 저장
         roomMap.put(roomId, room);
 
-        log.info("방 생성 : " + request.getTitle());
+        // 방 업데이트 브로드캐스트
+        RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
         getServer().getBroadcastOperations().sendEvent("room_update", broadcast);
+
+        log.info("방 생성 완료: " + request.getTitle() + ", 방장: " + request.getNickname() + ", 세션ID: " + sessionId);
     }
 
     // 방 조회
@@ -115,7 +136,17 @@ public class RoomServiceImpl implements RoomService {
         return roomMap.values();
     }
 
-    // 방 퇴장
+    /**
+     * 방 퇴장
+     * 1. 퇴장하는 유저가 방장인지 확인합니다.
+     * 2. 방장이 나가고 다른 유저가 남아있는 경우:
+     *  - 방에 남아있는 유저 중 가장 먼저 입장한 유저를 찾습니다.
+     *  - 해당 유저를 새로운 방장으로 설정합니다.
+     *  - 방장 권한 위임 이벤트를 브로드캐스트합니다.
+     * 3. 퇴장하는 유저의 준비 상태와 입장 시간 정보를 삭제합니다.
+     * 4. 퇴장하는 유저의 세션-방 매핑 정보를 삭제합니다.
+     * 5. 기존 로직대로 퇴장 알림, 방 나가기, 방 업데이트/삭제 처리를 수행합니다.
+     */
     public void leaveRoom(LeaveRoomRequest request, SocketIOClient client) {
         Room room = roomMap.get(request.getRoomId());
         if (room == null) {
@@ -125,6 +156,44 @@ public class RoomServiceImpl implements RoomService {
 
         // ✅ 현재 인원 감소
         room.setCurrentCount(Math.max(room.getCurrentCount() - 1, 0));
+
+        // 방장 권한 위임 처리
+        boolean isOwner = request.getNickname().equals(room.getOwnerNickname());
+        String newOwnerNickname = null;
+
+        if (isOwner && room.getCurrentCount() > 0) {
+            // 방장이 나가고 다른 유저가 남아있는 경우, 가장 먼저 입장한 유저에게 방장 권한 위임
+            Map<String, Long> joinTimes = room.getUserJoinTimes();
+
+            // 방장을 제외한 유저 중 가장 입장 시간이 빠른 유저 찾기
+            newOwnerNickname = joinTimes.entrySet().stream()
+                    .filter(entry -> !entry.getKey().equals(request.getNickname()))
+                    .min(Map.Entry.comparingByKey()) // 입장 시간이 가장 빠른 유저
+                    .map(Map.Entry::getKey)
+                    .orElse(null);
+            if (newOwnerNickname != null) {
+                // 새 방장 설정
+                room.setOwnerNickname(newOwnerNickname);
+                log.info("방장 권한 위임: {} -> {}, 방: {}",
+                        request.getNickname(), newOwnerNickname, request.getRoomId());
+
+                // 방장 권한 위임 이벤트 브로드캐스트
+                ChangeHostBroadcast hostChangedBroadcast = new ChangeHostBroadcast(
+                        request.getRoomId(),
+                        newOwnerNickname
+                );
+
+                getServer().getRoomOperations(request.getRoomId())
+                        .sendEvent("host_changed", hostChangedBroadcast);
+            }
+        }
+
+        // 유저 준비 상태 및 입장 시간 정보 제거
+        room.getUserReadyStatus().remove(request.getNickname());
+        room.getUserJoinTimes().remove(request.getNickname());
+
+        // userRoomMap에서 사용자 정보 제거
+        userRoomMap.remove(client.getSessionId().toString());
 
         // ✅ [추가] 퇴장 알림 - 본인 제외하고 전송
         getServer().getRoomOperations(request.getRoomId())
