@@ -1,8 +1,11 @@
-import BoardContainer from '../../../components/common/single/BoardContainer'
+import BoardContainer from '../../../components/single/BoardContainer'
 import cancelBtn from '../../../assets/images/cancel_btn.png'
 import createReportBtn from '../../../assets/images/create_report.png'
+import { useNavigate } from 'react-router-dom'
 
-const CsWordSelectPage = () => {
+const CsWordSelectPage = ({category, words}) => {
+
+    const navigate = useNavigate();
 
     return (
         <div
@@ -58,14 +61,13 @@ const CsWordSelectPage = () => {
                     <div className="w-[20vw] flex flex-col items-center justify-center">
                         {/* 취소 버튼 */}
                         <img src={createReportBtn} alt="리포트 생생" className='w-[16vw] max-w-[300px] rounded-3xl cursor-pointer transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]'/>
-                        <img src={cancelBtn} alt="취소" className='w-[16vw] max-w-[300px] rounded-3xl cursor-pointer transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]'/>
+                        <img src={cancelBtn} alt="취소" className='w-[16vw] max-w-[300px] rounded-3xl cursor-pointer transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]' onClick={() => navigate('/single/select/language')}/>
                         
                         
                     </div>
                 </div>
 
             </BoardContainer>
-
         </div>
     )
 

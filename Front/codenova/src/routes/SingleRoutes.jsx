@@ -12,7 +12,7 @@ const SingleRoutes = () => {
       {/* <Route path="game" element={<SinglePage />} /> */}
       <Route path="select/language" element={<SingleLanguageSelectPage/>} />
       <Route path="select/cs" element={<CsSelectPage/>} />
-      <Route path="game" element={<SinglePage/>} />
+      <Route path="game/:lang" element={<SinglePage/>} />
       <Route path="game/finish" element={<FinishPage/>}/>
       <Route path="game/select/word" element={<CsWordSelectPage/>}/>
     </Routes>

@@ -1,4 +1,4 @@
-import box from '../../../assets/images/board1.jpg';
+import box from '../../assets/images/board1.jpg';
 
 
 const Board2Container = ({children}) => {
