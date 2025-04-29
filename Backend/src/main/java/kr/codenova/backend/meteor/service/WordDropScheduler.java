@@ -32,14 +32,21 @@ public class WordDropScheduler {
 
 
     public void startDrooping(String roomId, long spawnInterval, long initialFallDuration) {
-        GameRoom room = roomManager.findById(roomId).orElseThrow();
-        AtomicLong fallDuration = new AtomicLong(initialFallDuration);
-        AtomicLong elapsed      = new AtomicLong(0);
-
         // 기존에 스케줄이 있으면 취소
         cancel(roomId);
 
+        AtomicLong fallDuration = new AtomicLong(initialFallDuration);
+        AtomicLong elapsed      = new AtomicLong(0);
+
         ScheduledFuture<?> spawnFuture = taskScheduler.scheduleAtFixedRate(() ->{
+            GameRoom room = roomManager.findById(roomId).orElse(null);
+            // 1. 빈 방이면 스케줄 취소
+            if(room == null) {
+                cancel(roomId);
+                return;
+            }
+
+            // 2. 다음 단어 꺼내기
             String word = room.pollNextWord();
             if (word == null) {
                 gameEndService.endGame(roomId, true);
