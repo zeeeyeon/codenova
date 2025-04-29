@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import enterIcon from "../../../assets/images/multi_enter_icon.png";
 
-const TypingBox = ({ elapsedTime, onFinish }) => {
+const TypingBox = ({ gameStarted, elapsedTime, onFinish }) => {
   const targetCode = `let timer = setInterval(() => {
         this.counter--;
         
@@ -35,11 +35,16 @@ const TypingBox = ({ elapsedTime, onFinish }) => {
   
   // 사용자 입력값 업뎃
   const handleInputChange = (e) => {
-    // if (!gameStarted) return;  // 게임 시작 전 입력 막기
+    if (!gameStarted) return;  // 게임 시작 전 입력 막기
     setUserInput(e.target.value);
   };
 
   const handleKeyDown = (e) => {
+    if (!gameStarted) {
+      e.preventDefault(); // 게임 시작 전이면 엔터 막기
+      return;
+    }
+
     if (e.key === "Enter") {
       if (trimmedUserInput === trimmedCurrentLine) {
         if (currentLine === lines.length - 1) {
