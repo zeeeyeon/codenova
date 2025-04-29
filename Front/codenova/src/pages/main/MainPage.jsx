@@ -45,7 +45,8 @@ const MainPage = () => {
       { isPrivate: true, nickname }, // 닉네임 넘겨서 createRoom emit
       (roomData) => {
         console.log("✅ 방 생성 성공:", roomData);
-        navigate("/meteo/landing", { state: { roomCode: roomData.roomCode, roomId: roomData.roomId } });
+        const initalPlayers = [{ sessionId: roomData.sessionId, nickname }];
+        navigate("/meteo/landing", { state: { roomCode: roomData.roomCode, roomId: roomData.roomId, players: initalPlayers, } });
       },
       (errorMessage) => {
         console.error("❌ 방 생성 실패:", errorMessage);
