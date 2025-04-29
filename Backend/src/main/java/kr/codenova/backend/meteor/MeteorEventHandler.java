@@ -303,14 +303,27 @@ public class MeteorEventHandler implements SocketEventHandler {
         }
 
         // 3. 사용자들에게 브로드캐스트
-        ExitRoomResponse response = new ExitRoomResponse(
-                roomId,
-                leftUser,
-                newHost,
-                updatedPlayers
-        );
-        server().getRoomOperations(roomId)
-                .sendEvent("roomExit", response);
+        if (room.getStatus() == GameStatus.PLAYING) {
+            ExitGameResponse response = new ExitGameResponse(
+                    roomId,
+                    leftUser,
+                    updatedPlayers
+            );
+            server().getRoomOperations(roomId)
+                    .sendEvent("gameLeave", response);
+
+
+        }else {
+            ExitRoomResponse response = new ExitRoomResponse(
+                    roomId,
+                    leftUser,
+                    newHost,
+                    updatedPlayers
+            );
+            server().getRoomOperations(roomId)
+                    .sendEvent("roomExit", response);
+        }
+
 
         // 나간 유저에게도 응답이 필요하면 추가
 
