@@ -12,6 +12,10 @@ const TypingBattlePage = () => {
   const [countdown, setCountdown] = useState(5);
   const [gameStarted, setGameStarted] = useState(false);
 
+  const [startTime, setStartTime] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [timeRunning, setTimeRunning] = useState(false); // 타이머 실행 중 여부
+
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => {
@@ -22,6 +26,20 @@ const TypingBattlePage = () => {
       setGameStarted(true); // 카운트다운 끝나면 게임 시작
     }
   }, [countdown]);
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setGameStarted(true); // 카운트다운 끝나면 게임 시작
+      setTimeRunning(true); // ✅ 타이머도 시작!
+    }
+  }, [countdown]);
+  
+  
 
 
   return (
@@ -52,7 +70,7 @@ const TypingBattlePage = () => {
   
         {/* 타이핑 박스 */}
         <div className="h-[40%] flex items-center justify-center ">
-          <TypingBox />
+        <TypingBox elapsedTime={elapsedTime} onFinish={() => setTimeRunning(false)} />
         </div>
   
         {/* 진행 보드 */}
