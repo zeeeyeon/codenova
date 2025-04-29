@@ -5,10 +5,12 @@ import dataStrBtn from '../../assets/images/data_str_btn.png'
 import dbBtn from '../../assets/images/db_btn.png'
 import osBtn from '../../assets/images/os_btn.png'
 import cancelBtn from '../../assets/images/cancel_btn.png'
-import BoardContainer from '../../components/common/single/BoardContainer'
-
+import BoardContainer from '../../components/single/BoardContainer'
+import { useNavigate } from 'react-router-dom'
 
 const CsSelectPage = () => {
+
+  const navigate = useNavigate();
 
   return (
     <div className="w-screen h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center"
@@ -28,15 +30,15 @@ const CsSelectPage = () => {
         {/* 버튼 이미지들 */}
         <div className='flex flex-wrap justify-center gap-4 w-full px-4 mt-20'>
           <img src={designPattenBtn} alt="디자인패턴" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'/>
-          <img src={networkBtn} alt="네트워크" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'/>
-          <img src={dbBtn} alt="데이터베이스" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'/>
-          <img src={dataStrBtn} alt="자료구조" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'/>
-          <img src={osBtn} alt="운영체제" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'/>
+          <img src={networkBtn} alt="네트워크" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs-network')}/>
+          <img src={dbBtn} alt="데이터베이스" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs-db')}/>
+          <img src={dataStrBtn} alt="자료구조" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs-structure')}/>
+          <img src={osBtn} alt="운영체제" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs-os')}/>
         </div>
 
         {/* 취소 버튼 */}
         <div className='relative w-[16vw] max-w-[300px] mt-10'>
-          <img src={cancelBtn} alt="취소" className='w-full h-full rounded-3xl cursor-pointer transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]'/>
+          <img src={cancelBtn} alt="취소" className='w-full h-full rounded-3xl cursor-pointer transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]' onClick={() => navigate('/single/select/language')}/>
         </div>
 
       </BoardContainer>

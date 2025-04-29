@@ -1,5 +1,5 @@
 import backgroundImg from '../../assets/images/single_background.jpg'
-import BoardContainer from '../../components/common/single/BoardContainer'
+import BoardContainer from '../../components/single/BoardContainer'
 import csReportBtn from '../../assets/images/cs_report_btn.png'
 import okBtn from '../../assets/images/ok_btn.png'
 
