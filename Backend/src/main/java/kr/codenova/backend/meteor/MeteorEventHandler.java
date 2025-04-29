@@ -87,7 +87,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         boolean isHost;
         try {
             room = new GameRoom(roomId, isPrivate, roomCode, 4, hostSessionId);
-            room.addPlayer(new UserInfo(hostSessionId, nickname));
+            room.addPlayer(new UserInfo(hostSessionId, nickname,true));
             roomManager.addRoom(room);
             isHost = true;
         } catch (Exception e) {
@@ -141,7 +141,7 @@ public class MeteorEventHandler implements SocketEventHandler {
 
         client.joinRoom(room.getRoomId());
 
-        UserInfo newUser = new UserInfo(client.getSessionId().toString(), nickname);
+        UserInfo newUser = new UserInfo(client.getSessionId().toString(), nickname, false);
         room.addPlayer(newUser);
 
         // 전체 사용자에게 방에 있는 사용자 리스트 브로드캐스트
@@ -161,7 +161,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         // 1️. 방 조회+생성 → 생성 여부까지 RandomRoomResult 로 받는다
         RoomManager.RandomRoomResult result = roomManager.findOrCreateRandomRoom(
                 () -> UUID.randomUUID().toString(),
-                roomId -> new UserInfo(client.getSessionId().toString(), nickname)
+                roomId -> new UserInfo(client.getSessionId().toString(), nickname,true)
         );
 
         GameRoom room  = result.getRoom();
@@ -172,7 +172,7 @@ public class MeteorEventHandler implements SocketEventHandler {
 
         // 3️. non-host 는 players 에 추가하면서 단일 예외 처리
         if (!isHost) {
-            UserInfo user = new UserInfo(client.getSessionId().toString(), nickname);
+            UserInfo user = new UserInfo(client.getSessionId().toString(), nickname, false);
             try {
                 room.addPlayer(user);  // 여기가 유일한 가득 참 체크 지점
             } catch (IllegalStateException e) {
@@ -185,7 +185,7 @@ public class MeteorEventHandler implements SocketEventHandler {
 
         // 5️. 방에 있는 사람들에게 사용자 리스트 브로드캐스트
         RandomMatchResponse resp =
-                new RandomMatchResponse(room.getRoomId(), isHost, room.getPlayers());
+                new RandomMatchResponse(room.getRoomId(), room.getPlayers());
         server().getRoomOperations(room.getRoomId()).sendEvent("matchRandom", resp);
 
     }
@@ -278,7 +278,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         // 3. 사용자들에게 브로드캐스트
         ExitRoomResponse response = new ExitRoomResponse(
                 roomId,
-                new UserInfo(sessionId, nickname),
+                new UserInfo(sessionId, nickname, wasHost),
                 newHost,
                 room.getPlayers()
         );
@@ -431,7 +431,7 @@ public class MeteorEventHandler implements SocketEventHandler {
                 UserInfo exitingUser = room.getPlayers().stream()
                         .filter(u -> u.getSessionId().equals(sessionId))
                         .findFirst()
-                        .orElse(new UserInfo(sessionId, "Unknown"));
+                        .orElse(new UserInfo(sessionId, "Unknown", false ));
 
                 // 3) 방에서 플레이어 제거 (호스트 변경 포함)
                 room.removePlayer(sessionId);
