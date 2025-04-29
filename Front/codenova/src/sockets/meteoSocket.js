@@ -46,7 +46,7 @@ export const exitMeteoRoom = ({ roomId, nickname }) => {
 export const onRoomExit = (callback) => {
   socket.on("roomExit", (data) => {
     console.log("[onRoomExit] roomExit 수신", data);
-    callback(data.currentPlayers);
+    callback(data);
   });
 };
 
