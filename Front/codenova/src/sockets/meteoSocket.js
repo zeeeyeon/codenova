@@ -76,3 +76,17 @@ export const offMeteoGameStart = () => {
   if (!socket) return;
   socket.off("gameStart");
 };
+
+// 단어 낙하 이벤트 수신
+export const onWordFalling = (callback) => {
+  const socket = getSocket();
+  if (!socket) return;
+  socket.on("wordFalling", callback);
+};
+
+// 단어 낙하 이벤트 해제
+export const offWordFalling = () => {
+  const socket = getSocket();
+  if (!socket) return;
+  socket.off("wordFalling");
+};
