@@ -14,7 +14,6 @@ import RoomCodeModal from "../../components/modal/RoomCodeModal";
 import { getAccessToken } from "../../utils/tokenUtils";
 import { createMeteoRoom } from "../../sockets/meteoSocket";
 import useAuthStore from "../../store/authStore";
-import { getSocket } from "../../sockets/socketClient";
 
 const MainPage = () => {
   const navigate = useNavigate()
@@ -28,15 +27,6 @@ const MainPage = () => {
     }
   }, [navigate]);
 
-  useEffect(() => {
-    const socket = getSocket();
-  
-    if (socket && socket.connected) {
-      console.log("✅ Socket connected!", socket.id);
-    } else {
-      console.warn("⚠️ Socket is not connected yet.");
-    }
-  }, []);
 
   const nickname = useAuthStore((state) => state.user?.nickname)
   // console.log(nickname)
