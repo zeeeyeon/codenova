@@ -16,16 +16,15 @@ import kr.codenova.backend.meteor.entity.room.GameStatus;
 import kr.codenova.backend.multi.dto.request.SendChatRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import kr.codenova.backend.meteor.entity.room.GameRoom;
 import kr.codenova.backend.meteor.entity.user.UserInfo;
 import kr.codenova.backend.global.socket.SocketEventHandler;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.Instant;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -37,6 +36,7 @@ public class MeteorEventHandler implements SocketEventHandler {
     private final WordService wordService;
     private final WordDropScheduler wordDropScheduler;
     private final GameEndService gameEndService;
+    private final TaskScheduler taskScheduler;
 
 
     private SocketIOServer server() {
@@ -120,8 +120,14 @@ public class MeteorEventHandler implements SocketEventHandler {
         String code = data.getRoomCode();
         String nickname = data.getNickname();
 
-        GameRoom room = roomManager.findByCode(code)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 방 코드입니다."));
+        // 방 존재 여부 체크
+        Optional<GameRoom> optRoom = roomManager.findByCode(code);
+        if (optRoom.isEmpty()) {
+            client.sendEvent("codeError",
+                    new ErrorResponse("ROOM_NOT_FOUND", "존재하지 않는 방 코드입니다."));
+            return;
+        }
+        GameRoom room = optRoom.get();
 
 
         // 같은 세션 아이디 중복 입장 못하게 하기
@@ -228,26 +234,27 @@ public class MeteorEventHandler implements SocketEventHandler {
         room.initFallingwords(fallingWords);
         room.start();
 
-        // 4️. 모든 사용자에게 게임 시작 알림
-        StartGameResponse resp = StartGameResponse.builder()
-                .roomId(roomId)
-                .players(room.getPlayers())
-                .fallingWords(fallingWords)
-                .initialLives(5)
-                .initialDropInterval(2000)
-                .initialFallDuration(10000)
-                .message("게임이 시작되었습니다.")
-                .build();
+        // 4️. 3초 뒤에 모든 사용자에게 게임 시작 알림
+        taskScheduler.schedule(() -> {
+            StartGameResponse resp = StartGameResponse.builder()
+                    .roomId(roomId)
+                    .players(room.getPlayers())
+                    .fallingWords(fallingWords)
+                    .initialLives(5)
+                    .initialDropInterval(2000)
+                    .initialFallDuration(10000)
+                    .message("게임이 시작되었습니다.")
+                    .build();
 
-        server().getRoomOperations(roomId)
-                .sendEvent("gameStart", resp);
+            server().getRoomOperations(roomId)
+                    .sendEvent("gameStart", resp);
 
-        // 5.일정 시간 마다 다음 단어를 꺼내서 푸시
-        wordDropScheduler.startDrooping(
-                roomId,
-                resp.getInitialDropInterval(),
-                resp.getInitialFallDuration()
-        );
+            wordDropScheduler.startDrooping(
+                    roomId,
+                    resp.getInitialDropInterval(),
+                    resp.getInitialFallDuration()
+            );
+        }, Instant.now().plusSeconds(3));  // ← here
     }
 
     private void handleExitRoom(SocketIOClient client, ExitRoomRequest data) {
@@ -256,7 +263,8 @@ public class MeteorEventHandler implements SocketEventHandler {
         String sessionId = client.getSessionId().toString();
 
         GameRoom room = roomManager.findById(roomId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."))
+                ;
         //
         boolean wasHost = sessionId.equals(room.getHostSessionId());
 
