@@ -6,6 +6,7 @@ import { useState } from "react";
 import { loginApi } from "../../api/authApi";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
+import { connectSocket } from "../../sockets/socketClient";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const LoginPage = () => {
         nickname,
         token: accessToken,
       });
-
+      connectSocket();
       navigate("/main")
     } catch (err) {
       console.error(err)

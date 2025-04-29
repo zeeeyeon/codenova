@@ -8,9 +8,12 @@ import Profile1 from "../../assets/images/profile1.png";
 import Profile2 from "../../assets/images/profile2.png";
 import Profile3 from "../../assets/images/profile3.png";
 import Profile4 from "../../assets/images/profile4.png";
-import socket from "../../sockets/socketClient";
+import  { getSocket } from "../../sockets/socketClient";
 import useAuthStore from "../../store/authStore";
-import { exitMeteoRoom, offRoomExit, onRoomExit } from "../../sockets/meteoSocket";
+import { exitMeteoRoom, offMeteoGameStart, offRoomExit, onMeteoGameStart, onRoomExit, startMeteoGame } from "../../sockets/meteoSocket";
+import Crown from "../../assets/images/crown_icon.png";
+import StartButton from "../../assets/images/start_btn.png";
+import WaitButton from "../../assets/images/wait_btn.png";
 
 const MeteoLandingPage = () => {
   const navigate = useNavigate();
@@ -20,14 +23,19 @@ const MeteoLandingPage = () => {
   const profileImages = [Profile1, Profile2, Profile3, Profile4];
   const nickname = useAuthStore((state) => state.user?.nickname);
 
+
   // players 배열을 users 배열로 변환
   const updateUsersFromPlayers = (playersArray) => {
     const updated = Array(4).fill(null);
     playersArray.forEach((player, idx) => {
       if (idx < 4) {
-        updated[idx] = { nickname: player.nickname };
+        updated[idx] = {
+          nickname: player.nickname,
+          isHost: player.isHost || false  // ✅ isHost도 같이 저장
+        };
       }
     });
+    console.log("✅ [updateUsersFromPlayers] 유저 리스트:", updated);
     setUsers(updated);
   };
 
@@ -60,12 +68,12 @@ const MeteoLandingPage = () => {
         console.log("✅ [방 참가] localStorage 저장 완료");
       }
     };
-    socket.on("secretRoomJoin", handleSecretRoomJoin);
+    getSocket().on("secretRoomJoin", handleSecretRoomJoin);
 
     onRoomExit((data) => {
       const { currentPlayers, leftUser } = data;
     
-      const mySessionId = socket.id;   // ✅ 먼저 socket.id를 mySessionId에 저장
+      const mySessionId = getSocket().id;   // ✅ 먼저 socket.id를 mySessionId에 저장
     
       console.log("🛰️ [roomExit 수신] 현재 인원:", currentPlayers);
       console.log("내 세션 ID:", mySessionId, "나간 사람 세션 ID:", leftUser.sessionId);
@@ -84,15 +92,31 @@ const MeteoLandingPage = () => {
       }
     });
     
-    
+
     return () => {
-      socket.off("secretRoomJoin", handleSecretRoomJoin);
+      getSocket().off("secretRoomJoin", handleSecretRoomJoin);
       offRoomExit();
       // 페이지 떠날 때도 깔끔하게 localStorage 삭제
       localStorage.removeItem("meteoRoomCode");
       localStorage.removeItem("meteoRoomId");
     };
   }, [roomCode, nickname, players, navigate]);
+
+  // 게임 시작
+  const handleStartGame = () => {
+    startMeteoGame(roomId);
+  };
+  
+  useEffect(() => {
+    onMeteoGameStart((gameData) => {
+      console.log("🎮 [gameStart 수신] 게임 데이터:", gameData);
+      navigate("/meteo/game", { state: { ...gameData } });
+    });
+  
+    return () => {
+      offMeteoGameStart();
+    };
+  }, [navigate]);
 
   // 방 나가기 버튼 클릭
   const handleExitRoom = () => {
@@ -133,12 +157,29 @@ const MeteoLandingPage = () => {
           {users.map((user, idx) => (
             <div key={idx} className="relative w-48 h-auto">
               <img src={UserBoard} alt={`user-board-${idx}`} className="w-full h-auto rounded-xl shadow-md" />
+                {/* 왕관 아이콘 (오른쪽 상단) */}
+                {user?.isHost && (
+                  <img
+                    src={Crown}
+                    alt="Crown"
+                    className="absolute top-1 right-1 w-5 h-5" // 위치, 크기 조정
+                  />
+                )}
               <div className="absolute top-1 left-1/2 transform -translate-x-1/2 text-black text-xl">
                 No.{idx + 1}
               </div>
-              <img src={profileImages[idx]} alt={`user-profile-${idx}`} className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto" />
+                  {/* ✅ user가 있을 때만 프로필 사진 */}
+                  {user ? (
+                    <img
+                      src={profileImages[idx]}
+                      alt={`user-profile-${idx}`}
+                      className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto"
+                    />
+                  ) : null}
+              {/* <img src={profileImages[idx]} alt={`user-profile-${idx}`} className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto" /> */}
+              {/* 닉네임 */}
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-m">
-                {user ? user.nickname : "-"}
+                {user?.nickname || "-"}
               </div>
             </div>
           ))}
@@ -152,7 +193,34 @@ const MeteoLandingPage = () => {
               <p className="text-xl mb-1">방코드</p>
               <p className="text-3xl">{roomCode || "없음"}</p>
             </div>
-            <div className="w-[10rem] h-[3.5rem] border-4 rounded-xl flex items-center justify-center" style={{ borderColor: "#01FFFE" }}></div>
+            <div className="w-[10rem] h-[3.5rem] border-4 rounded-xl flex items-center justify-center" style={{ borderColor: "#01FFFE" }}>
+            {users.find(user => user?.nickname === nickname)?.isHost ? (
+              users.filter(user => user !== null).length === 4 ? (
+                // ✅ 방장이고, 4명 다 찼으면 진짜 Start 버튼
+                <img
+                  src={StartButton}
+                  alt="start"
+                  className="w-full h-full cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
+                  onClick={() => handleStartGame()}
+                />
+              ) : (
+                // ✅ 방장이지만 아직 4명 안 찼으면 흐릿한 Start 버튼
+                <img
+                  src={StartButton}
+                  alt="start-disabled"
+                  className="w-full h-full opacity-50"
+                />
+              )
+            ) : (
+              // ✅ 방장이 아니면 무조건 Wait 버튼
+              <img
+                src={WaitButton}
+                alt="wait"
+                className="w-full h-full opacity-50"
+              />
+            )}
+          </div>
+
           </div>
         </div>
 
