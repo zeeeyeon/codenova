@@ -62,7 +62,7 @@ import xImg from '../../assets/images/keyboard/X.png'
 import yImg from '../../assets/images/keyboard/Y.png'
 import zImg from '../../assets/images/keyboard/Z.png'
 
-import clickSound from '../../sound/keyboardSound2.mp3'
+import clickSound from '../../assets/sound/keyboardSound2.mp3'
 
 import { useEffect, useState } from 'react'
 

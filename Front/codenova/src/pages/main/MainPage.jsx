@@ -12,7 +12,6 @@ import { useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react";
 import RoomCodeModal from "../../components/modal/RoomCodeModal";
 import { getAccessToken } from "../../utils/tokenUtils";
-import socket from "../../sockets/socketClient";
 import { createMeteoRoom } from "../../sockets/meteoSocket";
 import useAuthStore from "../../store/authStore";
 
@@ -28,9 +27,6 @@ const MainPage = () => {
     }
   }, [navigate]);
 
-  useEffect(() => {
-    console.log("Socket connected?", socket.connected); // true or false 출력
-  }, []);
 
   const nickname = useAuthStore((state) => state.user?.nickname)
   // console.log(nickname)
@@ -45,7 +41,8 @@ const MainPage = () => {
       { isPrivate: true, nickname }, // 닉네임 넘겨서 createRoom emit
       (roomData) => {
         console.log("✅ 방 생성 성공:", roomData);
-        navigate("/meteo/landing", { state: { roomCode: roomData.roomCode, roomId: roomData.roomId } });
+        const initalPlayers = [{ sessionId: roomData.sessionId, nickname, isHost: roomData.isHost}];
+        navigate("/meteo/landing", { state: { roomCode: roomData.roomCode, roomId: roomData.roomId, players: initalPlayers} });
       },
       (errorMessage) => {
         console.error("❌ 방 생성 실패:", errorMessage);
