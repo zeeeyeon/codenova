@@ -7,4 +7,5 @@ public class JoinRoomRequest {
 
     private String roomId;
     private String nickname;
+    private String roomCode;
 }
