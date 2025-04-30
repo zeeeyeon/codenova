@@ -100,15 +100,10 @@ export const exitMeteoGame = ({roomId, nickname}) => {
   getSocket().emit("exitRoom", { roomId, nickname });
 }
 
-
-
-
-
-// export const exitMeteoRoom = ({ roomId, nickname }) => {
-//   if (!roomId || !nickname) {
-//     console.error("❌ [exitMeteoRoom] roomId 또는 nickname이 없습니다.", { roomId, nickname });
-//     return;
-//   }
-//   console.log("[exitMeteoRoom] exitRoom emit 보냄", { roomId, nickname });
-//   getSocket().emit("exitRoom", { roomId, nickname });
-// };
+// 방 나갔을 때 브로드캐스트 수신 
+export const onExitMeteoGame = (callback) => {
+  getSocket().on("gameLeave", (data) => {
+    console.log("[onExitMeteoGame] gameLeave 수신", data);
+    callback(data);
+  });
+};
