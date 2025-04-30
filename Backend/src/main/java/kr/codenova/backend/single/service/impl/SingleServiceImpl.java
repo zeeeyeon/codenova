@@ -116,6 +116,13 @@ public class SingleServiceImpl implements SingleService {
     }
 
 
+    @Override
+    public SingleBattleCodeResponse test(int codeId) {
+        return codeRepository.findByCodeId(codeId)
+                .map(SingleBattleCodeResponse::from)
+                .orElseThrow(() -> new CustomException(CODE_NOT_FOUND));
+    }
+
     private String buildStructuredPrompt(List<String> keywords) {
         StringBuilder builder = new StringBuilder();
         builder.append("""

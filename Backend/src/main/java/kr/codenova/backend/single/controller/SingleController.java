@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static kr.codenova.backend.global.response.ResponseCode.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -83,5 +82,11 @@ public class SingleController {
     public ResponseEntity<?> getReportDetail(@AuthenticationPrincipal CustomMemberDetails memberDetails, @PathVariable int reportId) {
         ReportDetailResponse detail = singleService.getReportDetail(memberDetails.getMember().getMemberId(), reportId);
         return new ResponseEntity<>(Response.create(ResponseCode.GET_REPORT_DETAIL_SUCCESS, detail), ResponseCode.GET_REPORT_DETAIL_SUCCESS.getHttpStatus());
+    }
+
+    @PostMapping("/test/{codeId}")
+    public ResponseEntity<?> test(@PathVariable int codeId) {
+        SingleBattleCodeResponse code = singleService.test(codeId);
+        return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
     }
 }
