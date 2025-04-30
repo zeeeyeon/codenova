@@ -84,8 +84,8 @@ public class SingleController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_REPORT_DETAIL_SUCCESS, detail), ResponseCode.GET_REPORT_DETAIL_SUCCESS.getHttpStatus());
     }
 
-    @PostMapping("/test/{codeId}")
-    public ResponseEntity<?> test(@PathVariable int codeId) {
+    @PostMapping("/test")
+    public ResponseEntity<?> test(@RequestParam("codeId") int codeId) {
         SingleBattleCodeResponse code = singleService.test(codeId);
         return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
     }
