@@ -16,8 +16,8 @@ export default function FallingWord({
       const now = Date.now();
       const elapsed = now - spawnTime;
       const progress = Math.min(elapsed / duration, 1);
-      const nextY = progress * groundY;
-
+      const FALL_END_OFFSET = 140;
+      const nextY = progress * (groundY - FALL_END_OFFSET);
       // console.log(`[${word}] elapsed: ${elapsed}ms, progress: ${progress.toFixed(2)}, y: ${nextY.toFixed(1)}`);
 
       if (elapsed >= duration) {
