@@ -29,11 +29,11 @@ const CsSelectPage = () => {
 
         {/* 버튼 이미지들 */}
         <div className='flex flex-wrap justify-center gap-4 w-full px-4 mt-20'>
-          <img src={designPattenBtn} alt="디자인패턴" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'/>
-          <img src={networkBtn} alt="네트워크" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs-network')}/>
-          <img src={dbBtn} alt="데이터베이스" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs-db')}/>
-          <img src={dataStrBtn} alt="자료구조" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs-structure')}/>
-          <img src={osBtn} alt="운영체제" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs-os')}/>
+          <img src={designPattenBtn} alt="디자인패턴" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs?category=COMPUTER_STRUCTURE')}/>
+          <img src={networkBtn} alt="네트워크" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs?category=NETWORK')}/>
+          <img src={dbBtn} alt="데이터베이스" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs?category=DATABASE')}/>
+          <img src={dataStrBtn} alt="자료구조" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs?category=DATA_STRUCTURE')}/>
+          <img src={osBtn} alt="운영체제" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/cs?category=OS')}/>
         </div>
 
         {/* 취소 버튼 */}

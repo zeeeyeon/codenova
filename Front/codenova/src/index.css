@@ -27,6 +27,7 @@ body {
 /* custom-scrollbar 개선된 버전 */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px; /* ✨ 더 얇게 */
+  height: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
