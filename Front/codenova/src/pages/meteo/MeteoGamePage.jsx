@@ -5,6 +5,7 @@ import typingLottie from "../../assets/lottie/typing.json";
 import FallingWord from "./FallingWord";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getSocket } from "../../sockets/socketClient";
+import EndGameBtn from "../../assets/images/end_game_button.png";
 
 const MeteoGamePage = () => {
   const navigate = useNavigate();
@@ -46,17 +47,25 @@ const MeteoGamePage = () => {
     const socket = getSocket();
     if (!socket) return;
   
-    const handleWordFalling = ({ word, fallDuration }) => {
+    const handleWordFalling = ({ word, fallDuration, timestamp }) => {
       const id = Date.now() + Math.random();
-  
+
+      let parsedTime = new Date(timestamp.replace(" ", "T")).getTime();      
+      const now = Date.now()
+      if (now - parsedTime > 5000 || now - parsedTime < -1000) {
+        console.warn("🚨 spawnTime 보정됨:", timestamp, `(Δ ${now - parsedTime}ms)`);
+        parsedTime = now;
+      }
+      const spawnTime = parsedTime;
+      console.log("[타이밍 확인] now:", now, "spawnTime:", spawnTime, "Δ:", now - spawnTime);
+      console.log("[wordFalling] word:", word, "fallDuration:", fallDuration, "timestamp:", timestamp);
+
       setFallingWords(prev => {
-        // 1) 기존 단어들의 left% 추출
         const existing = prev.map(w => w.left);
   
-        // 2) 충돌 검사
         let leftPercent;
         for (let i = 0; i < 5; i++) {
-          const candidate = Math.random() * 80 + 10; // 10~90%
+          const candidate = Math.random() * 80 + 10;
           if (!existing.some(x => Math.abs(x - candidate) < 15)) {
             leftPercent = candidate;
             break;
@@ -64,10 +73,9 @@ const MeteoGamePage = () => {
         }
         if (leftPercent == null) leftPercent = Math.random() * 80 + 10;
   
-        // 3) 새 단어 추가
         return [
           ...prev,
-          { id, word, fallDuration, left: leftPercent }
+          { id, word, fallDuration, spawnTime, left: leftPercent },
         ];
       });
     };
@@ -76,6 +84,7 @@ const MeteoGamePage = () => {
     socket.on("wordFalling", handleWordFalling);
     return () => socket.off("wordFalling", handleWordFalling);
   }, []);
+  
   
 
   // 단어가 바닥에 닿으면 목록에서 제거
@@ -95,16 +104,18 @@ const MeteoGamePage = () => {
       className="w-screen h-screen bg-cover bg-center bg-no-repeat relative overflow-hidden"
       style={{ backgroundImage: `url(${MeteoGameBg})` }}
     >
+      <img src={EndGameBtn} alt="end_game_btn" className="absolute top-0 right-3  w-[7rem] overflow-visible z-50" />
     <div
       className="absolute top-0 left-1/2 -translate-x-1/2
                  w-4/5 h-full relative overflow-visible z-50"
     >
-      {fallingWords.map(({ id, word, fallDuration, left }) => (
+      {fallingWords.map(({ id, word, fallDuration, left, spawnTime }) => (
         <FallingWord
           key={id}
           word={word}
           duration={fallDuration}
           left={left}         // 숫자형(예: 23.5)
+          spawnTime={spawnTime}
           groundY={groundY}
           onEnd={() => handleWordEnd(id)}
         />
