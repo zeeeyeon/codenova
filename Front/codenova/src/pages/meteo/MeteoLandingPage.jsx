@@ -125,7 +125,7 @@ const MeteoLandingPage = () => {
       // ✅ roomId 저장
       localStorage.setItem("roomId", roomId);
   
-      // ✅ roomCode가 없다면 빈 문자열로 초기화 (혹시 몰라서)
+      // ✅ roomCode가 없다면 빈 문자열로 초기화 
       if (!localStorage.getItem("roomCode")) {
         localStorage.setItem("roomCode", "");
       }
