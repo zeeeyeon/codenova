@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static kr.codenova.backend.global.response.ResponseCode.*;
+
 
 @RestController
 @RequiredArgsConstructor
