@@ -4,6 +4,7 @@ import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
 import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
+import kr.codenova.backend.multi.exception.InvalidPasswordException;
 import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import kr.codenova.backend.global.socket.SocketEventHandler;
@@ -49,6 +50,8 @@ public class RoomSocketHandler implements SocketEventHandler {
                 client.sendEvent("error", new SocketErrorResponse("방을 찾을 수 없습니다."));
             } catch (RoomFullException e) {
                 client.sendEvent("error", new SocketErrorResponse("방이 가득 찼습니다."));
+            } catch (InvalidPasswordException e) {
+                client.sendEvent("error", new SocketErrorResponse("비밀번호가 일치하지 않습니다."));
             } catch (Exception e) {
                 client.sendEvent("error", new SocketErrorResponse("방 입장 실패"));
             }
