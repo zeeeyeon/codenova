@@ -1,12 +1,11 @@
 import backgroundImg from '../../assets/images/single_background.jpg'
-import box from '../../assets/images/board1.jpg'
+import box from '../../assets/images/board1_cut.jpg'
 import logo from '../../assets/images/logo.png'
 import Keyboard from '../../components/keyboard/Keyboard'
 import Header from "../../components/common/Header"
 
-import authApi from "../../api/authAxiosConfig"
 import { getAccessToken } from "../../utils/tokenUtils";
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useEffect, useState, useRef } from 'react'
 
 import hljs from 'highlight.js/lib/core';
@@ -21,6 +20,8 @@ import ProgressBox from '../../components/single/ProgressBox'
 import { calculateCPM, getProgress } from '../../utils/typingUtils';
 import FinishPage from '../single/modal/FinishPage';
 
+import { singleCsCode, singleLangCode } from '../../api/singleApi'
+
 // 등록
 hljs.registerLanguage('java', java);
 hljs.registerLanguage('python', python);
@@ -31,7 +32,11 @@ hljs.registerLanguage('sql', sql);
 const SinglePage = () => {
 
     const navigate = useNavigate();
+    const location = useLocation();
+    const query = new URLSearchParams(location.search);
+    const category = query.get('category') // "DATABASE", "NETWORK", "OS", "DATA_STRUCTURE", "COMPUTER_STRUCTURE"
     const { lang } = useParams();
+
 
     // 코드 입력 관련 상태관리
     const [rawCode, setRawCode] = useState(""); // API 받은 순수 코드
@@ -61,9 +66,11 @@ const SinglePage = () => {
     // 완료 상태 관리
     const [isFinished, setIsFinished] = useState(false);
 
-    // 자동으로 내려가게게
+    // 자동으로 내려가게
     const codeContainerRef = useRef(null);
 
+    const [CScode, setCScode] = useState([]);
+    const [isCs , setIsCs] = useState(false);
 
     useEffect(() => {
         if (inputAreaRef.current) {
@@ -82,15 +89,28 @@ const SinglePage = () => {
 
     useEffect(() => {
         if (lang) {
-            authApi.get('/api/single/code', {params: {language: lang.toUpperCase()}})
-                .then(res => {
-                    console.log("api 결과", res.data)
-                    const code = res.data.content.content
-                    setRawCode(code)                    
-                })
-                .catch(e => {
-                    console.error("api 요청 실패:" , e)
-                })
+            if (lang === 'cs') {
+                setIsCs(true);
+                singleCsCode(category)
+                    .then(data => {
+                        setCScode(data);
+                    })
+                    .catch(e => {
+                        console.error("api 요청 실패:" , e)
+                    })
+            } else {
+                setIsCs(false);
+                singleLangCode(lang)
+                    .then(data => {
+                        console.log("api 결과", data);            
+                        setRawCode(data);         
+                    })
+                    .catch(e => {
+                        console.error("api 요청 실패:" , e)
+                    })
+                
+            }
+
         }
     },[lang])
 
@@ -101,14 +121,19 @@ const SinglePage = () => {
 
     }, [rawCode]);
 
+    useEffect(() => {
+        if (!Array.isArray(CScode)) return;
+
+        console.log(CScode);
+        // const allLines = CScode.map((item) => `${item.keyword} - ${item.content}`);
+        //     setLines(allLines); // 하나의 배열로 상태 저장
+        const allLines = CScode.map((item) => `${item.keyword} - ${item.content}`);
+            setLines(allLines); // 하나의 배열로 상태 저장
+    }, [CScode])
+
     const normalizeLineReTab = (line) => {
         // 앞뒤 공백과 탭을 제거
         return line.trim().replace(/\t/g, ''); 
-    }
-
-    const normalizeLine = (line) => {
-        const tabSize = 4;
-        return line.replace(/\t/g, ' '.repeat(tabSize))
     }
 
     const getLanguageClass = (lang) => {
@@ -156,29 +181,9 @@ const SinglePage = () => {
             e.preventDefault(); //
             // setCurrentInput((prev) => prev + '\t'); 일단 탭을 막아놓기
         }
-
-        else if (key.length === 1){ //글자 입력하면
-            setCurrentInput((prev) => {
-                const newInput = prev + key;
-
-                const normalizedLine = normalizeLineReTab(lines[currentLineIndex]);
-                const nextChar = normalizedLine[newInput.length - 1];
-
-                // 현재까지 입력한 값과 정답을 비교하여 틀린 글자가 있는지 확인
-                const hasWrongChar = normalizedLine.slice(0, newInput.length) !== newInput;
-                setWrongChar(hasWrongChar); // 틀린 글자가 있으면 빨간 테두리 유지
-
-                if (key === nextChar) {
-                    setTotalTypedChars(prev => prev + 1);
-                } 
-
-                return newInput;
-            })
-
-        }
-        else if (key === 'Backspace') //백스페이스 누르면 지우기
-            setCurrentInput((prev) => prev.slice(0,-1));
     };
+
+
 
     useEffect(() => {
         let timer;
@@ -223,24 +228,35 @@ const SinglePage = () => {
         return match ? match[0].length : 0; // 매칭된 부분의 길이를 반환
     }
 
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        setCurrentInput(value)
+        const normalizedLine = normalizeLineReTab(lines[currentLineIndex])
+        const hasWrongChar = normalizedLine.slice(0, value.length) !== value;
+        setWrongChar(hasWrongChar);
+        if (!hasWrongChar) {
+            // 타수 업데이트: 입력된 글자 수를 계산하여 타자 속도 측정
+            setTotalTypedChars(); // 이전까지 입력한 글자들을 모두 통합해서 속력 측정
+        }
+    };
+
     return (
         <div className="w-screen h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center"
             style={{ backgroundImage: `url(${backgroundImg})`}}
         >
-            <Header/>
+            {/* <Header/> */}
             {/* 타자게임 박스 */}
-            <div className='relative mt-20'>
-                <img src={box} alt="타자게임 박스" className="w-[70vw] max-w-5wl h-auto rounded-2xl"/>
+            <div className='relative mt-20 '>
+                <img src={box} alt="타자게임 박스" className="w-[85vw] max-w-5wl h-auto rounded-2xl"/>
 
-                <img src={logo} alt="로고" className="absolute -top-[90px] left-1/2 -translate-x-1/2 w-[15vw] max-w-[300px] h-auto z-10"/>
+                <img src={logo} alt="로고" className="absolute -top-[50px] left-1/2 -translate-x-1/2 w-[12vw] max-w-[300px] h-auto z-10"/>
 
 
                 {/* 콘텐츠 박스들 */}
-                <div className="absolute top-0 left-0 w-full h-full flex gap-4 z-10 px-24 py-24">
+                <div className="absolute top-0 left-0 w-full h-full flex gap-4 z-10 px-20 py-20">
                     {/* 왼쪽 컨텐츠 영역 */}
-                    <div className="flex flex-col flex-1 gap-4">
-                        <div className="flex-1 h-[50%] border-4 rounded-xl text-xl px-4 pt-2 focus:outline-none"
-                            ref={inputAreaRef}
+                    <div className="flex flex-col flex-1 gap-4 w-full h-full max-w-[80%]">
+                        <div className="flex-1 w-full h-[30%] border-4 rounded-xl text-xl px-4 py-2 focus:outline-none"
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
                             tabIndex={0}
@@ -252,7 +268,7 @@ const SinglePage = () => {
                         >
                             <pre 
                                 ref={codeContainerRef}
-                                className="overflow-auto w-full h-[85%] whitespace-pre-wrap p-4 text-xl custom-scrollbar">
+                                className="overflow-auto w-full h-[85%] whitespace-pre-wrap p-4 text-xl custom-scrollbar mb-2">
                                 {/* <code
                                     className="hljs"
                                     dangerouslySetInnerHTML={{ __html: highlightedCode }}
@@ -313,19 +329,14 @@ const SinglePage = () => {
 
 
                             {/* 유저가 타이핑한 코드가 보이는 곳 */}
-                            <div className={`flex items-center bg-white text-black rounded-2xl w-full h-[12%] p-2 border-4 ${wrongChar ?  'border-red-400' :'border-green-400'} ${shake ? "animate-shake" : ""}`}>
-                                <pre className="w-full h-full whitespace-pre-wrap text-xl flex items-center"
-                                    placeholder="Start Typing Code Here."
-                                >
-                                    {currentInput.split('').map((char, idx) => (
-                                    <span key={idx} className='currentInput'>
-                                      {char === '\t' ? '\u00A0\u00A0\u00A0\u00A0' : char}
-                                    </span>
-                                    ))}
-                                    {/* 커서 */}
-                                    {isFocused && <span className="blinking-cursor currentInput">|</span>}
-                                </pre>
-                            </div>
+                            <input
+                                ref={inputAreaRef}
+                                className={`flex items-center bg-white text-black rounded-2xl w-full h-[12%] p-2 border-4 ${wrongChar ?  'border-red-400' :'border-green-400'} ${shake ? "animate-shake" : ""}`}
+                                type="text"
+                                value={currentInput}
+                                onChange={handleInputChange}  
+                                placeholder="여기에 타이핑하세요"
+                            />
 
                         </div>
                         
