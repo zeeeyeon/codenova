@@ -90,3 +90,25 @@ export const offWordFalling = () => {
   if (!socket) return;
   socket.off("wordFalling");
 };
+
+// 게임 도중 종료 수신
+export const exitMeteoGame = ({roomId, nickname}) => {
+  if (!roomId || !nickname) {
+    console.error("❌ [exitGame] roomId 또는 nickname이 없습니다.", { roomId, nickname });
+    return;
+  }
+  getSocket().emit("exitRoom", { roomId, nickname });
+}
+
+
+
+
+
+// export const exitMeteoRoom = ({ roomId, nickname }) => {
+//   if (!roomId || !nickname) {
+//     console.error("❌ [exitMeteoRoom] roomId 또는 nickname이 없습니다.", { roomId, nickname });
+//     return;
+//   }
+//   console.log("[exitMeteoRoom] exitRoom emit 보냄", { roomId, nickname });
+//   getSocket().emit("exitRoom", { roomId, nickname });
+// };
