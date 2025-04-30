@@ -12,6 +12,7 @@ import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
 import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
 import kr.codenova.backend.multi.dto.response.CreateRoomResponse;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
+import kr.codenova.backend.multi.exception.InvalidPasswordException;
 import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import org.slf4j.Logger;
@@ -96,11 +97,19 @@ public class RoomServiceImpl implements RoomService {
         return roomMap.get(roomId);
     }
 
-    // 방 입장
+    // 공개방 입장
     public void joinRoom(JoinRoomRequest request, SocketIOClient client, AckRequest ackSender) {
         Room room = roomMap.get(request.getRoomId());
         if (room == null) {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
+        }
+
+        // 비밀방 확인 로직 추가
+        if (room.getIsLocked()) {
+            // 비밀방인데 코드가 없거나 일치하지 않으면 예외 발생
+            if (request.getRoomCode() == null || !request.getRoomCode().equals(room.getRoomCode())) {
+                throw new InvalidPasswordException("비밀번호가 일치하지 않습니다.");
+            }
         }
 
         if (room.getCurrentCount() >= room.getMaxCount()) {
