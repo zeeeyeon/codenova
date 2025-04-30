@@ -5,8 +5,8 @@
   }
 
 .typed, .pending, .wrong, .currentInput{
-    /* font-family: monospace !important;
-    font-weight: bold; */
+    font-family: monospace !important;
+    font-weight: bold;
 }
 
 .typed {
@@ -35,3 +35,8 @@
   50% { opacity: 0; }
   100% { opacity: 1; }
 }
+
+input {
+  outline: none; 
+}
+
