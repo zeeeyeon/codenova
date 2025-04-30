@@ -118,6 +118,28 @@ const MeteoLandingPage = () => {
   useEffect(() => {
     onMeteoGameStart((gameData) => {
       console.log("🎮 [gameStart 수신] 게임 데이터:", gameData);
+  
+      const { roomId, players } = gameData;
+      const myNickname = localStorage.getItem("nickname"); // 기본 저장되어 있다고 가정
+  
+      // ✅ roomId 저장
+      localStorage.setItem("roomId", roomId);
+  
+      // ✅ roomCode가 없다면 빈 문자열로 초기화 (혹시 몰라서)
+      if (!localStorage.getItem("roomCode")) {
+        localStorage.setItem("roomCode", "");
+      }
+  
+      // ✅ nickname이 날아갔을 경우 보정
+      if (!myNickname) {
+        const mySessionId = getSocket()?.id;
+        const matched = players.find(p => p.sessionId === mySessionId);
+        if (matched?.nickname) {
+          localStorage.setItem("nickname", matched.nickname);
+        }
+      }
+  
+      // ✅ 페이지 이동
       navigate("/meteo/game", { state: { ...gameData } });
     });
   
