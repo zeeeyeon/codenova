@@ -1,9 +1,17 @@
 import { io } from "socket.io-client";
 
+// const SERVER_URL =
+//   import.meta.env.VITE_SOCKET_URL ||
+//   import.meta.env.VITE_API_BASE_URL.replace(/^http/, "ws");
+
+// const socket = io("wss://www.codenova.kr/socket.io", {
+//   transports: ["websocket"]
+// });
 let socket = null;
 let isConnecting = false;
 
-const SERVER_URL = "http://localhost:9092";
+// const SERVER_URL = "http://localhost:9092";
+const SERVER_URL = "wss://codenova.kr";
 
 export const connectSocket = (forceReconnect = false) => {
   if (socket && socket.connected && !forceReconnect) {

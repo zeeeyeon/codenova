@@ -1,58 +1,52 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function FallingWord({
   word,
-  duration,  // 서버에서 받은 “풀 높이→0까지” 기준 duration
-  left,      // % (0~100)
+  duration,
+  left,
   groundY,
+  spawnTime,
   onEnd,
 }) {
-  const ref = useRef();
+  const [y, setY] = useState(0);
+  const rafRef = useRef();
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    const update = () => {
+      const now = Date.now();
+      const elapsed = now - spawnTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const nextY = progress * groundY;
 
-    // 1) 초기 스타일
-    el.style.position    = "absolute";
-    el.style.top         = "0px";
-    el.style.left        = `${left}%`;
-    el.style.willChange  = "transform";             // GPU 가속
-    el.style.transform   = "translateY(0px)";
+      // console.log(`[${word}] elapsed: ${elapsed}ms, progress: ${progress.toFixed(2)}, y: ${nextY.toFixed(1)}`);
 
-    // 2) 하강 거리 계산
-    const wordH = el.offsetHeight;
-    const fullDrop = groundY;                        // top:0 → groundY
-    const distance = groundY - wordH -80;           // +여유
-    // 3) 속도 고정: 풀 높이에 비례해 duration 재계산
-    const pxPerMs = fullDrop / duration;
-    const actualDuration = distance / pxPerMs;
+      if (elapsed >= duration) {
+        setY(groundY);
+        onEnd();
+        return;
+      }
 
-    el.style.transition = `transform ${actualDuration}ms linear`;
+      setY(nextY);
+      rafRef.current = requestAnimationFrame(update);
+    };
 
-    // 4) 트랜지션 끝나면 onEnd 호출
-    const done = () => onEnd();
-    el.addEventListener("transitionend", done);
-
-    // 5) 다음 프레임에 애니메이션 시작
-    requestAnimationFrame(() => {
-      el.style.transform = `translateY(${distance}px)`;
-    });
-
-    return () => el.removeEventListener("transitionend", done);
-  }, [groundY, duration, left, onEnd]);
+    update();
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [spawnTime, duration, groundY, onEnd]);
 
   return (
     <div
-      ref={ref}
       style={{
+        position: "absolute",
+        top: `${y}px`,
+        left: `${left}%`,
         whiteSpace: "nowrap",
         fontSize: "2rem",
         color: "#fff",
         textShadow: "0 0 3px #000",
         pointerEvents: "none",
         userSelect: "none",
-        zIndex: "100",
+        zIndex: 100,
       }}
     >
       {word}
