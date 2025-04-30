@@ -15,6 +15,9 @@ const MeteoGamePage = () => {
   const gameData = location.state;
   const { roomId, players } = gameData || {};
 
+  // 초기값은 무조건 4명
+  const [playerList, setPlayerList] = useState(["player1", "player2", "player3", "player4"]);
+
   const [input, setInput] = useState("");
   const [fallingWords, setFallingWords] = useState([]);
   const wordsRef = useRef(fallingWords);
@@ -104,7 +107,7 @@ const MeteoGamePage = () => {
 
     const handleLeave = (data) => {
       console.log("[onExitMeteoGame] gameLeave 수신", data);
-      const { leftUser } = data;
+      const { leftUser, currentPlayers } = data;
 
       // 본인이면 → 메인으로 이동
       if (leftUser.nickname === localStorage.getItem("nickname")) {
@@ -112,6 +115,8 @@ const MeteoGamePage = () => {
         localStorage.removeItem("roomCode");
         navigate("/main");
       } else {
+        setPlayerList(currentPlayers.map(p => p.nickname));
+
         const id = Date.now() + Math.random();
         setLeaveMessages(prev => [...prev, { id, text: `${leftUser.nickname} 님이 게임을 나갔습니다.` }]);
         setTimeout(() => {
@@ -140,7 +145,7 @@ const MeteoGamePage = () => {
       onClick={() => setShowExitModal(true)} />
     <div
       className="absolute top-0 left-1/2 -translate-x-1/2
-                 w-4/5 h-full relative overflow-visible z-50"
+                 w-4/5 h-full relative overflow-visible z-48 pointer-events-none"
     >
       {fallingWords.map(({ id, word, fallDuration, left, spawnTime }) => (
         <FallingWord
@@ -157,9 +162,9 @@ const MeteoGamePage = () => {
 
       {/* 플레이어 애니메이션 */}
       <div ref={playersRef} className="absolute bottom-10 left-1 flex z-20">
-        {players.map((_, idx) => (
+        {playerList.map((nickname, idx) => (
           <Player
-            key={idx}
+            key={nickname}
             autoplay
             loop
             src={typingLottie}
@@ -177,7 +182,7 @@ const MeteoGamePage = () => {
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="단어를 입력하세요..."
-          className="w-[20rem] h-14 text-xl text-center font-bold text-black bg-[#f0f0f0] border-[3px] border-[#3a3a3a] rounded-lg shadow-md outline-none focus:ring-2 focus:ring-pink-300"
+          className="w-[20rem] z-50 h-14 text-xl text-center font-bold text-black bg-[#f0f0f0] border-[3px] border-[#3a3a3a] rounded-lg shadow-md outline-none focus:ring-2 focus:ring-pink-300"
           style={{ fontFamily: "pixel, sans-serif" }}
         />
       </div>
