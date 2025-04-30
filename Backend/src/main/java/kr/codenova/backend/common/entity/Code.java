@@ -15,6 +15,6 @@ public class Code {
     @Enumerated(EnumType.STRING)
     private Language language;
 
-    @Lob
+    @Column(length = 4048)
     private String content;
 }
