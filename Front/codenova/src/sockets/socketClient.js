@@ -1,33 +1,87 @@
-// src/sockets/socketClient.js
 import { io } from "socket.io-client";
 
-// 로컬 서버 주소 + 포트
+let socket = null;
+let isConnecting = false;
+
 const SERVER_URL = "http://localhost:9092";
 
-// 소켓 연결 생성
-const socket = io(SERVER_URL, {
-  transports: ["websocket"], // 웹소켓만 사용
-  withCredentials: true,     // 쿠키 인증 필요 시 true, 필요없으면 false
-});
+export const connectSocket = (forceReconnect = false) => {
+  if (socket && socket.connected && !forceReconnect) {
+    console.log("[Socket] 이미 연결되어 있습니다.");
+    return;
+  }
+  if (isConnecting) {
+    console.log("[Socket] 이미 연결 시도중입니다.");
+    return;
+  }
 
-// 연결 성공 시
-socket.on('connect', () => {
-  console.log(`[Socket Connected] ID: ${socket.id}`);
-});
+  isConnecting = true;
+  
+  socket = io(SERVER_URL, {
+    transports: ["websocket"],
+    withCredentials: true,
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+  });
 
-// 연결 끊길 시
-socket.on('disconnect', (reason) => {
-  console.log(`[Socket Disconnected] Reason: ${reason}`);
-});
+  socket.on('connect', () => {
+    console.log(`[Socket Connected] ID: ${socket.id}`);
+    isConnecting = false;
+  });
 
-// 재연결 성공 시
-socket.on('reconnect', (attempt) => {
-  console.log(`[Socket Reconnected] Attempts: ${attempt}`);
-});
+  socket.on('disconnect', (reason) => {
+    console.warn(`[Socket Disconnected] Reason: ${reason}`);
+    if (!socket.connected) {
+      console.warn("[Socket] 끊겼음. 강제 재연결 시도함.");
+      connectSocket(true); // ⭐ 강제 재연결
+    }
+  });
 
-// 재연결 시도할 때
-socket.on('reconnect_attempt', (attempt) => {
-  console.log(`[Socket Reconnect Attempt] Attempt: ${attempt}`);
-});
+  socket.on('connect_error', (err) => {
+    console.error(`[Socket Connect Error] ${err.message}`);
+    if (!socket.connected) {
+      console.warn("[Socket] 연결 에러 발생. 강제 재연결 시도함.");
+      connectSocket(true);
+    }
+  });
 
-export default socket;
+  socket.on('connect_timeout', () => {
+    console.warn("[Socket Connect Timeout]");
+    if (!socket.connected) {
+      connectSocket(true);
+    }
+  });
+
+  socket.on('error', (error) => {
+    console.error(`[Socket Error]`, error);
+    if (!socket.connected) {
+      connectSocket(true);
+    }
+  });
+
+  socket.on('reconnect_attempt', (attempt) => {
+    console.log(`[Socket Reconnect Attempt] Attempt: ${attempt}`);
+  });
+
+  socket.on('reconnect', (attempt) => {
+    console.log(`[Socket Reconnected] Attempts: ${attempt}`);
+    isConnecting = false;
+  });
+};
+
+export const getSocket = () => {
+  if (!socket || !socket.connected) {
+    console.warn("⚠️ Socket is not connected.");
+    return null;
+  }
+  return socket;
+};
+
+export const disconnectSocket = () => {
+  if (socket) {
+    socket.disconnect();
+    console.log("[Socket Disconnected] by manual");
+    // disconnect 후 socket은 남겨야 reconnect 가능
+  }
+};

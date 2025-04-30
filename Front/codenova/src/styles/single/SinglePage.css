@@ -1,0 +1,37 @@
+.hljs {
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+
+.typed, .pending, .wrong, .currentInput{
+    /* font-family: monospace !important;
+    font-weight: bold; */
+}
+
+.typed {
+    color: #98c379; /* 초록색 (맞은 글자) */
+}
+
+.wrong {
+    color: #e06c75; /* 빨간색 (틀린 글자) */
+}
+
+.pending {
+    color: #ffffff; /* 회색 (아직 안 친 글자) */
+    opacity: 0.6;
+}
+
+.currentLine {
+  opacity: 1 !important; /* 현재 타이핑 중인 줄은 opacity 1 */
+}
+
+.blinking-cursor {
+    animation: blink 1.2s infinite;
+  }
+  
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
