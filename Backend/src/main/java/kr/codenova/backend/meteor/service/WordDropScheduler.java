@@ -11,6 +11,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -55,8 +57,11 @@ public class WordDropScheduler {
             }
             room.addActiveWord(word);
 
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String timestamp = dateFormat.format(new Date());
+
             server().getRoomOperations(roomId)
-                    .sendEvent("wordFalling", new FallingWordResponse(word, fallDuration.get()));
+                    .sendEvent("wordFalling", new FallingWordResponse(word, fallDuration.get(), timestamp));
             // 3. 경과 시간 갱신
             long newElapsed = elapsed.addAndGet(spawnInterval);
             // 20초(20_000 ms) 마다 fallDuration 10% 줄이기
