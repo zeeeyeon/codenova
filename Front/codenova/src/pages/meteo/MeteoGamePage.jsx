@@ -25,7 +25,7 @@ const MeteoGamePage = () => {
     const calcGround = () => {
       if (playersRef.current) {
         const rect = playersRef.current.getBoundingClientRect();
-        setGroundY(rect.top);
+        setGroundY(rect.bottom);
       }
     };
     calcGround();
@@ -45,28 +45,38 @@ const MeteoGamePage = () => {
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
-
+  
     const handleWordFalling = ({ word, fallDuration }) => {
-      // 기존 단어들의 left%를 가져와 충돌 검사
-      const existing = wordsRef.current.map(w => w.left).filter(x => x != null);
-      let leftPercent = null;
-      for (let i = 0; i < 5; i++) {
-        const candidate = Math.random() * 80 + 10; // 10%~90%
-        if (!existing.some(x => Math.abs(x - candidate) < 15)) {
-          leftPercent = candidate;
-          break;
-        }
-      }
-      if (leftPercent === null) leftPercent = Math.random() * 80 + 10;
-
       const id = Date.now() + Math.random();
-      setFallingWords(prev => [...prev, { id, word, fallDuration, left: leftPercent }]);
+  
+      setFallingWords(prev => {
+        // 1) 기존 단어들의 left% 추출
+        const existing = prev.map(w => w.left);
+  
+        // 2) 충돌 검사
+        let leftPercent;
+        for (let i = 0; i < 5; i++) {
+          const candidate = Math.random() * 80 + 10; // 10~90%
+          if (!existing.some(x => Math.abs(x - candidate) < 15)) {
+            leftPercent = candidate;
+            break;
+          }
+        }
+        if (leftPercent == null) leftPercent = Math.random() * 80 + 10;
+  
+        // 3) 새 단어 추가
+        return [
+          ...prev,
+          { id, word, fallDuration, left: leftPercent }
+        ];
+      });
     };
-
+  
     socket.off("wordFalling", handleWordFalling);
     socket.on("wordFalling", handleWordFalling);
     return () => socket.off("wordFalling", handleWordFalling);
   }, []);
+  
 
   // 단어가 바닥에 닿으면 목록에서 제거
   const handleWordEnd = id => {
@@ -87,7 +97,7 @@ const MeteoGamePage = () => {
     >
     <div
       className="absolute top-0 left-1/2 -translate-x-1/2
-                 w-4/5 h-full relative overflow-hidden"
+                 w-4/5 h-full relative overflow-visible z-50"
     >
       {fallingWords.map(({ id, word, fallDuration, left }) => (
         <FallingWord
@@ -102,7 +112,7 @@ const MeteoGamePage = () => {
     </div>
 
       {/* 플레이어 애니메이션 */}
-      <div ref={playersRef} className="absolute bottom-14 left-1 flex z-20">
+      <div ref={playersRef} className="absolute bottom-10 left-1 flex z-20">
         {players.map((_, idx) => (
           <Player
             key={idx}
