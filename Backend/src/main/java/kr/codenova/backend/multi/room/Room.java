@@ -22,6 +22,7 @@ public class Room {
     private Boolean isLocked;
     private Boolean isStarted;
     private String roomCode;
+    private LocalDateTime createdAt;
 
     private String ownerNickname; // ✅ 방장 닉네임
 
