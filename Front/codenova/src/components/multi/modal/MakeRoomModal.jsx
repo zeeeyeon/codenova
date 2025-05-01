@@ -2,15 +2,22 @@ import React, {useState} from "react";
 import modalBg from "../../../assets/images/board1.jpg";
 import makeRoomBtn from "../../../assets/images/make_room_btn.png";
 import cancleBtn from "../../../assets/images/cancle_btn_2.png";
+import { createRoom } from "../../../sockets/MultiSocket";
+import { useNavigate } from "react-router-dom";
+import useAuthStore from "../../../store/authStore";
+
 
 const MakeRoomModal = ({ onClose }) => {
     const [title, setTitle] = useState("");
     const [people, setPeople] = useState();
-    const [language, setLanguage] = useState("Python");
+    const [language, setLanguage] = useState("PYTHON");
     const [isPublic, setIsPublic] = useState(true);
     const [activeArrow, setActiveArrow] = useState(null);
 
-    const languages = ["Python", "Java", "JavaScript","SQL"]
+    const languages = ["PYTHON", "JAVA", "JS","SQL"]
+    const navigate = useNavigate();
+    const nickname = useAuthStore((state) => state.user?.nickname);
+
     const handleLangChange = (dir) => {
         const index = languages.indexOf(language);
         if (dir === "prev") {
@@ -18,10 +25,45 @@ const MakeRoomModal = ({ onClose }) => {
         } else {
           setLanguage(languages[(index + 1) % languages.length]);
         }
-      
         setActiveArrow(dir); // 화살표 색상 반짝
         setTimeout(() => setActiveArrow(null), 300); 
       };
+
+      const handleCreateRoom = () => {
+        if (!title || !people || !language || !nickname) {
+          alert("모든 항목을 입력해주세요");
+          return;
+        }
+      
+        const payload = {
+          title,
+          nickname,
+          language,        
+          maxNum: people,
+          isLocked: !isPublic,
+        };
+      
+        createRoom(payload, (res) => {
+          if (!res || !res.roomId) {
+            alert("방 생성 실패");
+            return;
+          }
+      
+          navigate(`/multi/room/${res.roomId}`, {
+            state: {
+              roomTitle: title,
+              language,
+              currentPeople: 1,
+              standardPeople: people,
+              isPublic,
+              roomCode: res.roomCode,
+            },
+          });
+      
+          onClose();
+        });
+      };
+      
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
       <div className="relative w-[60vw] max-w-[1300px] aspect-[4/3] rounded-2xl overflow-hidden shadow-xl top-[13%]">
@@ -141,7 +183,10 @@ const MakeRoomModal = ({ onClose }) => {
                 alt="취소"
                 />
               </button>
-              <button className="w-[120px] h-[40px] hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] mt-0.5">
+              <button 
+                className="w-[120px] h-[40px] hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] mt-0.5"
+                onClick={handleCreateRoom}
+                >
                 <img
                 src={makeRoomBtn}
                 alt="방만들기"
