@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import multiBg from "../../assets/images/multi_background.png";
 import boardBg from "../../assets/images/board1.jpg";
@@ -8,13 +8,91 @@ import Header from "../../components/common/Header";
 import RoomList from "../../components/multi/RoomList";
 import MakeRoomModal from "../../components/multi/modal/MakeRoomModal";
 import EnterRoomModal from "../../components/multi/modal/EnterRoomModal"; 
+import { requestRoomList, onRoomList, offRoomList, onRoomUpdate, offRoomUpdate } from "../../sockets/MultiSocket";
+import { getSocket } from "../../sockets/socketClient";
 
 const MultiPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);   // 방 만들기 모달
   const [selectedRoom, setSelectedRoom] = useState(null);   // 클릭한 방
   const [showEnterModal, setShowEnterModal] = useState(false); // 입장 모달
+  const [roomList, setRoomList] = useState([]); // 룸 목록
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const requestRoomsSafely = () => {
+      const s = getSocket();
+      if (s && s.connected) {
+        console.log("🟢 socket 연결됨 → 방 목록 요청");
+        requestRoomList((rooms) => {
+          const parsed = rooms.map((room) => ({
+            id: room.roomId,
+            title: room.title,
+            language: room.language,
+            standardPeople: room.maxCount,
+            currentPeople: room.currentCount,
+            isPublic: !room.isLocked,
+            roomCode: room.roomCode,
+            status: room.isStarted ? "playing" : "waiting"
+          }));
+          setRoomList(parsed);
+        });
+      } else {
+        setTimeout(requestRoomsSafely, 300);
+      }
+    };
+  
+    requestRoomsSafely(); // 연결 완료 후 요청
+  
+    const handleRoomList = (rooms) => {
+      console.log("[room_list 수신 :", rooms);
+      const parsed = rooms.map((room) => ({
+        id: room.roomId,
+        title: room.title,
+        language: room.language,
+        standardPeople: room.maxCount,
+        currentPeople: room.currentCount,
+        isPublic: !room.isLocked,
+        roomCode: room.roomCode,
+        status: room.isStarted ? "playing" : "waiting"
+      }));
+      setRoomList(parsed);
+    };
+    
+  
+    const handleRoomUpdate = (updatedRoom) => {
+
+      const parsed = {
+        id: updatedRoom.roomId,
+        title: updatedRoom.title,
+        language: updatedRoom.language,
+        standardPeople: updatedRoom.maxCount,
+        currentPeople: updatedRoom.currentCount,
+        isPublic: !updatedRoom.isLocked,
+        roomCode: updatedRoom.roomCode,
+        status: updatedRoom.isStarted ? "playing" : "waiting",
+      };
+      setRoomList((prevRooms) => {
+        const exists = prevRooms.some((room) => room.id === parsed.id);
+        if (exists) {
+          return prevRooms.map((room) =>
+            room.id === parsed.id ? parsed : room
+          );
+        } else {
+          return [...prevRooms, parsed];
+        }
+      });
+    };
+  
+    onRoomList(handleRoomList);
+    onRoomUpdate(handleRoomUpdate);
+  
+    return () => {
+      offRoomList();
+      offRoomUpdate();
+    };
+  }, []);
+  
 
   const handleEnterClick = (room) => {
     setSelectedRoom(room);
@@ -101,7 +179,7 @@ const MultiPage = () => {
 
         {/* 방 리스트 */}
         <div className="mt-[4%] w-[80%] h-[60%] overflow-y-auto flex flex-col items-center gap-4 pt-2 z-10">
-          <RoomList onEnterClick={handleEnterClick} />
+          <RoomList rooms={roomList} onEnterClick={handleEnterClick} />
         </div>
       </div>
 
