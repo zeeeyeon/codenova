@@ -13,7 +13,7 @@ public class RoomListResponse {
     private String title;
     private Integer currentCount;
     private Integer maxCount;
-    private String langauge;
+    private String language;
     private Boolean isLocked;
     private Boolean isStarted;
 }
