@@ -241,7 +241,7 @@ public class MeteorEventHandler implements SocketEventHandler {
                     .players(room.getPlayers())
                     .fallingWords(fallingWords)
                     .initialLives(5)
-                    .initialDropInterval(2000)
+                    .initialDropInterval(1500)
                     .initialFallDuration(8000)
                     .message("게임이 시작되었습니다.")
                     .build();
