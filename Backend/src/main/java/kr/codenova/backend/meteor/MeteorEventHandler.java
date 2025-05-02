@@ -254,7 +254,7 @@ public class MeteorEventHandler implements SocketEventHandler {
                     resp.getInitialDropInterval(),
                     resp.getInitialFallDuration()
             );
-        }, Instant.now().plusSeconds(3));  // ← here
+        }, Instant.now().plusSeconds(10));  // ← here
     }
 
     private void handleExitRoom(SocketIOClient client, ExitRoomRequest data) {
