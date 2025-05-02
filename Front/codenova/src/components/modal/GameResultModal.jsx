@@ -31,12 +31,12 @@ const GameResultModal = ({ results, success, onExit, onRetry }) => {
             className="w-[9rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             onClick={onExit}
           />
-          <img
+          {/* <img
             src={retryBtn}
             alt="retry"
             className="w-[9rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             onClick={onRetry}
-          />
+          /> */}
         </div>
       </div>
     </div>

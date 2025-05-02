@@ -100,7 +100,6 @@ const MeteoLandingPage = () => {
         console.log("✅ 상대방이 나감. 현재 방 유지.");
       }
     });
-    
 
     return () => {
       getSocket().off("secretRoomJoin", handleSecretRoomJoin);
@@ -110,6 +109,30 @@ const MeteoLandingPage = () => {
       localStorage.removeItem("meteoRoomId");
     };
   }, [roomCode, nickname, players, navigate]);
+
+  useEffect(() => {
+    const handleUnloadOrBack = () => {
+      const savedRoomId = localStorage.getItem("meteoRoomId");
+      const savedNickname = nickname;
+  
+      if (savedRoomId && savedNickname) {
+        console.log("🚪 [뒤로가기/새로고침] 방 나감 처리 시작");
+        exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
+  
+        localStorage.removeItem("meteoRoomCode");
+        localStorage.removeItem("meteoRoomId");
+      }
+    };
+  
+    window.addEventListener("beforeunload", handleUnloadOrBack); // 새로고침 / 탭 종료
+    window.addEventListener("popstate", handleUnloadOrBack);     // 브라우저 뒤로가기
+  
+    return () => {
+      window.removeEventListener("beforeunload", handleUnloadOrBack);
+      window.removeEventListener("popstate", handleUnloadOrBack);
+    };
+  }, [nickname]);
+  
 
   useEffect(() => {
     const socket = getSocket();
