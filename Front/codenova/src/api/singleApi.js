@@ -25,6 +25,7 @@ export const singleCsCode = async (category) => {
 export const getLangCode = async (codeId) => {
     try {
         const response = await authApi.get(`/api/single/test`, {params: {codeId: codeId}})
+        console.log(response.data);
         return response.data.content;
     } catch (e) {
         console.error("getLangCode API 요청 실패", e);

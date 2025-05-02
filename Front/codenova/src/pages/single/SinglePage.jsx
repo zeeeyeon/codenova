@@ -104,7 +104,7 @@ const SinglePage = () => {
             } else {
                 setIsCs(false);
                 singleLangCode(lang)
-                // getLangCode(476)
+                // getLangCode(525)
                     .then(data => {
                         // console.log("api 결과", data);            
                         const { lines , space, charCount } = processCode(data.content);
@@ -213,13 +213,14 @@ const SinglePage = () => {
         }
 
         if (codeContainerRef.current && currentLineIndex > 0) {
-            const lineElements = codeContainerRef.current.querySelectorAll('div');
-        
-            // 현재 줄의 높이를 계산하여, 스크롤 위치를 조정
-            const lineHeight = lineElements[currentLineIndex]?.getBoundingClientRect().height || 20; // 한 줄의 높이 계산
+            // 코드의 각 줄을 가져옵니다.
+            const lineElements = codeContainerRef.current.querySelectorAll('.codeLine');
+
+            // 각 줄의 고정된 높이를 가져옵니다. 이 높이는 이미 max-h로 지정되어 있기 때문에 일정합니다.
+            const lineHeight = lineElements[currentLineIndex]?.getBoundingClientRect().height || 28; // 한 줄의 높이 계산
 
             // 스크롤을 자동으로 내리기
-            codeContainerRef.current.scrollTop += lineHeight + 10;
+            codeContainerRef.current.scrollTop += lineHeight;
           }
     }, [currentLineIndex])
 
@@ -242,8 +243,6 @@ const SinglePage = () => {
         // 현재 줄에서 올바르게 입력한 글자 수
         const currentLine = lines[currentLineIndex] || [];
         const currentLineChars = calculateCurrentLineTypedChars(currentInput, currentLine);
-        console.log(currentInput);
-        console.log(currentLineChars)
         // 전체 올바르게 입력한 글자 수 업데이트
         setTotalTypedChars(previousLinesChars + currentLineChars);
         
@@ -252,9 +251,13 @@ const SinglePage = () => {
         setWrongChar(hasWrongChar);
     }
 
-    useEffect(()=> {
-        console.log(totalTypedChars);
-    }, [totalTypedChars])
+    // useEffect(()=> {
+    //     console.log(totalTypedChars);
+    // }, [totalTypedChars])
+
+    useEffect(()=>{
+        console.log(lines);
+    }, [lines])
 
     return (
         <div className="w-screen h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center"
@@ -300,7 +303,7 @@ const SinglePage = () => {
                                         const lineWithSpace = space[idx];
 
                                         return (
-                                            <div key={idx}>
+                                            <div key={idx} className='codeLine max-h-[28px]'>
                                                 {idx < currentLineIndex ? (
                                                     // 이미 완료한 줄
                                                     <span>
@@ -330,7 +333,11 @@ const SinglePage = () => {
                                                             } else if (inputChar=== char) {
                                                                 className = 'typed currentLine';  // 일치한 문자
                                                             } else {
-                                                                className = 'wrong currentLine';  // 틀린 문자
+                                                                if (char === ' '){
+                                                                    className = 'wrong currentLine bg-red-400 '; // 공백이고 틀린 문자
+                                                                } else {
+                                                                    className = 'wrong currentLine';  // 틀린 문자
+                                                                }
                                                             }
                                                         
                                                             return (
