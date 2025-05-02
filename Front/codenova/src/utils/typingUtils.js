@@ -72,8 +72,11 @@ export const processCode = (code) =>{
         lines.push(trimmedLine.split(''));
 
         // 공백 개수 저장
-        space.push(leadingSpaceCount);
-
+        if (trimmedLine.length === 0) {
+            space.push(1);
+        } else {
+            space.push(leadingSpaceCount);
+        }
         // 줄 별 글자 수
         charCount.push(trimmedLine.length);
     })
