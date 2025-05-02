@@ -242,7 +242,7 @@ public class MeteorEventHandler implements SocketEventHandler {
                     .fallingWords(fallingWords)
                     .initialLives(5)
                     .initialDropInterval(2000)
-                    .initialFallDuration(10000)
+                    .initialFallDuration(8000)
                     .message("게임이 시작되었습니다.")
                     .build();
 
