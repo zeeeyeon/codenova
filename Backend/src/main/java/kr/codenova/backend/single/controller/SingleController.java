@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static kr.codenova.backend.global.response.ResponseCode.*;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -46,7 +48,7 @@ public class SingleController {
         if (memberDetails == null || memberDetails.getMember() == null) return new ResponseEntity<>(Response.create(FORBIDDEN_SAVE_RESULT_FOR_GUEST, null), FORBIDDEN_SAVE_RESULT_FOR_GUEST.getHttpStatus());
 
         boolean isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), request);
-        SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.calculateTypingSpeed());
+        SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.speed());
 
         ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SAVE_SUCCESS;
         return new ResponseEntity<>(Response.create(resultCode, response), resultCode.getHttpStatus());
