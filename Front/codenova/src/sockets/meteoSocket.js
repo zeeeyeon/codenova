@@ -107,3 +107,59 @@ export const onExitMeteoGame = (callback) => {
     callback(data);
   });
 };
+
+// 입력한 단어 정답인 지 확인
+export const onCheckText = ({ roomId, nickname, text }) => {
+  getSocket().emit("checkText", { roomId, nickname, text });
+};
+
+// 입력한 단어 정답인 지 브로드캐스트 수신
+export const onCheckTextResponse = (callback) => {
+  getSocket().on("textCheck", (data) => {
+    console.log("[onCheckTextResponse] checkTextResponse 수신", data);
+    callback(data);
+  });
+};
+
+// 게임 종료 후 결과 수신
+export const onGameEnd = (callback) => {
+  getSocket().on("gameEnd", (data) => {
+    console.log("[onGameEnd] gameEnd 수신", data);
+    callback(data);
+  });
+};
+
+// 단어가 땅에 도달
+export const onRemoveHeart = ({ roomId, word }) => {
+  getSocket().emit("lifeLost", { roomId, word });
+  console.log("[onRemoveHeart] lifeLost emit 보냄", { roomId, word });
+};
+
+// 단어가 땅에 도달 수신
+export const onRemoveHeartResponse = (callback) => {
+  getSocket().on("lostLife", (data) => {
+    console.log("[onRemoveHeartResponse] lostLife 수신", data);
+    callback(data);
+  });
+};
+
+// 랜덤매칭
+export const onRandomMatch = (nickname) => {
+  getSocket().emit("randomMatch", { nickname });
+  console.log("[onRandomMatch] randomMatch emit 보냄", { nickname });
+};
+
+// 🔹 랜덤매칭 응답 수신
+export const onRandomMatchResponse = (callback) => {
+  const socket = getSocket();
+  const handler = (data) => {
+    console.log("[onRandomMatchResponse] matchRandom 수신:", data);
+    callback(data);
+  };
+  socket.on("matchRandom", handler);
+};
+
+// 랜덤매칭 해제
+export const offRandomMatch = () => {
+  getSocket().off("matchRandom");
+};

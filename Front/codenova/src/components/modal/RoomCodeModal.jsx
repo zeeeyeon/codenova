@@ -4,7 +4,7 @@ import enterBtn from "../../assets/images/go_game_button.png";
 import randomBtn from "../../assets/images/gorandom_button.png";
 import useAuthStore from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
-import { joinMeteoRoom } from "../../sockets/meteoSocket";
+import { joinMeteoRoom, offRandomMatch, onRandomMatch, onRandomMatchResponse } from "../../sockets/meteoSocket";
 
 const RoomCodeModal = ({ onClose }) => {
   const [roomCodeInput, setRoomCodeInput] = useState("");
@@ -44,6 +44,37 @@ const RoomCodeModal = ({ onClose }) => {
         setRoomCodeInput(""); 
       }
     );
+  };
+  
+  const handleRandomMatch = () => {
+    if (!nickname) {
+      alert("닉네임이 없습니다!");
+      return;
+    }
+  
+    // 1. 랜덤 매칭 emit
+    onRandomMatch(nickname);
+  
+    // 2. 응답 수신 후 처리
+    onRandomMatchResponse((roomData) => {
+      console.log("🎲 랜덤매칭 완료:", roomData);
+  
+      // ✅ 랜덤 매칭 성공 시 저장
+      localStorage.setItem("meteoRoomCode", ""); // 랜덤은 코드 없음
+      localStorage.setItem("meteoRoomId", roomData.roomId);
+  
+      navigate("/meteo/landing", {
+        state: {
+          roomCode: "", // 랜덤매칭은 코드 없음
+          roomId: roomData.roomId,
+          players: roomData.players,
+        },
+      });
+  
+      // ✅ cleanup
+      offRandomMatch();
+      onClose();
+    });
   };
   
 
@@ -90,6 +121,7 @@ const RoomCodeModal = ({ onClose }) => {
             src={randomBtn}
             alt="랜덤매칭"
             className="w-[8rem] cursor-pointer hover:brightness-110 hover:scale-105 transition-transform"
+            onClick={handleRandomMatch}
           />
         </div>
       </div>
