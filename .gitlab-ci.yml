@@ -78,6 +78,7 @@ deploy-backend:
         echo "$APPLICATION_YML" > ~/config/application.yml
       
         docker run -d --name backend -p 8080:8080 -p 9092:9092 \
+          --network codenova-network \
           -v ~/config/application.yml:/app/config/application.yml \
           -e SPRING_CONFIG_LOCATION=file:/app/config/application.yml \
           $ECR_BACKEND_REPO:latest
