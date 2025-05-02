@@ -24,10 +24,6 @@ import java.util.List;
 
 import static kr.codenova.backend.global.response.ResponseCode.CODE_NOT_FOUND;
 
-import java.util.Optional;
-
-import static kr.codenova.backend.global.response.ResponseCode.CODE_NOT_FOUND;
-
 @Service
 @RequiredArgsConstructor
 public class SingleServiceImpl implements SingleService {
@@ -59,20 +55,17 @@ public class SingleServiceImpl implements SingleService {
 
     @Override
     public boolean saveTypingSpeed(int memberId, SingleCodeResultRequest request) {
-
-        double typingSpeed = request.calculateTypingSpeed();
-
         return typingSpeedRepository.findByMemberIdAndLanguage(memberId, request.language())
                 .map(existing -> {
-                    if (existing.isUpdatable(typingSpeed)) {
-                        existing.updateSpeed(typingSpeed);
+                    if (existing.isUpdatable(request.speed())) {
+                        existing.updateSpeed(request.speed());
                         typingSpeedRepository.save(existing);
                         return true;
                     }
                     return false;
                 })
                 .orElseGet(() -> {
-                    typingSpeedRepository.save(TypingSpeed.create(memberId, request.language(), typingSpeed));
+                    typingSpeedRepository.save(TypingSpeed.create(memberId, request.language(), request.speed()));
                     return true;
                 });
 
