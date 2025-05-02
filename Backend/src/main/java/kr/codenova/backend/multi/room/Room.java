@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Data
 @AllArgsConstructor
@@ -27,7 +28,7 @@ public class Room {
     private String ownerNickname; // ✅ 방장 닉네임
 
     @Builder.Default
-    private Map<String, Boolean> userReadyStatus = new HashMap<>(); // ✅ 참가자 닉네임 → 준비 상태
+    private ConcurrentHashMap<String, Boolean> userReadyStatus = new ConcurrentHashMap<>(); // ✅ 참가자 닉네임 → 준비 상태
 
     // 유저 입장 시간을 기록하는 맵 ( 닉네임 -> 입장 시간(밀리초))
     private Map<String, Long> userJoinTimes; // 유저 입장 시간 기록
