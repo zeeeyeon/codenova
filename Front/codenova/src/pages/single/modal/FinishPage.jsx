@@ -59,7 +59,7 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words}) =>
             >
 
                 {/* 타이틀 텍스트 */}
-                <div className='absolute top-[1%] left-1/2 -translate-x-1/2 font-bold text-4xl drop-shadow-md z-10'
+                <div className='absolute top-[1%] left-1/2 -translate-x-1/2 font-bold text-3xl drop-shadow-md z-10'
                     stlye={{color: '#1C1C1C'}}
                 >
                     미션 성공
