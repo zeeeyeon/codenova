@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getSocket } from "../../sockets/socketClient";
 import EndGameBtn from "../../assets/images/end_game_button.png";
 import ConfirmModal from "../../components/modal/ConfirmModal";
-import { exitMeteoGame, onCheckText, onCheckTextResponse, onGameEnd, onRemoveHeart, onRemoveHeartResponse } from "../../sockets/meteoSocket";
+import { exitMeteoGame, exitMeteoRoom, onCheckText, onCheckTextResponse, onGameEnd,  onRemoveHeartResponse } from "../../sockets/meteoSocket";
 import GameResultModal from "../../components/modal/GameResultModal";
 import redHeart from "../../assets/images/red_heart.png";
 import blackHeart from "../../assets/images/black_heart.png";
@@ -37,6 +37,30 @@ const MeteoGamePage = () => {
   const [showExitModal, setShowExitModal] = useState(false);
   const [leaveMessages, setLeaveMessages] = useState([]);
 
+  useEffect(() => {
+    const handleBeforeUnloadOrPop = () => {
+      const savedRoomId = localStorage.getItem("meteoRoomId");
+      const savedNickname = localStorage.getItem("nickname");
+      console.log("🔥 [뒤로가기 또는 새로고침] 방 나감 처리", savedRoomId, savedNickname);
+      if (savedRoomId && savedNickname) {
+        console.log("🚪 [뒤로가기 또는 새로고침] 방 나감 처리");
+        exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
+  
+        localStorage.removeItem("meteoRoomCode");
+        localStorage.removeItem("meteoRoomId");
+      }
+    };
+  
+    // 뒤로가기, 새로고침 등 감지
+    window.addEventListener("popstate", handleBeforeUnloadOrPop);
+    window.addEventListener("beforeunload", handleBeforeUnloadOrPop);
+  
+    return () => {
+      window.removeEventListener("popstate", handleBeforeUnloadOrPop);
+      window.removeEventListener("beforeunload", handleBeforeUnloadOrPop);
+    };
+  }, []);
+  
 
   useEffect(() => {
     const calcGround = () => {
@@ -73,7 +97,7 @@ const MeteoGamePage = () => {
         parsedTime = now;
       }
       const spawnTime = parsedTime;
-      console.log("[타이밍 확인] now:", now, "spawnTime:", spawnTime, "Δ:", now - spawnTime);
+      // console.log("[타이밍 확인] now:", now, "spawnTime:", spawnTime, "Δ:", now - spawnTime);
       console.log("[wordFalling] word:", word, "fallDuration:", fallDuration, "timestamp:", timestamp);
 
       setFallingWords(prev => {
@@ -103,11 +127,7 @@ const MeteoGamePage = () => {
   
   // 단어가 바닥에 닿으면 목록에서 제거
   const handleWordEnd = id => {
-    const wordObj = wordsRef.current.find(w => w.id === id);
-    if (!wordObj) return;
-  
-    const roomId = localStorage.getItem("roomId");
-    onRemoveHeart({ roomId, word: wordObj.word }); // 하트 깎는 요청 emit
+
     setFallingWords(prev => prev.filter(w => w.id !== id));
   };
 
@@ -156,7 +176,7 @@ const MeteoGamePage = () => {
   
   useEffect(() => {
     const handleTextCheck = (data) => {
-      console.log("[onCheckTextResponse] 수신:", data);
+      // console.log("[onCheckTextResponse] 수신:", data);
       const { text, correct } = data;
   
       if (correct) {
@@ -199,6 +219,7 @@ const MeteoGamePage = () => {
       getSocket().off("lostLife", handleLostLife);
     };
   }, []);
+  
   
 
   return (
@@ -272,7 +293,7 @@ const MeteoGamePage = () => {
             key={idx}
             src={idx < lifesLeft ? redHeart : blackHeart}
             alt="heart"
-            className="w-20 h-20"
+            className="w-14 h-14"
           />
         ))}
       </div>

@@ -93,7 +93,7 @@ const RoomCodeModal = ({ onClose }) => {
         }}
       >
         <button
-          className="absolute top-1 right-4 text-black text-xl"
+          className="absolute top-1 right-2 text-black text-ml font-extrabold"
           onClick={onClose}
         >
           ✕
