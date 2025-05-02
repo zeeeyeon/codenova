@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,6 +59,7 @@ public class RoomServiceImpl implements RoomService {
                 .isLocked(request.getIsLocked())
                 .isStarted(false)
                 .roomCode(roomCode)
+                .createdAt(LocalDateTime.now())
                 .ownerNickname(request.getNickname())
                 .build();
 
@@ -240,8 +242,8 @@ public class RoomServiceImpl implements RoomService {
     }
 
     public List<RoomListResponse> getRoomList() {
-        Collection<Room> rooms = getAllRooms();
-         return rooms.stream()
+        return getAllRooms().stream()
+                .sorted((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt()))
                 .map(room -> new RoomListResponse(
                         room.getRoomId(),
                         room.getRoomTitle(),
@@ -251,6 +253,5 @@ public class RoomServiceImpl implements RoomService {
                         room.getIsLocked(),
                         room.getIsStarted()))
                 .toList();
-
     }
 }
