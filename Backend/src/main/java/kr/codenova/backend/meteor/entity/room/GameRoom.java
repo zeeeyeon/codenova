@@ -150,6 +150,15 @@ public class GameRoom {
         }
     }
 
+    public boolean hasMoreFallingWords() {
+        return !fallingWords.isEmpty();
+    }
+
+    public boolean hasActiveWords(){
+        return !activeFallingWords.isEmpty();
+    }
+
+
     // 다음에 떨어질 단어 하나를 꺼내기
     public String pollNextWord() {
         return fallingWords.poll();
