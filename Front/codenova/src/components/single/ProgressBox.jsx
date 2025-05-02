@@ -54,7 +54,7 @@ const ProgressBox = ({lang, elapsedTime, cpm, progress}) => {
             <div className="w-full py-2 text-2xl mt-4"
                 style={{ borderColor: "#51E2F5"}}    
             >
-                타수 : {cpm}
+                타수 : {Math.floor(cpm)}
             </div>
             {/* 기본 흐릿한 배경 */}
             <div className="w-full h-4 rounded-md"
