@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MeteoBg from "../../assets/images/meteo_bg.png";
 import Header from "../../components/common/Header";
 import MeteoBoard from "../../assets/images/board1.jpg";
@@ -10,7 +10,7 @@ import Profile3 from "../../assets/images/profile3.png";
 import Profile4 from "../../assets/images/profile4.png";
 import  { getSocket } from "../../sockets/socketClient";
 import useAuthStore from "../../store/authStore";
-import { exitMeteoRoom, offMeteoGameStart, offRoomExit, onMeteoGameStart, onRoomExit, startMeteoGame } from "../../sockets/meteoSocket";
+import { exitMeteoRoom, offMeteoGameStart, offRoomExit, onChatMessage, onChatMessageResponse, onMeteoGameStart, onRoomExit, startMeteoGame } from "../../sockets/meteoSocket";
 import Crown from "../../assets/images/crown_icon.png";
 import StartButton from "../../assets/images/start_btn.png";
 import WaitButton from "../../assets/images/wait_btn.png";
@@ -23,7 +23,9 @@ const MeteoLandingPage = () => {
   const [users, setUsers] = useState([null, null, null, null]);
   const profileImages = [Profile1, Profile2, Profile3, Profile4];
   const nickname = useAuthStore((state) => state.user?.nickname);
-
+  const [messages, setMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const scrollRef = useRef(null);
 
   // players 배열을 users 배열로 변환
   const updateUsersFromPlayers = (playersArray) => {
@@ -70,6 +72,15 @@ const MeteoLandingPage = () => {
       console.log("🛰️ [secretRoomJoin 수신]", roomData);
       updateUsersFromPlayers(roomData.players);
 
+      // ✅ system 메시지 추가
+      const joined = roomData.players[roomData.players.length - 1]; // 마지막 들어온 유저
+      if (joined?.nickname) {
+        setMessages(prev => [
+          ...prev,
+          { nickname: "SYSTEM", message: `${joined.nickname} 님이 들어왔습니다.` }
+        ]);
+      }
+
       // ✅ join 성공 시 localStorage 저장
       if (roomData.roomCode && roomData.roomId) {
         localStorage.setItem("meteoRoomCode", roomData.roomCode);
@@ -98,6 +109,11 @@ const MeteoLandingPage = () => {
         navigate("/main");
       } else {
         console.log("✅ 상대방이 나감. 현재 방 유지.");
+        // ✅ 시스템 메시지 추가
+        setMessages(prev => [
+          ...prev,
+          { nickname: "SYSTEM", message: `${leftUser.nickname} 님이 나갔습니다.` }
+        ]);
       }
     });
 
@@ -208,6 +224,39 @@ const MeteoLandingPage = () => {
     navigate("/main");
   };
 
+  useEffect(() => {
+    const handleChat = (data) => {
+      console.log("[채팅 수신]", data);
+      setMessages((prev) => [...prev, data]);
+    };
+  
+    // ✅ 먼저 off 해두고 on
+    const socket = getSocket();
+    socket.off("chatSend", handleChat);
+    socket.on("chatSend", handleChat);
+  
+    return () => {
+      socket.off("chatSend", handleChat);
+    };
+  }, []);
+  
+  
+  const sendChat = () => {
+    if (!chatInput.trim()) return;
+    onChatMessage({
+      roomId,
+      nickname,
+      message: chatInput.trim()
+    });
+    setChatInput("");
+  };
+  
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+  
 
   return (
     <div
@@ -257,7 +306,37 @@ const MeteoLandingPage = () => {
 
         {/* 채팅 + 방코드 */}
         <div className="flex absolute top-[50%] gap-6">
-          <div className="w-[44rem] h-[13rem] border-4 rounded-xl" style={{ borderColor: "#01FFFE" }}></div>
+
+        <div className="w-[44rem] h-[12.5rem] border-4 rounded-xl bg-white bg-opacity-80 p-3 flex flex-col justify-between text-black text-sm" style={{ borderColor: "#01FFFE" }}>
+        {/* 채팅 메시지 영역 */}
+        <div className="flex-1 overflow-y-auto scroll-smooth pr-1">
+          {messages.map((msg, idx) => (
+            <div key={idx}>
+              <strong className="text-blue-700">{msg.nickname}</strong>: {msg.message}
+            </div>
+          ))}
+          <div ref={scrollRef} />
+        </div>
+
+        {/* 채팅 입력창 */}
+        <div className="mt-2 flex gap-2">
+          <input
+            type="text"
+            className="flex-1 px-3 py-1 rounded border border-gray-400 text-black"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendChat()}
+            placeholder="메시지를 입력하세요"
+          />
+          <button
+            onClick={sendChat}
+            className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            전송
+          </button>
+        </div>
+      </div>
+
           <div className="flex flex-col gap-4">
             <div className="w-[10rem] h-[8rem] border-4 rounded-xl flex flex-col items-center justify-center text-white text-2xl" style={{ borderColor: "#01FFFE" }}>
               <p className="text-xl mb-1">방코드</p>
@@ -293,14 +372,13 @@ const MeteoLandingPage = () => {
 
           </div>
         </div>
-
         <img
         src={ExitButton}
         alt="exit"
         onClick={handleExitRoom}
         className="absolute bottom-3 right-[14%] w-[8rem] cursor-pointer z-50
-                  transition-all duration-150 hover:brightness-110 hover:scale-105 active:scale-95"
-      />
+        transition-all duration-150 hover:brightness-110 hover:scale-105 active:scale-95"
+        />
 
       </div>
     </div>
