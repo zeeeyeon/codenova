@@ -40,6 +40,7 @@ const SinglePage = () => {
 
     // 코드 입력 관련 상태관리
     // const [highlightedCode, setHighlightedCode] = useState(""); // 하이라이트된 HTML 코드 안써도 될듯 이거
+    const [codeId, setCodeId] = useState(null);
     const [lines, setLines] = useState([]);
     const [linesCharCount, setlinesCharCount] = useState([]);
     const [space, setSpace] = useState([]);
@@ -103,10 +104,11 @@ const SinglePage = () => {
             } else {
                 setIsCs(false);
                 singleLangCode(lang)
-                // getLangCode(97)
+                // getLangCode(476)
                     .then(data => {
                         // console.log("api 결과", data);            
-                        const { lines , space, charCount } = processCode(data);
+                        const { lines , space, charCount } = processCode(data.content);
+                        setCodeId(data.codeId);
                         setLines(lines);
                         setSpace(space);
                         setlinesCharCount(charCount)
@@ -393,6 +395,7 @@ const SinglePage = () => {
             {isFinished && (
                 <div className="absolute inset-0 flex items-center justify-center z-50">
                     <FinishPage
+                        codeId = {codeId}
                         lang = {lang}
                         cpm = {cpm}
                         elapsedTime = {elapsedTime}

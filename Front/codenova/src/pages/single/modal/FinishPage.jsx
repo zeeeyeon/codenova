@@ -9,7 +9,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import CsWordSelectPage from './CsWordSelectPage'
 
-const FinishPage = ({ lang, cpm, elapsedTime, isCS, category, words}) => {
+const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words}) => {
 
     const navigate = useNavigate();
 
@@ -20,7 +20,7 @@ const FinishPage = ({ lang, cpm, elapsedTime, isCS, category, words}) => {
 
     const handleConfirmClick = () => {
 
-        if (!isCS) { 
+        if (isCS) { 
             window.location.href = "/single/select/language"; // 원하는 페이지로 이동 (URL을 적절히 수정)
             return; // 페이지 이동 후 나머지 코드를 실행하지 않도록 return
         }
@@ -28,6 +28,7 @@ const FinishPage = ({ lang, cpm, elapsedTime, isCS, category, words}) => {
         setApiError(null); // 초기화
 
         const data = {
+            codeId : codeId,
             language : lang.toUpperCase(),
             time : elapsedTime,
             speed : cpm
@@ -37,7 +38,6 @@ const FinishPage = ({ lang, cpm, elapsedTime, isCS, category, words}) => {
                 console.log("api 결과", res.data);
                 setIsApiLoading(false);
                 window.location.href = "/single/select/language"; //저장되면 나가기
-                return;                    
             })
             .catch(e => {
                 console.error("api 요청 실패:" , e);
@@ -83,7 +83,7 @@ const FinishPage = ({ lang, cpm, elapsedTime, isCS, category, words}) => {
                         </div>
 
                         <div className="speed mt-4">
-                            타수 : {cpm}
+                            타수 : {Math.floor(cpm)}
                         </div>
                     </div>
 
