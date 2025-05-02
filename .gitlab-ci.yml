@@ -2,16 +2,9 @@ stages:
   - build
   - push
   - deploy
-  - switch
 
 variables:
   DOCKER_DRIVER: overlay2
-  BLUE_PORT_FRONTEND: 3000
-  GREEN_PORT_FRONTEND: 3001
-  BLUE_PORT_BACKEND: 8080
-  GREEN_PORT_BACKEND: 8081
-  BLUE_WS_PORT: 9092
-  GREEN_WS_PORT: 9093
 
 before_script:
   - echo "$SSH_KEY" > K12E103T.pem
@@ -27,6 +20,7 @@ frontend-build-and-push:
   script:
     - echo "ECR 로그인"
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
+
     - echo "프론트 빌드"
     - docker build -t $ECR_FRONTEND_REPO:latest ./Front/codenova
     - docker push $ECR_FRONTEND_REPO:latest
@@ -41,6 +35,7 @@ backend-build-and-push:
   script:
     - echo "ECR 로그인"
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
+
     - echo "백엔드 빌드"
     - docker build -t $ECR_BACKEND_REPO:latest ./Backend
     - docker push $ECR_BACKEND_REPO:latest
@@ -53,32 +48,14 @@ deploy-frontend:
     - if: '$CI_COMMIT_BRANCH == "develop"'
       when: always
   script:
-    - echo "프론트엔드 Blue-Green 배포"
+    - echo "EC2 SSH 접속 후 Pull & Run (Frontend)"
     - |
       ssh -o StrictHostKeyChecking=no -i K12E103T.pem ubuntu@$EC2_HOST << EOF
         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
       
-        CURRENT="green"
-        TARGET="blue"
-        TARGET_PORT=$BLUE_PORT_FRONTEND
-      
-        if docker ps --format '{{.Names}}' | grep -q "frontend-blue"; then
-          CURRENT="blue"
-          TARGET="green"
-          TARGET_PORT=$GREEN_PORT_FRONTEND
-        fi
-      
-        echo "현재 활성 프론트엔드: \$CURRENT, 신규 배포 타겟: \$TARGET (\$TARGET_PORT)"
-      
         docker pull $ECR_FRONTEND_REPO:latest || true
-        docker stop frontend-\$TARGET 2>/dev/null || true
-        docker rm frontend-\$TARGET 2>/dev/null || true
-        docker run -d --name frontend-\$TARGET -p \$TARGET_PORT:3000 $ECR_FRONTEND_REPO:latest
-      
-        echo \$TARGET > /home/ubuntu/frontend_current.txt
-        echo \$TARGET_PORT > /home/ubuntu/frontend_port.txt
-      
-        echo "프론트엔드 \$TARGET 배포 완료"
+        docker stop frontend || true && docker rm frontend || true
+        docker run -d --name frontend -p 3000:3000 $ECR_FRONTEND_REPO:latest
       EOF
 
 deploy-backend:
@@ -89,68 +66,19 @@ deploy-backend:
     - if: '$CI_COMMIT_BRANCH == "develop-be"'
       when: always
   script:
-    - echo "백엔드 Blue-Green 배포"
+    - echo "EC2 SSH 접속 후 Pull & Run (Backend)"
     - |
       ssh -o StrictHostKeyChecking=no -i K12E103T.pem ubuntu@$EC2_HOST << EOF
-        # ECR 로그인
         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
       
-        CURRENT="green"
-        TARGET="blue"
-        TARGET_PORT=$BLUE_PORT_BACKEND
-        TARGET_WS_PORT=$BLUE_WS_PORT
-      
-        if docker ps --format '{{.Names}}' | grep -q "backend-blue"; then
-          CURRENT="blue"
-          TARGET="green"
-          TARGET_PORT=$GREEN_PORT_BACKEND
-          TARGET_WS_PORT=$GREEN_WS_PORT
-        fi
-      
-        echo "현재 활성 백엔드: \$CURRENT, 신규 배포 타겟: \$TARGET (API: \$TARGET_PORT, WS: \$TARGET_WS_PORT)"
+        docker pull $ECR_BACKEND_REPO:latest || true
+        docker stop backend || true && docker rm backend || true
       
         mkdir -p ~/config
         echo "$APPLICATION_YML" > ~/config/application.yml
       
-        docker pull $ECR_BACKEND_REPO:latest || true
-        docker stop backend-\$TARGET 2>/dev/null || true
-        docker rm backend-\$TARGET 2>/dev/null || true
-        docker run -d --name backend-\$TARGET -p \$TARGET_PORT:8080 -p \$TARGET_WS_PORT:9092 \
+        docker run -d --name backend -p 8080:8080 \
           -v ~/config/application.yml:/app/config/application.yml \
           -e SPRING_CONFIG_LOCATION=file:/app/config/application.yml \
           $ECR_BACKEND_REPO:latest
-      
-        echo \$TARGET > /home/ubuntu/backend_current.txt
-        echo \$TARGET_PORT > /home/ubuntu/backend_port.txt
-        echo \$TARGET_WS_PORT > /home/ubuntu/backend_ws_port.txt
-      
-        echo "백엔드 \$TARGET 배포 완료"
-      EOF
-
-switch-traffic:
-  stage: switch
-  tags:
-    - deploy
-  when: manual
-  script:
-    - echo "트래픽 전환 시작"
-    - |
-      ssh -o StrictHostKeyChecking=no -i K12E103T.pem ubuntu@$EC2_HOST << EOF
-        FRONTEND_TARGET=\$(cat /home/ubuntu/frontend_current.txt 2>/dev/null || echo "blue")
-        FRONTEND_PORT=\$(cat /home/ubuntu/frontend_port.txt 2>/dev/null || echo "3000")
-      
-        BACKEND_TARGET=\$(cat /home/ubuntu/backend_current.txt 2>/dev/null || echo "blue")
-        BACKEND_PORT=\$(cat /home/ubuntu/backend_port.txt 2>/dev/null || echo "8080")
-        BACKEND_WS_PORT=\$(cat /home/ubuntu/backend_ws_port.txt 2>/dev/null || echo "9092")
-      
-        echo "트래픽 전환: 프론트엔드=\$FRONTEND_TARGET(\$FRONTEND_PORT), 백엔드=\$BACKEND_TARGET(\$BACKEND_PORT, \$BACKEND_WS_PORT)"
-      
-        sudo cp /etc/nginx/sites-available/codenova.kr.template /etc/nginx/sites-available/codenova.kr
-        sudo sed -i "s/{{FRONTEND_PORT}}/\$FRONTEND_PORT/g" /etc/nginx/sites-available/codenova.kr
-        sudo sed -i "s/{{BACKEND_PORT}}/\$BACKEND_PORT/g" /etc/nginx/sites-available/codenova.kr
-        sudo sed -i "s/{{WEBSOCKET_PORT}}/\$BACKEND_WS_PORT/g" /etc/nginx/sites-available/codenova.kr
-      
-        sudo nginx -t && sudo systemctl reload nginx
-      
-        echo "트래픽 전환 완료"
       EOF
