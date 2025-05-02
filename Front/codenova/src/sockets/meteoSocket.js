@@ -157,3 +157,19 @@ export const onRandomMatchResponse = (callback) => {
 export const offRandomMatch = () => {
   getSocket().off("matchRandom");
 };
+
+
+// 대기방 채팅 
+export const onChatMessage = ({ roomId, nickname, message }) => {
+  getSocket().emit("sendChat", { roomId, nickname, message });
+};
+
+// 대기방 채팅 수신
+export const onChatMessageResponse = (callback) => {
+  getSocket().on("chatSend", (data) => {
+    console.log("[onChatMessageResponse] chatSend 수신", data);
+    callback(data);
+  });
+};
+
+
