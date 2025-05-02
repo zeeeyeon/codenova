@@ -6,7 +6,7 @@
 
 .typed, .pending, .wrong, .currentInput{
     font-family: monospace !important;
-    font-weight: bold;
+    /* font-weight: bold; */
     display: inline-block;
     width: 11px;
 }
