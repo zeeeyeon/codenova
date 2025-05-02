@@ -3,7 +3,7 @@ import authApi from "./authAxiosConfig";
 export const singleLangCode = async (lang) => {
     try {
         const response = await authApi.get('/api/single/code', {params: {language: lang.toUpperCase()}});
-        console.log(response.data)
+        // console.log(response.data);
         return response.data.content.content;
     } catch (e) {
         console.error("Single API 요청 실패:", e);
@@ -21,3 +21,13 @@ export const singleCsCode = async (category) => {
     }
 }
 
+export const getLangCode = async (codeId) => {
+    try {
+        // const response = await authApi.get(`/api/single/test/${codeId}`)
+        const response = await authApi.get(`/api/single/test`, {params: {codeId: codeId}})
+        return response.data.content.content;
+    } catch (e) {
+        console.error("getLangCode API 요청 실패", e);
+        throw e;
+    }
+}

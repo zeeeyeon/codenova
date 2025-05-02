@@ -7,6 +7,8 @@
 .typed, .pending, .wrong, .currentInput{
     font-family: monospace !important;
     font-weight: bold;
+    display: inline-block;
+    width: 11px;
 }
 
 .typed {
@@ -38,5 +40,20 @@
 
 input {
   outline: none; 
+}
+
+.cursor {
+  display: inline-block;
+  width: 1px;
+  height: 20px;
+  background-color: #ffffff; /* 커서 색상 - 원하는 색상으로 변경 가능 */
+  margin-left: -1px;
+  /* vertical-align: middle; */
+  animation: blink 1s step-end infinite;
+}
+
+.cursor-container {
+  display: inline-flex;  /* flexbox로 변경하여 정렬을 더 쉽게 처리 */
+  vertical-align: baseline;
 }
 
