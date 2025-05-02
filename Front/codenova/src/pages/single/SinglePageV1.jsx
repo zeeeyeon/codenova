@@ -2,7 +2,7 @@ import backgroundImg from '../../assets/images/single_background.jpg'
 import box from '../../assets/images/board1_cut.jpg'
 import logo from '../../assets/images/logo.png'
 import Keyboard from '../../components/keyboard/Keyboard'
-
+import Header from "../../components/common/Header"
 
 import { getAccessToken } from "../../utils/tokenUtils";
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
@@ -17,7 +17,7 @@ import 'highlight.js/styles/atom-one-dark.css';
 import '../../styles/single/SinglePage.css';
 import ProgressBox from '../../components/single/ProgressBox'
 
-import { calculateCPM, getProgress, processCode, compareInputWithLineEnter, compareInputWithLine, calculateCurrentLineTypedChars } from '../../utils/typingUtils';
+import { calculateCPM, getProgress } from '../../utils/typingUtils';
 import FinishPage from '../single/modal/FinishPage';
 
 import { singleCsCode, singleLangCode, getLangCode } from '../../api/singleApi'
@@ -39,13 +39,11 @@ const SinglePage = () => {
 
 
     // 코드 입력 관련 상태관리
+    const [rawCode, setRawCode] = useState(""); // API 받은 순수 코드
     // const [highlightedCode, setHighlightedCode] = useState(""); // 하이라이트된 HTML 코드 안써도 될듯 이거
     const [lines, setLines] = useState([]);
-    const [linesCharCount, setlinesCharCount] = useState([]);
-    const [space, setSpace] = useState([]);
     const [currentLineIndex, setCurrentLineIndex] = useState(0);
     const [currentInput, setCurrentInput] = useState(""); //사용자가 입력한 문자열
-    const [currentCharIndex, setCurrentCharIndex] = useState(0);
     const [wrongChar, setWrongChar] = useState(false); // 현재까지 입력한 input중에 틀림 존재 여부 상태 관리
     const [shake, setShake] = useState(false);  // 오타 입력창 흔들기 모션션
 
@@ -105,11 +103,8 @@ const SinglePage = () => {
                 singleLangCode(lang)
                 // getLangCode(97)
                     .then(data => {
-                        // console.log("api 결과", data);            
-                        const { lines , space, charCount } = processCode(data);
-                        setLines(lines);
-                        setSpace(space);
-                        setlinesCharCount(charCount)
+                        console.log("api 결과", data);            
+                        setRawCode(data);         
                     })
                     .catch(e => {
                         console.error("api 요청 실패:" , e)
@@ -120,6 +115,13 @@ const SinglePage = () => {
         }
     },[lang])
 
+    useEffect(() => { //줄 단위로 나누기
+        console.log(rawCode);
+        // setLines(rawCode.split('\n')); 
+        setLines(rawCode.split('\n').filter(line => line.trim() !== '')); // 양쪽에 빈 공백이 있음
+
+    }, [rawCode]);
+
     useEffect(() => {
         if (!Array.isArray(CScode)) return;
 
@@ -129,6 +131,11 @@ const SinglePage = () => {
         const allLines = CScode.map((item) => `${item.keyword} - ${item.content}`);
             setLines(allLines); // 하나의 배열로 상태 저장
     }, [CScode])
+
+    const normalizeLineReTab = (line) => {
+        // 앞뒤 공백과 탭을 제거
+        return line.trim().replace(/\t/g, ''); 
+    }
 
     const getLanguageClass = (lang) => {
         if (!lang) {
@@ -158,13 +165,12 @@ const SinglePage = () => {
             e.preventDefault(); // 기본적으로 엔터줄바꾸는거 막기
 
             const currentLine = lines[currentLineIndex];
-            const normalizedInput = currentInput.split('');
+            const normalizedInput = normalizeLineReTab(currentInput);
+            const normalizedLine = normalizeLineReTab(currentLine);
 
-            if (compareInputWithLineEnter(normalizedInput, currentLine)) { //다 맞게 쳤으면
-                console.log(1)
-                setCurrentLineIndex((prev) => prev + 1); // 다음줄로 넘김
-                setCurrentInput('');    // 입력창 리셋
-                setCurrentCharIndex(0); // 현재 입력 위치 리셋셋
+            if (normalizedInput === normalizedLine) { //다 맞게 쳤으면
+                setCurrentLineIndex((prev) => prev + 1);
+                setCurrentInput('');
                 
             } else { // 틀렸으면
                 console.log('현재 줄을 정확히 입력하지 않음')
@@ -178,11 +184,11 @@ const SinglePage = () => {
         }
 
         else if (key === 'Backspace') {
-            if (currentCharIndex > 0) {
-                setCurrentCharIndex((prev) => prev - 1); // 지운 글자만큼 currentCharIndex 감소
-            }
+            setTotalTypedChars(prev => prev - 1); // 글자를 지웠을 때 타수 감소
         }
     };
+
+
 
     useEffect(() => {
         let timer;
@@ -214,45 +220,30 @@ const SinglePage = () => {
             const lineElements = codeContainerRef.current.querySelectorAll('div');
         
             // 현재 줄의 높이를 계산하여, 스크롤 위치를 조정
-            const lineHeight = lineElements[currentLineIndex]?.getBoundingClientRect().height || 20; // 한 줄의 높이 계산
+            const lineHeight = lineElements[currentLineIndex]?.getBoundingClientRect().height || 28; // 한 줄의 높이 계산
 
             // 스크롤을 자동으로 내리기
             codeContainerRef.current.scrollTop += lineHeight + 10;
           }
     }, [currentLineIndex])
 
-    const handleInputChange = (e) => {
-        const value = e.target.value;
-        setCurrentInput(value);
-
-    };
-
-    useEffect(()=> {
-        updateTotalTypedChars();
-    }, [currentInput, currentLineIndex])
-
-    const updateTotalTypedChars = () => {
-        let previousLinesChars = 0;
-        for (let i = 0; i < currentLineIndex; i++) {
-            previousLinesChars += linesCharCount[i] || 0;
-        }
-        
-        // 현재 줄에서 올바르게 입력한 글자 수
-        const currentLine = lines[currentLineIndex] || [];
-        const currentLineChars = calculateCurrentLineTypedChars(currentInput, currentLine);
-        console.log(currentInput);
-        console.log(currentLineChars)
-        // 전체 올바르게 입력한 글자 수 업데이트
-        setTotalTypedChars(previousLinesChars + currentLineChars);
-        
-        // 현재 줄에 틀린 글자가 있는지 확인
-        const hasWrongChar = compareInputWithLine(currentInput, currentLine);
-        setWrongChar(hasWrongChar);
+    const getLeadingWhitespaceCount = (line) => {
+        // 앞부분에서 공백과 탭을 세는 정규식
+        const match = line.match(/^(\t|    )*/); 
+        return match ? match[0].length : 0; // 매칭된 부분의 길이를 반환
     }
 
-    useEffect(()=> {
-        console.log(totalTypedChars);
-    }, [totalTypedChars])
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        setCurrentInput(value)
+        const normalizedLine = normalizeLineReTab(lines[currentLineIndex])
+        const hasWrongChar = normalizedLine.slice(0, value.length) !== value;
+        setWrongChar(hasWrongChar);
+        if (!hasWrongChar) {
+            // 타수 업데이트: 입력된 글자 수를 계산하여 타자 속도 측정
+            setTotalTypedChars((prev) => prev + 1); 
+        }
+    };
 
     return (
         <div className="w-screen h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center"
@@ -290,67 +281,50 @@ const SinglePage = () => {
 
                                 <code className={getLanguageClass(lang)}>
                                     {lines.map((line, idx) => {
+
+                                        //line앞에 tab이 있는지 확인하는 메서드로 있는만큼 현재줄에 탭 넣어주게 할 예정
+                                        const normalizedInput = normalizeLineReTab(currentInput);
                                         
-                                        // 현재 줄을 이차원 배열에서 문자를 하나씩 가져오기
-                                        const normalizedInput = currentInput.split('');
-                                        const currentLine = line;
-
-                                        const lineWithSpace = space[idx];
-
+                                        const normalizedLineReTab = normalizeLineReTab(line);
+                                        const lineWithSpace = getLeadingWhitespaceCount(line);
                                         return (
                                             <div key={idx}>
                                                 {idx < currentLineIndex ? (
-                                                    // 이미 완료한 줄
-                                                    <span>
-                                                        {new Array(lineWithSpace).fill('\u00A0').map((_, spaceIndex) => (
-                                                            <span key={spaceIndex}>&nbsp;</span>  // 탭 크기만큼 공백 추가
-                                                        ))}
-                                                        {line.map((char, i) => (
-                                                            <span key={i} className='typed'>{char}</span>
-                                                        ))}
-                                                    </span>
+
+                                                    // 이미 완료 한 줄
+                                                    <span className='typed'>{line}</span>
                                                 ) : idx === currentLineIndex ? (
 
                                                     // 현재 타이핑 중인 줄
+                                                    // 여기에 공백 넣기 <span>으로 
                                                     
                                                     <span>
                                                         {new Array(lineWithSpace).fill('\u00A0').map((_, spaceIndex) => (
-                                                            <span key={spaceIndex}>&nbsp;</span>  // 탭 크기만큼 공백 추가
+                                                            <span key={spaceIndex}>&nbsp;</span> // 탭 크기만큼 공백 추가
                                                         ))}
-                                                        {currentLine.map((char, i) => {
-                                                            const inputChar = normalizedInput[i];  // 입력된 문자
-
+                                                        { normalizedLineReTab.split('').map((char,i) => {
+                                                            const inputChar = normalizedInput[i];
                                                             let className = '';
-                                                            
-                                                            // 현재 문자가 일치하는지 확인
+
                                                             if (inputChar == null) {
-                                                                className = 'pending currentLine';  // 아직 입력 안 된 문자
-                                                            } else if (inputChar=== char) {
-                                                                className = 'typed currentLine';  // 일치한 문자
+                                                                className = 'pending currentLine';
+                                                            } else if (inputChar === char) {
+                                                                className = 'typed currentLine';
                                                             } else {
-                                                                className = 'wrong currentLine';  // 틀린 문자
+                                                                className = 'wrong currentLine';
                                                             }
-                                                        
+
                                                             return (
-                                                                <span key={i} className={`cursor-container ${className}`}>
-                                                                    {/* 현재 입력 위치에 커서 표시 */}
-                                                                    {i === normalizedInput.length && <span className="cursor"></span>}
-                                                                    {char === ' ' ? '\u00A0' : char}  {/* 공백 문자 처리 */}
+                                                                <span key={i} className={className}> 
+                                                                    {char === ' ' ? '\u00A0' : char}                        
                                                                 </span>
                                                             );
                                                         })}
-                                                        
                                                     </span>
+
                                                 ) : (
-                                                    // 아직 안친 줄
-                                                    <span>
-                                                        {new Array(lineWithSpace).fill('\u00A0').map((_, spaceIndex) => (
-                                                            <span key={spaceIndex}>&nbsp;</span>  // 탭 크기만큼 공백 추가
-                                                        ))}
-                                                        {line.map((char, i) => (
-                                                            <span key={i} className="pending">{char}</span>
-                                                        ))}
-                                                    </span>
+                                                    // 아직 안친줄
+                                                    <span className="pending">{line}</span>
                                                 )}
                                             </div>
                                         );
