@@ -90,7 +90,7 @@ public class WordDropScheduler {
 
                 int remainingLives = room.getLife();
 
-                RemoveWordResponse response = new RemoveWordResponse(remainingLives);
+                RemoveWordResponse response = new RemoveWordResponse(word,remainingLives);
                 server().getRoomOperations(roomId).sendEvent("lostLife", response);
 
                 if (isGameOver) {
