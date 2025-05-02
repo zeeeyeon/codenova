@@ -429,7 +429,7 @@ public class MeteorEventHandler implements SocketEventHandler {
                 nickname,
                 message
         );
-        server().getRoomOperations(roomId).sendEvent("chatSend", client, response);
+        server().getRoomOperations(roomId).sendEvent("chatSend", response);
 
     }
 
