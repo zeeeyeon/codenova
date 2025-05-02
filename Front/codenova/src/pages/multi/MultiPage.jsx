@@ -8,7 +8,7 @@ import Header from "../../components/common/Header";
 import RoomList from "../../components/multi/RoomList";
 import MakeRoomModal from "../../components/multi/modal/MakeRoomModal";
 import EnterRoomModal from "../../components/multi/modal/EnterRoomModal"; 
-import { requestRoomList, onRoomList, offRoomList, onRoomUpdate, offRoomUpdate } from "../../sockets/MultiSocket";
+import { requestRoomList, onRoomList, offRoomList, onRoomUpdate, offRoomUpdate, joinRoom } from "../../sockets/MultiSocket";
 import { getSocket } from "../../sockets/socketClient";
 
 const MultiPage = () => {
@@ -20,6 +20,54 @@ const MultiPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const socket = getSocket();
+    if (socket) {
+      socket.onAny((event, ...args) => {
+        console.log("📡 수신된 이벤트:", event, args);
+      });
+    }
+  }, []);
+  
+
+  useEffect(() => {
+    const handleRoomList = (rooms) => {
+      console.log("[room_list 수신 :", rooms);
+      const parsed = rooms.map((room) => ({
+        id: room.roomId,
+        title: room.title,
+        language: room.language,
+        standardPeople: room.maxCount,
+        currentPeople: room.currentCount,
+        isPublic: !room.isLocked,
+        roomCode: room.roomCode,
+        status: room.isStarted ? "playing" : "waiting"
+      }));
+      setRoomList(parsed);
+    };
+  
+    const handleRoomUpdate = (updatedRoom) => {
+      console.log("🟡 room_update 수신:", updatedRoom);
+      const parsed = {
+        id: updatedRoom.roomId,
+        title: updatedRoom.title,
+        language: updatedRoom.language,
+        standardPeople: updatedRoom.maxCount,
+        currentPeople: updatedRoom.currentCount,
+        isPublic: !updatedRoom.isLocked,
+        roomCode: updatedRoom.roomCode,
+        status: updatedRoom.isStarted ? "playing" : "waiting",
+      };
+
+      console.log("💡 parsed currentPeople:", parsed.currentPeople);
+      
+      setRoomList((prevRooms) => {
+        const exists = prevRooms.some((room) => room.id === parsed.id);
+        return exists
+          ? prevRooms.map((room) => (room.id === parsed.id ? parsed : room))
+          : [...prevRooms, parsed];
+      });
+    };
+  
     const requestRoomsSafely = () => {
       const s = getSocket();
       if (s && s.connected) {
@@ -37,55 +85,16 @@ const MultiPage = () => {
           }));
           setRoomList(parsed);
         });
+  
+        // ✅ 연결된 이후에만 리스너 등록
+        onRoomList(handleRoomList);
+        onRoomUpdate(handleRoomUpdate);
       } else {
         setTimeout(requestRoomsSafely, 300);
       }
     };
   
-    requestRoomsSafely(); // 연결 완료 후 요청
-  
-    const handleRoomList = (rooms) => {
-      console.log("[room_list 수신 :", rooms);
-      const parsed = rooms.map((room) => ({
-        id: room.roomId,
-        title: room.title,
-        language: room.language,
-        standardPeople: room.maxCount,
-        currentPeople: room.currentCount,
-        isPublic: !room.isLocked,
-        roomCode: room.roomCode,
-        status: room.isStarted ? "playing" : "waiting"
-      }));
-      setRoomList(parsed);
-    };
-    
-  
-    const handleRoomUpdate = (updatedRoom) => {
-
-      const parsed = {
-        id: updatedRoom.roomId,
-        title: updatedRoom.title,
-        language: updatedRoom.language,
-        standardPeople: updatedRoom.maxCount,
-        currentPeople: updatedRoom.currentCount,
-        isPublic: !updatedRoom.isLocked,
-        roomCode: updatedRoom.roomCode,
-        status: updatedRoom.isStarted ? "playing" : "waiting",
-      };
-      setRoomList((prevRooms) => {
-        const exists = prevRooms.some((room) => room.id === parsed.id);
-        if (exists) {
-          return prevRooms.map((room) =>
-            room.id === parsed.id ? parsed : room
-          );
-        } else {
-          return [...prevRooms, parsed];
-        }
-      });
-    };
-  
-    onRoomList(handleRoomList);
-    onRoomUpdate(handleRoomUpdate);
+    requestRoomsSafely();
   
     return () => {
       offRoomList();
@@ -105,34 +114,43 @@ const MultiPage = () => {
   };
 
   const handleConfirmEnter = (roomCode) => {
+    const socket = getSocket();
+  
+    const handleUpdateAndNavigate = (roomData) => {
+      if (roomData.roomId === selectedRoom.id) {
+        socket.off("room_update", handleUpdateAndNavigate);
+  
+        navigate(`/multi/room/${selectedRoom.id}`, {
+          state: {
+            roomTitle: selectedRoom.title,
+            isPublic: selectedRoom.isPublic,
+            language: selectedRoom.language,
+            currentPeople: roomData.currentCount,
+            standardPeople: roomData.maxCount,
+            roomCode: selectedRoom.roomCode, // 있어도 되고 없어도 됨
+          },
+        });
+      }
+    };
+  
+    socket.on("room_update", handleUpdateAndNavigate);
+  
+    // ✅ 공개방이면 roomCode 없이
     if (selectedRoom.isPublic) {
-      console.log("✅ 공개방 입장!");
-      navigate(`/multi/room/${selectedRoom.id}`, {
-        state: {
-          roomTitle:selectedRoom.title,
-          isPublic: selectedRoom.isPublic,
-          language: selectedRoom.language,
-          currentPeople: selectedRoom.currentPeople,
-          standardPeople: selectedRoom.standardPeople,
-          
-        },
-      });  
+      joinRoom({ roomId: selectedRoom.id }, (res) => {
+        console.log("✅ 공개방 joined:", res);
+      });
     } else {
-      console.log("🔒 입력한 코드:", roomCode);
-      navigate(`/multi/room/${selectedRoom.id}`,{
-        state: {
-          roomTitle:selectedRoom.title,
-          isPublic: selectedRoom.isPublic,
-          language: selectedRoom.language,
-          currentPeople: selectedRoom.currentPeople,
-          standardPeople: selectedRoom.standardPeople,
-          roomCode: selectedRoom.roomCode,
-        },});  
+      // 🔒 비공개방은 코드 포함
+      joinRoom({ roomId: selectedRoom.id, roomCode }, (res) => {
+        console.log("🔒 비공개방 joined:", res);
+      });
     }
+  
     setSelectedRoom(null);
     setShowEnterModal(false);
   };
-
+  
   return (
     <div
       className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"

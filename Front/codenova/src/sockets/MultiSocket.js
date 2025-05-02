@@ -51,3 +51,14 @@ export const createRoom = (payload, callback) => {
       callback?.(response);
     });
 };
+
+// 방 입장 요청
+export const joinRoom = (payload, callback) => {
+    const socket = getSocket();
+    if (!socket || !socket.connected) return;
+
+    socket.emit("join_room", payload, (res) => {
+        console.log("[서버 응답: join_room]", res);  // "joined" 또는 실패 응답
+        callback?.(res);
+    });
+};

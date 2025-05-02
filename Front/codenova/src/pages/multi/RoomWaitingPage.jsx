@@ -1,5 +1,6 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom"; // 라우터의 파라미터 읽어오기
-import {useState} from "react";
+import {useState, useEffect} from "react";
+import { getSocket } from "../../sockets/socketClient";
 import multiBg from "../../assets/images/multi_background.png";
 import boardBg from "../../assets/images/board1.jpg";
 import lockImg from "../../assets/images/black_lock_icon.png";
@@ -19,15 +20,24 @@ const RoomWaitingPage = () => {
         navigate("/multi"); // multi 페이지로 이동
       };
 
-    const {
+      const {
         roomTitle,
         isPublic,
         language,
         currentPeople,
         standardPeople,
         roomCode
-      } = state || {}; 
-
+      } = state || {};
+      
+      const [roomInfo, setRoomInfo] = useState({
+        roomTitle,
+        isPublic,
+        language,
+        currentPeople,
+        standardPeople,
+        roomCode
+      });
+      
       const dummyUsers = [
         { slot: 1, nickname: "동현갈비", profileImage: "url1", typing: "???타수", isReady: true, isHost: true },
         { slot: 2, nickname: "과일왕자이과람", profileImage: "url2", typing: "???타수", isReady: false },
@@ -35,6 +45,25 @@ const RoomWaitingPage = () => {
         { slot: 4, empty: true }
     ];
       
+    useEffect(() => {
+      const socket = getSocket();
+      if (!socket) return;
+    
+      const handleRoomUpdate = (updatedRoom) => {
+        if (updatedRoom.roomId === roomId) {
+          console.log("💡 방 업데이트 수신 (방장):", updatedRoom);
+          setRoomInfo(prev => ({
+            ...prev,
+            currentPeople: updatedRoom.currentCount,
+            roomCode: updatedRoom.roomCode
+          }));
+        }
+      };
+    
+      socket.on("room_update", handleRoomUpdate);
+      return () => socket.off("room_update", handleRoomUpdate);
+    }, [roomId]);
+    
     
     return (
         <div
@@ -52,11 +81,11 @@ const RoomWaitingPage = () => {
 
         <div className="relative z-10 flex items-center gap-2 mt-5">
             <img
-              src={isPublic ? unlockImg : lockImg}
+              src={roomInfo.isPublic ? unlockImg : lockImg}
               alt={isPublic ? "공개방" : "비공개방"}
               className="w-6 h-6"
             />
-            <h2 className="text-2xl">{roomTitle}</h2>
+            <h2 className="text-2xl">{roomInfo.roomTitle}</h2>
           </div>
           {/* 사용자 리스트 */}
   <div className="w-full flex justify-center mt-10">
@@ -67,15 +96,16 @@ const RoomWaitingPage = () => {
   <div className="w-[90%] flex justify-start items-start gap-6 z-10 pl-6">
     <RoomChatBox />
     <RoomInfoPanel 
-        isPublic={isPublic} 
-        roomTitle={roomTitle} 
-        language={language} 
-        currentPeople={currentPeople} 
-        standardPeople={standardPeople}
-        roomCode={roomCode}
-        onLeave={handleLeaveRoom}
-        isReady={isReady}
-        onReady={() => setIsReady(prev => !prev)} />
+      isPublic={roomInfo.isPublic}
+      roomTitle={roomInfo.roomTitle}
+      language={roomInfo.language}
+      currentPeople={roomInfo.currentPeople}
+      standardPeople={roomInfo.standardPeople}
+      roomCode={roomInfo.roomCode}
+      onLeave={handleLeaveRoom}
+      isReady={isReady}
+      onReady={() => setIsReady(prev => !prev)}
+    />
   </div>
         </div>
         </div>
