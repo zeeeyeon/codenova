@@ -10,5 +10,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RemoveWordResponse {
+    private String word;
     private Integer lifesLeft;
 }
