@@ -60,11 +60,25 @@ public class GameRoom {
 
     public void removePlayer(String sessionId) {
         synchronized (playersLock) {
+            boolean isHost = sessionId.equals(hostSessionId);
+
+            // 플레이어 제거
             players.removeIf(u -> u.getSessionId().equals(sessionId));
-            if (sessionId.equals(hostSessionId) && !players.isEmpty()) {
-                // 방장이 나가면 새 호스트를 랜덤으로 선정
+
+            // 방장이었고 다른 플레이어가 아직 남아있다면 새 방장 지정
+            if (isHost && !players.isEmpty()) {
+                // 새 방장 랜덤 선택
                 UserInfo newHost = players.get(new Random().nextInt(players.size()));
                 hostSessionId = newHost.getSessionId();
+
+                // 새 방장의 isHost 플래그 업데이트
+                for (UserInfo player : players) {
+                    if (player.getSessionId().equals(hostSessionId)) {
+                        player.setIsHost(true);
+                    } else {
+                        player.setIsHost(false);
+                    }
+                }
             }
         }
     }
