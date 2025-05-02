@@ -4,6 +4,7 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
+import kr.codenova.backend.multi.dto.response.JoinRoomResponse;
 import kr.codenova.backend.multi.dto.broadcast.ChangeHostBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.NoticeBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.RoomUpdateBroadcast;
@@ -126,7 +127,8 @@ public class RoomServiceImpl implements RoomService {
         client.joinRoom(room.getRoomId());
 
         // ✅ 응답
-        ackSender.sendAckData("joined");
+        JoinRoomResponse response = new JoinRoomResponse(request);
+        ackSender.sendAckData(response);
 
         // ✅ 방 정보 브로드캐스트
         RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
