@@ -21,6 +21,7 @@ import { calculateCPM, getProgress, processCode, compareInputWithLineEnter, comp
 import FinishPage from '../single/modal/FinishPage';
 
 import { singleCsCode, singleLangCode, getLangCode } from '../../api/singleApi'
+import EndBtn from "../../components/single//StopButton";
 
 // 등록
 hljs.registerLanguage('java', java);
@@ -264,6 +265,7 @@ const SinglePage = () => {
             style={{ backgroundImage: `url(${backgroundImg})`}}
         >
             {/* <Header/> */}
+            <EndBtn/>
             {/* 타자게임 박스 */}
             <div className='relative mt-20 '>
                 <img src={box} alt="타자게임 박스" className="w-[85vw] max-w-5wl h-auto rounded-2xl"/>
