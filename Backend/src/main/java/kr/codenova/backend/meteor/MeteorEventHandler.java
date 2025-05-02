@@ -248,13 +248,12 @@ public class MeteorEventHandler implements SocketEventHandler {
 
             server().getRoomOperations(roomId)
                     .sendEvent("gameStart", resp);
-
             wordDropScheduler.startDrooping(
                     roomId,
                     resp.getInitialDropInterval(),
                     resp.getInitialFallDuration()
             );
-        }, Instant.now().plusSeconds(10));  // ← here
+        }, Instant.now().plusSeconds(3));  // ← here
     }
 
     private void handleExitRoom(SocketIOClient client, ExitRoomRequest data) {
