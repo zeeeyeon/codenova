@@ -14,6 +14,7 @@ import { exitMeteoRoom, offMeteoGameStart, offRoomExit, onMeteoGameStart, onRoom
 import Crown from "../../assets/images/crown_icon.png";
 import StartButton from "../../assets/images/start_btn.png";
 import WaitButton from "../../assets/images/wait_btn.png";
+import ExitButton from "../../assets/images/multi_exit_btn.png";
 
 const MeteoLandingPage = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const MeteoLandingPage = () => {
       if (idx < 4) {
         updated[idx] = {
           nickname: player.nickname,
-          isHost: player.isHost || false  // ✅ isHost도 같이 저장
+          isHost: player.isHost || false 
         };
       }
     });
@@ -42,7 +43,7 @@ const MeteoLandingPage = () => {
   useEffect(() => {
     const socket = getSocket();
 
-    if (!roomCode || !roomId || !players || players.length === 0 || !nickname || !socket) {
+    if (!roomId || !players || players.length === 0 || !nickname || !socket) {
       console.warn("❗ 방 정보 없음 또는 소켓 없음 → 메인으로 이동");
   
       // localStorage 정리
@@ -109,6 +110,22 @@ const MeteoLandingPage = () => {
       localStorage.removeItem("meteoRoomId");
     };
   }, [roomCode, nickname, players, navigate]);
+
+  useEffect(() => {
+    const socket = getSocket();
+  
+    const handleMatchRandom = (roomData) => {
+      console.log("🛰️ [matchRandom 수신 - LandingPage]", roomData);
+      updateUsersFromPlayers(roomData.players);
+    };
+  
+    socket.on("matchRandom", handleMatchRandom);
+  
+    return () => {
+      socket.off("matchRandom", handleMatchRandom);
+    };
+  }, []);
+  
 
   // 게임 시작
   const handleStartGame = () => {
@@ -221,7 +238,7 @@ const MeteoLandingPage = () => {
           <div className="flex flex-col gap-4">
             <div className="w-[10rem] h-[8rem] border-4 rounded-xl flex flex-col items-center justify-center text-white text-2xl" style={{ borderColor: "#01FFFE" }}>
               <p className="text-xl mb-1">방코드</p>
-              <p className="text-3xl">{roomCode || "없음"}</p>
+              <p className="text-3xl">{roomCode || "-"}</p>
             </div>
             <div className="w-[10rem] h-[3.5rem] border-4 rounded-xl flex items-center justify-center" style={{ borderColor: "#01FFFE" }}>
             {users.find(user => user?.nickname === nickname)?.isHost ? (
@@ -254,10 +271,14 @@ const MeteoLandingPage = () => {
           </div>
         </div>
 
-        {/* 방 나가기 버튼 */}
-        <button onClick={handleExitRoom} className="absolute bottom-3 right-52 text-white text-2xl">
-          방 나가기
-        </button>
+        <img
+        src={ExitButton}
+        alt="exit"
+        onClick={handleExitRoom}
+        className="absolute bottom-3 right-[14%] w-[8rem] cursor-pointer z-50
+                  transition-all duration-150 hover:brightness-110 hover:scale-105 active:scale-95"
+      />
+
       </div>
     </div>
   );

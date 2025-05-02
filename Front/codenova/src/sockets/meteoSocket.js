@@ -143,3 +143,23 @@ export const onRemoveHeartResponse = (callback) => {
   });
 };
 
+// 랜덤매칭
+export const onRandomMatch = (nickname) => {
+  getSocket().emit("randomMatch", { nickname });
+  console.log("[onRandomMatch] randomMatch emit 보냄", { nickname });
+};
+
+// 🔹 랜덤매칭 응답 수신
+export const onRandomMatchResponse = (callback) => {
+  const socket = getSocket();
+  const handler = (data) => {
+    console.log("[onRandomMatchResponse] matchRandom 수신:", data);
+    callback(data);
+  };
+  socket.on("matchRandom", handler);
+};
+
+// 랜덤매칭 해제
+export const offRandomMatch = () => {
+  getSocket().off("matchRandom");
+};
