@@ -7,13 +7,19 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getSocket } from "../../sockets/socketClient";
 import EndGameBtn from "../../assets/images/end_game_button.png";
 import ConfirmModal from "../../components/modal/ConfirmModal";
-import { exitMeteoGame, onExitMeteoGame } from "../../sockets/meteoSocket";
+import { exitMeteoGame, onCheckText, onCheckTextResponse, onGameEnd, onRemoveHeart, onRemoveHeartResponse } from "../../sockets/meteoSocket";
+import GameResultModal from "../../components/modal/GameResultModal";
+import redHeart from "../../assets/images/red_heart.png";
+import blackHeart from "../../assets/images/black_heart.png";
+
 
 const MeteoGamePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const gameData = location.state;
   const { roomId, players } = gameData || {};
+  const [gameResult, setGameResult] = useState(null); // null이면 모달 안 띄움
+  const [lifesLeft, setLifesLeft] = useState(5);
 
   // 초기값은 무조건 4명
   const [playerList, setPlayerList] = useState(["player1", "player2", "player3", "player4"]);
@@ -97,6 +103,11 @@ const MeteoGamePage = () => {
   
   // 단어가 바닥에 닿으면 목록에서 제거
   const handleWordEnd = id => {
+    const wordObj = wordsRef.current.find(w => w.id === id);
+    if (!wordObj) return;
+  
+    const roomId = localStorage.getItem("roomId");
+    onRemoveHeart({ roomId, word: wordObj.word }); // 하트 깎는 요청 emit
     setFallingWords(prev => prev.filter(w => w.id !== id));
   };
 
@@ -129,12 +140,66 @@ const MeteoGamePage = () => {
     return () => getSocket().off("gameLeave", handleLeave);
   }, []);
 
-  const handleKeyDown = e => {
+  const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      // 예: 서버로 입력 단어 전송 가능
-      setInput("");
+      const text = input.trim();
+      if (!text) return;
+  
+      const roomId = localStorage.getItem("roomId");
+      const nickname = localStorage.getItem("nickname");
+  
+      // 서버로 입력 단어 전송
+      onCheckText({ roomId, nickname, text });
+      setInput(""); // 입력창 초기화
     }
   };
+  
+  useEffect(() => {
+    const handleTextCheck = (data) => {
+      console.log("[onCheckTextResponse] 수신:", data);
+      const { text, correct } = data;
+  
+      if (correct) {
+        // 정답이면 해당 단어 제거
+        setFallingWords((prev) =>
+          prev.filter((wordObj) => wordObj.word !== text)
+        );
+      }
+      // 오답이면 아무 처리 안함
+    };
+  
+    onCheckTextResponse(handleTextCheck);
+  
+    // 클린업
+    return () => getSocket().off("textCheck", handleTextCheck);
+  }, []);
+  
+  useEffect(() => {
+    const handleGameEnd = (data) => {
+      console.log("[onGameEnd] gameEnd 수신", data);
+      setGameResult(data);
+    };
+  
+    onGameEnd(handleGameEnd);
+  
+    return () => {
+      getSocket().off("gameEnd", handleGameEnd);
+    };
+  }, []);
+  
+  useEffect(() => {
+    const handleLostLife = (data) => {
+      console.log("[onRemoveHeartResponse] lostLife 수신", data);
+      setLifesLeft(data.lifesLeft);
+    };
+  
+    onRemoveHeartResponse(handleLostLife);
+  
+    return () => {
+      getSocket().off("lostLife", handleLostLife);
+    };
+  }, []);
+  
 
   return (
     <div
@@ -186,8 +251,9 @@ const MeteoGamePage = () => {
           style={{ fontFamily: "pixel, sans-serif" }}
         />
       </div>
+
         {/* 떠난 유저 알림 메시지 */}
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 space-y-2">
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 space-y-2">
         {leaveMessages.map(msg => (
         <div
           key={msg.id}
@@ -198,6 +264,19 @@ const MeteoGamePage = () => {
         </div>
         ))}
       </div>
+
+      {/* 목숨 하트 UI (오른쪽 상단) */}
+      <div className="absolute bottom-10 right-6 z-50 flex gap-2">
+        {Array(5).fill(0).map((_, idx) => (
+          <img
+            key={idx}
+            src={idx < lifesLeft ? redHeart : blackHeart}
+            alt="heart"
+            className="w-20 h-20"
+          />
+        ))}
+      </div>
+
         {showExitModal && (
           <ConfirmModal
             title="게임을 종료하시겠습니까?"
@@ -217,6 +296,26 @@ const MeteoGamePage = () => {
             onCancel={() => setShowExitModal(false)}
           />
         )}
+
+
+      {gameResult && (
+        <GameResultModal
+          results={gameResult.results}
+          success={gameResult.success}
+          onExit={() => {
+            localStorage.removeItem("roomId");
+            localStorage.removeItem("roomCode");
+            navigate("/main");
+          }}
+          onRetry={() => {
+            // 재도전 로직 (예: navigate to waiting room or emit retry)
+            window.location.reload(); // 임시로 새로고침
+          }}
+        />
+      )}
+
+
+
 
     </div>
 
