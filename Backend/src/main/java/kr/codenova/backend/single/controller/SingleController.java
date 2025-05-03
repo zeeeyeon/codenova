@@ -45,12 +45,12 @@ public class SingleController {
 
     @PostMapping("/code/result")
     public ResponseEntity<?> saveCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody SingleCodeResultRequest request) {
-        if (memberDetails == null || memberDetails.getMember() == null) return new ResponseEntity<>(Response.create(FORBIDDEN_SAVE_RESULT_FOR_GUEST, null), FORBIDDEN_SAVE_RESULT_FOR_GUEST.getHttpStatus());
+        boolean isNewRecord = false;
 
-        boolean isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), request);
+        if (memberDetails != null && memberDetails.getMember() != null) isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), request);
+
         SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.speed());
-
-        ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SAVE_SUCCESS;
+        ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SUCCESS;
         return new ResponseEntity<>(Response.create(resultCode, response), resultCode.getHttpStatus());
     }
 
