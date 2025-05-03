@@ -6,6 +6,7 @@ import kr.codenova.backend.meteor.RoomManager;
 import kr.codenova.backend.meteor.dto.response.GameOverResponse;
 import kr.codenova.backend.meteor.dto.response.PlayerResult;
 import kr.codenova.backend.meteor.entity.room.GameRoom;
+import kr.codenova.backend.meteor.entity.room.GameStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ public class GameEndService {
 
     public void endGame(String roomId, boolean isSuccess) {
         GameRoom room = roomManager.findById(roomId).orElseThrow();
+        room.finish();
         Map<String,Integer> scoreMap = room.getScoreMap();
         List<PlayerResult> results = room.getPlayers().stream()
                 .map(u -> new PlayerResult(u.getNickname(), scoreMap.getOrDefault(u.getSessionId(),0)))

@@ -6,6 +6,7 @@ import kr.codenova.backend.meteor.RoomManager;
 import kr.codenova.backend.meteor.dto.response.FallingWordResponse;
 import kr.codenova.backend.meteor.dto.response.RemoveWordResponse;
 import kr.codenova.backend.meteor.entity.room.GameRoom;
+import kr.codenova.backend.meteor.entity.room.GameStatus;
 import kr.codenova.backend.multi.room.Room;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.TaskScheduler;
@@ -45,7 +46,7 @@ public class WordDropScheduler {
         ScheduledFuture<?> spawnFuture = taskScheduler.scheduleAtFixedRate(() -> {
             GameRoom room = roomManager.findById(roomId).orElse(null);
             // 1. 빈 방이면 스케줄 취소
-            if (room == null) {
+            if (room == null || room.getStatus() != GameStatus.PLAYING) {
                 cancel(roomId);
                 return;
             }
