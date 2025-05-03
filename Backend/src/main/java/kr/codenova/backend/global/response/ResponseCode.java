@@ -21,7 +21,7 @@ public enum ResponseCode {
     GET_LANGUAGE_CATEGORIES_SUCCESS(200, HttpStatus.OK, "언어 카테고리 조회에 성공했습니다."),
     GET_CS_CATEGORIES_SUCCESS(200, HttpStatus.OK, "CS 카테고리 조회에 성공했습니다."),
     GET_SINGLE_BATTLE_CODE_BY_LANGUAGE(200, HttpStatus.OK, "선택한 언어에 맞는 싱글 배틀 코드입니다."),
-    CODE_RESULT_SAVE_SUCCESS(200, HttpStatus.OK, "싱글 코드배틀 결과 저장 완료"),
+    CODE_RESULT_SUCCESS(200, HttpStatus.OK, "싱글 코드배틀 결과입니다."),
     CODE_RESULT_HIGHEST_UPDATE(200, HttpStatus.OK, "최고 기록이 갱신되었습니다!"),
     GET_CS_CODE_BY_CATEGORY(200, HttpStatus.OK, "CS 문제 5개가 정상적으로 조회되었습니다."),
     CS_REPORT_CREATED(200, HttpStatus.OK, "CS 리포트가 정상적으로 생성되었습니다."),
