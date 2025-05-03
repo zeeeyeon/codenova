@@ -132,10 +132,10 @@ public class RoomServiceImpl implements RoomService {
         JoinRoomBroadcast response = new JoinRoomBroadcast(room);
         getServer().getRoomOperations(room.getRoomId()).sendEvent("join_room", response);
 
-
         // ✅ 방 정보 브로드캐스트
         RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
         getServer().getBroadcastOperations().sendEvent("room_update", broadcast);
+        client.sendEvent("room_update", broadcast);
 
         // ✅ [추가] 입장 알림 브로드캐스트
         getServer().getRoomOperations(request.getRoomId()).sendEvent("join_notice",
