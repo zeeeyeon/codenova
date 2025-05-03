@@ -48,7 +48,7 @@ public class SingleController {
     @PostMapping("/code/result")
     public ResponseEntity<?> saveCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody SingleCodeResultRequest request) {
         boolean isNewRecord = false;
-        log.warn("🚨 Redis 저장 실패: nickname 또는 speed가 null입니다. nickname={}, nickname2={},  speed={}", memberDetails.getMember().getNickname(), memberDetails.getNickname(),  request.speed());
+        log.warn("id ={}. nickname={}, nickname2={},  speed={}", memberDetails.getMember().getMemberId(), memberDetails.getMember().getNickname(), memberDetails.getNickname(),  request.speed());
 
         if (memberDetails != null && memberDetails.getMember() != null) isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), memberDetails.getMember().getNickname() , request);
         SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.speed());
