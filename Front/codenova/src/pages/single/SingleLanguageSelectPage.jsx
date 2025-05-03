@@ -6,6 +6,7 @@ import cBtn from '../../assets/images/C_button.png'
 import csBtn from '../../assets/images/CS_button.png'
 import cancelBtn from '../../assets/images/cancel_btn.png'
 import BoardContainer from '../../components/single/BoardContainer'
+import Header from '../../components/common/Header'
 
 import { useNavigate } from 'react-router-dom'
 
@@ -18,6 +19,7 @@ const SingleLanguageSelectPage = () => {
     <div className="w-screen h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center"
       style={{backgroundImage: `url(${backgroundImg})`}}
     >
+      <Header/>
 
       <BoardContainer>
         {/* 타이틀 텍스트 */}
