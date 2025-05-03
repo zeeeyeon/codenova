@@ -15,6 +15,11 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(
+        name = "typing_speed",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"memberId", "language"}),
+        indexes = @Index(columnList = "memberId, language")
+)
 public class TypingSpeed {
 
     @Id
