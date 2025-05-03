@@ -10,14 +10,21 @@ const EnterRoomModal = ({
     currentPeople,
     standardPeople,
     onClose, 
-    onEnter}) => {
+    onEnter,
+  }) => {
   const [roomCode, setRoomCode] = useState("");
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
 
-    const handleEnter = () => {
-        onEnter(roomCode); // ✅ 성공!
-    };
+  const handleEnter = () => {
+    onEnter(roomCode, (success) => {
+      if (!success) {
+        setError(true);
+        setShake(true);
+        setTimeout(() => setShake(false), 500);
+      }
+    });
+  };
 
 
   return (

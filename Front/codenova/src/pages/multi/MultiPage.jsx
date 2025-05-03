@@ -10,6 +10,8 @@ import MakeRoomModal from "../../components/multi/modal/MakeRoomModal";
 import EnterRoomModal from "../../components/multi/modal/EnterRoomModal"; 
 import { requestRoomList, onRoomList, offRoomList, onRoomUpdate, offRoomUpdate, joinRoom } from "../../sockets/MultiSocket";
 import { getSocket } from "../../sockets/socketClient";
+import useAuthStore from "../../store/authStore";
+
 
 const MultiPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);   // 방 만들기 모달
@@ -18,7 +20,7 @@ const MultiPage = () => {
   const [roomList, setRoomList] = useState([]); // 룸 목록
 
   const navigate = useNavigate();
-
+ 
   useEffect(() => {
     const socket = getSocket();
     if (socket) {
@@ -113,42 +115,43 @@ const MultiPage = () => {
     setShowEnterModal(false);
   };
 
-  const handleConfirmEnter = (roomCode) => {
+  const nickname = useAuthStore((state) => state.user?.nickname);
+
+  
+  const handleConfirmEnter = (roomCode, feedbackCallback) => {
     const socket = getSocket();
-  
-    const handleUpdateAndNavigate = (roomData) => {
-      if (roomData.roomId === selectedRoom.id) {
-        socket.off("room_update", handleUpdateAndNavigate);
-  
+
+    const handleJoinResponse = (res) => {
+      console.log("✅ 입장 응답:", res); // res === "joined"
+    
+      if (res === "joined") {
         navigate(`/multi/room/${selectedRoom.id}`, {
           state: {
             roomTitle: selectedRoom.title,
             isPublic: selectedRoom.isPublic,
             language: selectedRoom.language,
-            currentPeople: roomData.currentCount,
-            standardPeople: roomData.maxCount,
-            roomCode: selectedRoom.roomCode, // 있어도 되고 없어도 됨
+            currentPeople: selectedRoom.currentPeople,
+            standardPeople: selectedRoom.standardPeople,
+            roomCode: selectedRoom.roomCode,
           },
         });
+
+        setSelectedRoom(null);
+        setShowEnterModal(false);
+        feedbackCallback?.(true);
+      } else {
+        feedbackCallback?.(false);
       }
     };
   
-    socket.on("room_update", handleUpdateAndNavigate);
-  
-    // ✅ 공개방이면 roomCode 없이
+    // ✅ nickname 포함해서 전달
     if (selectedRoom.isPublic) {
-      joinRoom({ roomId: selectedRoom.id }, (res) => {
-        console.log("✅ 공개방 joined:", res);
-      });
+      joinRoom({ roomId: selectedRoom.id, nickname }, handleJoinResponse);
     } else {
-      // 🔒 비공개방은 코드 포함
-      joinRoom({ roomId: selectedRoom.id, roomCode }, (res) => {
-        console.log("🔒 비공개방 joined:", res);
-      });
+      joinRoom({ roomId: selectedRoom.id, roomCode, nickname }, handleJoinResponse);
     }
   
-    setSelectedRoom(null);
-    setShowEnterModal(false);
+
   };
   
   return (
