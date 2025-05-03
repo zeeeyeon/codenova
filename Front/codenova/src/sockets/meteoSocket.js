@@ -94,7 +94,7 @@ export const offWordFalling = () => {
 // 게임 도중 종료 수신
 export const exitMeteoGame = ({roomId, nickname}) => {
   if (!roomId || !nickname) {
-    console.error("❌ [exitGame] roomId 또는 nickname이 없습니다.", { roomId, nickname });
+    // console.error("❌ [exitGame] roomId 또는 nickname이 없습니다.", { roomId, nickname });
     return;
   }
   getSocket().emit("exitRoom", { roomId, nickname });
@@ -103,7 +103,7 @@ export const exitMeteoGame = ({roomId, nickname}) => {
 // 방 나갔을 때 브로드캐스트 수신 
 export const onExitMeteoGame = (callback) => {
   getSocket().on("gameLeave", (data) => {
-    console.log("[onExitMeteoGame] gameLeave 수신", data);
+    // console.log("[onExitMeteoGame] gameLeave 수신", data);
     callback(data);
   });
 };
@@ -124,7 +124,7 @@ export const onCheckTextResponse = (callback) => {
 // 게임 종료 후 결과 수신
 export const onGameEnd = (callback) => {
   getSocket().on("gameEnd", (data) => {
-    console.log("[onGameEnd] gameEnd 수신", data);
+    // console.log("[onGameEnd] gameEnd 수신", data);
     callback(data);
   });
 };
@@ -132,7 +132,7 @@ export const onGameEnd = (callback) => {
 // 단어가 땅에 도달 수신
 export const onRemoveHeartResponse = (callback) => {
   getSocket().on("lostLife", (data) => {
-    console.log("[onRemoveHeartResponse] lostLife 수신", data);
+    // console.log("[onRemoveHeartResponse] lostLife 수신", data);
     callback(data);
   });
 };
@@ -167,9 +167,28 @@ export const onChatMessage = ({ roomId, nickname, message }) => {
 // 대기방 채팅 수신
 export const onChatMessageResponse = (callback) => {
   getSocket().on("chatSend", (data) => {
-    console.log("[onChatMessageResponse] chatSend 수신", data);
+    // console.log("[onChatMessageResponse] chatSend 수신", data);
     callback(data);
   });
 };
 
+
+// 사용자 입력값 실시간으로 보여지게 하기
+export const onUserInput = ({ roomId, nickname, text }) => {
+  getSocket().emit("inputText", { roomId, nickname, text });
+  console.log("[onUserInput] userInput emit 보냄", { roomId, nickname, text });
+};
+
+// 사용자 입력값 실시간으로 보여지게 하기 수신
+export const onUserInputResponse = (callback) => {
+  getSocket().on("textInput", (data) => {
+    console.log("[onUserInputResponse] userInput 수신", data);
+    callback(data);
+  });
+};  
+
+// 사용자 입력값 실시간으로 보여지게 하기 해제
+export const offUserInput = () => {
+  getSocket().off("userInput");
+};
 
