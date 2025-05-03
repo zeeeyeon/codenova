@@ -51,10 +51,8 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public GuestLoginDto guestLogin() {
-        String guestId = UUID.randomUUID().toString();
-
         String nickname = new GenerateGuestNickname().guestNickname();
-
-        return new GuestLoginDto(guestId,nickname);
+        String userType = "guest";
+        return new GuestLoginDto(nickname, userType);
     }
 }
