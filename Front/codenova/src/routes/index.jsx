@@ -7,6 +7,7 @@ import SingleRoutes from "./routes/SingleRoutes";
 import MultiRoutes from "./routes/MultiRoutes";
 import MeteoRoutes from "./routes/MeteoRoutes";
 import MyPageRoutes from "./routes/MyPageRoutes";
+import RankingRoutes from "./RankingRoutes"
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/multi/*" element={<MultiRoutes />} />
         <Route path="/meteo/*" element={<MeteoRoutes />} />
         <Route path="/mypage/*" element={<MyPageRoutes/>} />
+        <Route path="/ranking/*" element={<RankingRoutes/>} />
       </Routes>
     </BrowserRouter>
   );
