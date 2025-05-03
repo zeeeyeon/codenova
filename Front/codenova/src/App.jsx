@@ -8,6 +8,7 @@ import LandingPage from "./pages/main/LandingPage";
 import MeteoRoutes from "./routes/MeteoRoutes";
 import MyPageRoutes from "./routes/MyPageRoutes";
 import useAuthStore from "./store/authStore";
+import RankingRoutes from "./routes/RankingRoutes";
 import { connectSocket, disconnectSocket } from "./sockets/socketClient";
 import { useEffect, useRef } from "react";
 
@@ -37,6 +38,7 @@ function App() {
           <Route path="/multi/*" element={<MultiRoutes />} />
           <Route path="/meteo/*" element={<MeteoRoutes />} />
           <Route path="/mypage/*" element={<MyPageRoutes />} />
+          <Route path="/ranking/*" element={<RankingRoutes />} />
         </Routes>
     </BrowserRouter>
   );
