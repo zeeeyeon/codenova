@@ -20,6 +20,8 @@ const RoomInfoPanel = ({ isPublic, roomCode, language, currentPeople, standardPe
         }
     }
 
+    console.log("📦 Panel props:", { isPublic, roomCode });
+
   
     return (
     <div className="w-[200px] h-[220px] bg-[#0D0D2B] bg-opacity-70 rounded-2xl flex flex-col items-center p-4 justify-between mt-5">

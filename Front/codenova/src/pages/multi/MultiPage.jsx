@@ -8,8 +8,10 @@ import Header from "../../components/common/Header";
 import RoomList from "../../components/multi/RoomList";
 import MakeRoomModal from "../../components/multi/modal/MakeRoomModal";
 import EnterRoomModal from "../../components/multi/modal/EnterRoomModal"; 
-import { requestRoomList, onRoomList, offRoomList, onRoomUpdate, offRoomUpdate } from "../../sockets/MultiSocket";
+import { requestRoomList, onRoomList, offRoomList, onRoomUpdate, offRoomUpdate, joinRoom } from "../../sockets/MultiSocket";
 import { getSocket } from "../../sockets/socketClient";
+import useAuthStore from "../../store/authStore";
+
 
 const MultiPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);   // 방 만들기 모달
@@ -18,8 +20,56 @@ const MultiPage = () => {
   const [roomList, setRoomList] = useState([]); // 룸 목록
 
   const navigate = useNavigate();
+ 
+  useEffect(() => {
+    const socket = getSocket();
+    if (socket) {
+      socket.onAny((event, ...args) => {
+        console.log("📡 수신된 이벤트:", event, args);
+      });
+    }
+  }, []);
+  
 
   useEffect(() => {
+    const handleRoomList = (rooms) => {
+      console.log("[room_list 수신 :", rooms);
+      const parsed = rooms.map((room) => ({
+        id: room.roomId,
+        title: room.title,
+        language: room.language,
+        standardPeople: room.maxCount,
+        currentPeople: room.currentCount,
+        isPublic: !room.isLocked,
+        roomCode: room.roomCode,
+        status: room.isStarted ? "playing" : "waiting"
+      }));
+      setRoomList(parsed);
+    };
+  
+    const handleRoomUpdate = (updatedRoom) => {
+      console.log("🟡 room_update 수신:", updatedRoom);
+      const parsed = {
+        id: updatedRoom.roomId,
+        title: updatedRoom.title,
+        language: updatedRoom.language,
+        standardPeople: updatedRoom.maxCount,
+        currentPeople: updatedRoom.currentCount,
+        isPublic: !updatedRoom.isLocked,
+        roomCode: updatedRoom.roomCode,
+        status: updatedRoom.isStarted ? "playing" : "waiting",
+      };
+
+      console.log("💡 parsed currentPeople:", parsed.currentPeople);
+      
+      setRoomList((prevRooms) => {
+        const exists = prevRooms.some((room) => room.id === parsed.id);
+        return exists
+          ? prevRooms.map((room) => (room.id === parsed.id ? parsed : room))
+          : [...prevRooms, parsed];
+      });
+    };
+  
     const requestRoomsSafely = () => {
       const s = getSocket();
       if (s && s.connected) {
@@ -37,55 +87,16 @@ const MultiPage = () => {
           }));
           setRoomList(parsed);
         });
+  
+        // ✅ 연결된 이후에만 리스너 등록
+        onRoomList(handleRoomList);
+        onRoomUpdate(handleRoomUpdate);
       } else {
         setTimeout(requestRoomsSafely, 300);
       }
     };
   
-    requestRoomsSafely(); // 연결 완료 후 요청
-  
-    const handleRoomList = (rooms) => {
-      console.log("[room_list 수신 :", rooms);
-      const parsed = rooms.map((room) => ({
-        id: room.roomId,
-        title: room.title,
-        language: room.language,
-        standardPeople: room.maxCount,
-        currentPeople: room.currentCount,
-        isPublic: !room.isLocked,
-        roomCode: room.roomCode,
-        status: room.isStarted ? "playing" : "waiting"
-      }));
-      setRoomList(parsed);
-    };
-    
-  
-    const handleRoomUpdate = (updatedRoom) => {
-
-      const parsed = {
-        id: updatedRoom.roomId,
-        title: updatedRoom.title,
-        language: updatedRoom.language,
-        standardPeople: updatedRoom.maxCount,
-        currentPeople: updatedRoom.currentCount,
-        isPublic: !updatedRoom.isLocked,
-        roomCode: updatedRoom.roomCode,
-        status: updatedRoom.isStarted ? "playing" : "waiting",
-      };
-      setRoomList((prevRooms) => {
-        const exists = prevRooms.some((room) => room.id === parsed.id);
-        if (exists) {
-          return prevRooms.map((room) =>
-            room.id === parsed.id ? parsed : room
-          );
-        } else {
-          return [...prevRooms, parsed];
-        }
-      });
-    };
-  
-    onRoomList(handleRoomList);
-    onRoomUpdate(handleRoomUpdate);
+    requestRoomsSafely();
   
     return () => {
       offRoomList();
@@ -104,35 +115,45 @@ const MultiPage = () => {
     setShowEnterModal(false);
   };
 
-  const handleConfirmEnter = (roomCode) => {
-    if (selectedRoom.isPublic) {
-      console.log("✅ 공개방 입장!");
-      navigate(`/multi/room/${selectedRoom.id}`, {
-        state: {
-          roomTitle:selectedRoom.title,
-          isPublic: selectedRoom.isPublic,
-          language: selectedRoom.language,
-          currentPeople: selectedRoom.currentPeople,
-          standardPeople: selectedRoom.standardPeople,
-          
-        },
-      });  
-    } else {
-      console.log("🔒 입력한 코드:", roomCode);
-      navigate(`/multi/room/${selectedRoom.id}`,{
-        state: {
-          roomTitle:selectedRoom.title,
-          isPublic: selectedRoom.isPublic,
-          language: selectedRoom.language,
-          currentPeople: selectedRoom.currentPeople,
-          standardPeople: selectedRoom.standardPeople,
-          roomCode: selectedRoom.roomCode,
-        },});  
-    }
-    setSelectedRoom(null);
-    setShowEnterModal(false);
-  };
+  const nickname = useAuthStore((state) => state.user?.nickname);
 
+  
+  const handleConfirmEnter = (roomCode, feedbackCallback) => {
+    const socket = getSocket();
+
+    const handleJoinResponse = (res) => {
+      console.log("✅ 입장 응답:", res); // res === "joined"
+    
+      if (res === "joined") {
+        navigate(`/multi/room/${selectedRoom.id}`, {
+          state: {
+            roomTitle: selectedRoom.title,
+            isPublic: selectedRoom.isPublic,
+            language: selectedRoom.language,
+            currentPeople: selectedRoom.currentPeople,
+            standardPeople: selectedRoom.standardPeople,
+            roomCode: selectedRoom.roomCode,
+          },
+        });
+
+        setSelectedRoom(null);
+        setShowEnterModal(false);
+        feedbackCallback?.(true);
+      } else {
+        feedbackCallback?.(false);
+      }
+    };
+  
+    // ✅ nickname 포함해서 전달
+    if (selectedRoom.isPublic) {
+      joinRoom({ roomId: selectedRoom.id, nickname }, handleJoinResponse);
+    } else {
+      joinRoom({ roomId: selectedRoom.id, roomCode, nickname }, handleJoinResponse);
+    }
+  
+
+  };
+  
   return (
     <div
       className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
