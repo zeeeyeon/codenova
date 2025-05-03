@@ -26,15 +26,15 @@ public class RedisRankingService {
         redisTemplate.opsForZSet().add(key, nickname, speed);
     }
 
-    public RankingResponse getRanking(Language language, int memberId) {
+    public RankingResponse getRanking(Language language, Integer memberId) {
         List<RankingResponse.RankingEntry> top10 = getTop10(language);
-        String nickname = getNicknameFromMemberId(memberId); // 변경
+        String nickname = getNicknameFromMemberId(memberId);
         RankingResponse.MyRank myRank = (nickname != null) ? getMyRank(language, nickname) : null;
         return new RankingResponse(top10, myRank);
     }
 
-    private String getNicknameFromMemberId(int memberId) {
-        if (memberId <= 0) return null;
+    private String getNicknameFromMemberId(Integer memberId) {
+        if (memberId == null || memberId <= 0) return null;
         return memberRepository.findById(memberId)
                 .map(Member::getNickname)
                 .orElse(null);
