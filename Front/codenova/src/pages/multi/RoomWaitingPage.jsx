@@ -15,13 +15,14 @@ const RoomWaitingPage = () => {
     const {state} = useLocation();  // navigate할때 보낸 데이터
     const navigate = useNavigate();
     const [isReady, setIsReady] = useState(false); 
+    const [users, setUsers] = useState([]);
 
     const handleLeaveRoom = () => {
         navigate("/multi"); // multi 페이지로 이동
       };
 
 
-      
+      // 초기값 사용하기 위함.
       const [roomInfo, setRoomInfo] = useState(() => ({
         roomTitle: state?.roomTitle || "",
         isPublic: state?.isPublic ?? true,
@@ -43,31 +44,40 @@ const RoomWaitingPage = () => {
       const socket = getSocket();
       if (!socket) return;
     
-      const handleRoomUpdate = (updatedRoom) => {
-        if (updatedRoom.roomId === roomId) {
-          console.log("💡 방 업데이트 수신 (방장):", updatedRoom);
-          setRoomInfo(prev => ({
-            ...prev,
-            currentPeople: updatedRoom.currentCount,
-            roomCode: updatedRoom.roomCode,
-            isPublic: !updatedRoom.isLocked
-          }));
-        }
-      };
-
-      const registerSafely = () => {
-        const socket = getSocket();
-        if (socket && socket.connected) {
-          socket.on("room_update", handleRoomUpdate);
-        } else {
-          setTimeout(registerSafely, 300);
-        }
+       // ✅ 진입하자마자 최신 room info 요청
+    socket.emit("room_list", (rooms) => {
+      const myRoom = rooms.find((r) => String(r.roomId) === String(roomId));
+      if (myRoom) {
+        setRoomInfo((prev) => ({
+          roomTitle: myRoom.title,
+          isPublic: !myRoom.isLocked,
+          language: myRoom.language,
+          currentPeople: myRoom.currentCount,
+          standardPeople: myRoom.maxCount,
+          roomCode: prev.roomCode, // ✅ 여기 유지!
+        }));
       }
-    
-      registerSafely();
+    });
 
-      return () => socket.off("room_update", handleRoomUpdate);
-    }, [roomId]);
+    // ✅ 실시간 업데이트 반영
+    const handleRoomUpdate = (updatedRoom) => {
+      if (String(updatedRoom.roomId) === String(roomId)) {
+        console.log("💡 방 업데이트 수신:", updatedRoom);
+        setRoomInfo({
+          roomTitle: updatedRoom.title,
+          isPublic: !updatedRoom.isLocked,
+          language: updatedRoom.language,
+          currentPeople: updatedRoom.currentCount,
+          standardPeople: updatedRoom.maxCount,
+          roomCode: updatedRoom.roomCode,
+        });
+      }
+    };
+
+    socket.on("room_update", handleRoomUpdate);
+    return () => socket.off("room_update", handleRoomUpdate);
+  }, [roomId]);
+
     
     
     return (
