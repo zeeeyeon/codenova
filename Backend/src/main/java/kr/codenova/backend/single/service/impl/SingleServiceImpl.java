@@ -24,10 +24,6 @@ import java.util.List;
 
 import static kr.codenova.backend.global.response.ResponseCode.CODE_NOT_FOUND;
 
-import java.util.Optional;
-
-import static kr.codenova.backend.global.response.ResponseCode.CODE_NOT_FOUND;
-
 @Service
 @RequiredArgsConstructor
 public class SingleServiceImpl implements SingleService {
@@ -39,6 +35,7 @@ public class SingleServiceImpl implements SingleService {
     private final CsRepository csRepository;
     private final GptClient gptClient;
     private final ReportAsyncService reportAsyncService;
+    private final RedisRankingService redisRankingService;
 
 
     @Override
@@ -58,25 +55,24 @@ public class SingleServiceImpl implements SingleService {
     }
 
     @Override
-    public boolean saveTypingSpeed(int memberId, SingleCodeResultRequest request) {
-
-        double typingSpeed = request.calculateTypingSpeed();
-
+    public boolean saveTypingSpeed(int memberId, String nickname, SingleCodeResultRequest request) {
         return typingSpeedRepository.findByMemberIdAndLanguage(memberId, request.language())
                 .map(existing -> {
-                    if (existing.isUpdatable(typingSpeed)) {
-                        existing.updateSpeed(typingSpeed);
+                    if (existing.isUpdatable(request.speed())) {
+                        existing.updateSpeed(request.speed());
                         typingSpeedRepository.save(existing);
+                        redisRankingService.saveTypingSpeed(request.language(), nickname, request.speed());
                         return true;
                     }
                     return false;
                 })
                 .orElseGet(() -> {
-                    typingSpeedRepository.save(TypingSpeed.create(memberId, request.language(), typingSpeed));
+                    typingSpeedRepository.save(TypingSpeed.create(memberId, request.language(), request.speed()));
+                    redisRankingService.saveTypingSpeed(request.language(), nickname, request.speed());
                     return true;
                 });
-
     }
+
 
     @Override
     public List<CsCodeResponse> getCsCodeByCategory(String category) {
@@ -115,6 +111,13 @@ public class SingleServiceImpl implements SingleService {
         return ReportDetailResponse.of(report, summaries);
     }
 
+
+    @Override
+    public SingleBattleCodeResponse test(int codeId) {
+        return codeRepository.findByCodeId(codeId)
+                .map(SingleBattleCodeResponse::from)
+                .orElseThrow(() -> new CustomException(CODE_NOT_FOUND));
+    }
 
     private String buildStructuredPrompt(List<String> keywords) {
         StringBuilder builder = new StringBuilder();

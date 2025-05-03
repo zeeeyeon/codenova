@@ -11,11 +11,12 @@ import kr.codenova.backend.single.dto.response.SingleBattleCodeResponse;
 public interface SingleService {
     LanguageCategory getLanguageCategories();
     SingleBattleCodeResponse getSingleBattleCode(String languageCode);
-    boolean saveTypingSpeed(int memberId, SingleCodeResultRequest request);
+    boolean saveTypingSpeed(int memberId, String nickname, SingleCodeResultRequest request);
 
     List<CsCodeResponse> getCsCodeByCategory(String category);
     CsKeywordSummaryResponse generateReport(int memberId, List<String> keywords);
     ReportListResponse getReportTitles(int memberId);
     ReportDetailResponse getReportDetail(int memberId, int reportId);
 
+    SingleBattleCodeResponse test(int codeId);
 }

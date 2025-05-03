@@ -23,6 +23,7 @@ import java.util.List;
 
 import static kr.codenova.backend.global.response.ResponseCode.*;
 
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/single")
@@ -44,12 +45,11 @@ public class SingleController {
 
     @PostMapping("/code/result")
     public ResponseEntity<?> saveCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody SingleCodeResultRequest request) {
-        if (memberDetails == null || memberDetails.getMember() == null) return new ResponseEntity<>(Response.create(FORBIDDEN_SAVE_RESULT_FOR_GUEST, null), FORBIDDEN_SAVE_RESULT_FOR_GUEST.getHttpStatus());
+        boolean isNewRecord = false;
 
-        boolean isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), request);
-        SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.calculateTypingSpeed());
-
-        ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SAVE_SUCCESS;
+        if (memberDetails != null && memberDetails.getMember() != null) isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), memberDetails.getNickname() , request);
+        SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.speed());
+        ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SUCCESS;
         return new ResponseEntity<>(Response.create(resultCode, response), resultCode.getHttpStatus());
     }
 
@@ -83,5 +83,11 @@ public class SingleController {
     public ResponseEntity<?> getReportDetail(@AuthenticationPrincipal CustomMemberDetails memberDetails, @PathVariable int reportId) {
         ReportDetailResponse detail = singleService.getReportDetail(memberDetails.getMember().getMemberId(), reportId);
         return new ResponseEntity<>(Response.create(ResponseCode.GET_REPORT_DETAIL_SUCCESS, detail), ResponseCode.GET_REPORT_DETAIL_SUCCESS.getHttpStatus());
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> test(@RequestParam int codeId) {
+        SingleBattleCodeResponse code = singleService.test(codeId);
+        return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
     }
 }
