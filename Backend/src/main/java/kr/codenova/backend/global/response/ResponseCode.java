@@ -27,6 +27,7 @@ public enum ResponseCode {
     CS_REPORT_CREATED(200, HttpStatus.OK, "CS 리포트가 정상적으로 생성되었습니다."),
     GET_REPORTS_SUCCESS(200, HttpStatus.OK, "리포트 목록 조회에 성공했습니다."),
     GET_REPORT_DETAIL_SUCCESS(200, HttpStatus.OK, "리포트 상세 조회에 성공했습니다."),
+    GET_RANKING_SUCCESS(200, HttpStatus.OK, "랭킹 조회에 성공했습니다."),
 
 
 

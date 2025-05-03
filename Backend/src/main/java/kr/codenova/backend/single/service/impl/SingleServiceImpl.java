@@ -35,6 +35,7 @@ public class SingleServiceImpl implements SingleService {
     private final CsRepository csRepository;
     private final GptClient gptClient;
     private final ReportAsyncService reportAsyncService;
+    private final RedisRankingService redisRankingService;
 
 
     @Override
@@ -54,22 +55,24 @@ public class SingleServiceImpl implements SingleService {
     }
 
     @Override
-    public boolean saveTypingSpeed(int memberId, SingleCodeResultRequest request) {
+    public boolean saveTypingSpeed(int memberId, String nickname, SingleCodeResultRequest request) {
         return typingSpeedRepository.findByMemberIdAndLanguage(memberId, request.language())
                 .map(existing -> {
                     if (existing.isUpdatable(request.speed())) {
                         existing.updateSpeed(request.speed());
                         typingSpeedRepository.save(existing);
+                        redisRankingService.saveTypingSpeed(request.language(), nickname, request.speed());
                         return true;
                     }
                     return false;
                 })
                 .orElseGet(() -> {
                     typingSpeedRepository.save(TypingSpeed.create(memberId, request.language(), request.speed()));
+                    redisRankingService.saveTypingSpeed(request.language(), nickname, request.speed());
                     return true;
                 });
-
     }
+
 
     @Override
     public List<CsCodeResponse> getCsCodeByCategory(String category) {
