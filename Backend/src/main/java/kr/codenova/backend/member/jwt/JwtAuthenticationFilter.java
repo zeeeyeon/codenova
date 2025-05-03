@@ -70,7 +70,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
                                             FilterChain chain, Authentication authResult) throws IOException, ServletException {
+
         CustomMemberDetails userDetails = (CustomMemberDetails) authResult.getPrincipal();
+        log.debug("✅ 로그인 성공: memberId={}, id={}, nickname={}",
+                userDetails.getMember().getMemberId(),
+                userDetails.getMember().getId(),
+                userDetails.getMember().getNickname());
+
         String token = JwtProcess.create(userDetails);
         LoginResDto dto = new LoginResDto(userDetails.getNickname());
 
