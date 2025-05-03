@@ -3,7 +3,7 @@ import backgroundImg from '../../assets/images/single_background.jpg'
 import box from '../../assets/images/board1.jpg'
 import Header from "../../components/common/Header"
 import leftBtn from "../../assets/images/left_btn.png"
-import rightBtn from "../../assets/images/right_purple_ btn.png"
+import rightBtn from "../../assets/images/right_btn.png"
 import titleBox from "../../assets/images/logo_remove4.png"
 
 import { useState } from "react"
