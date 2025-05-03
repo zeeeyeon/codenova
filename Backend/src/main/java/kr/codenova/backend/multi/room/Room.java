@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,11 +26,20 @@ public class Room {
     private String roomCode;
     private LocalDateTime createdAt;
 
-    private String ownerNickname; // ✅ 방장 닉네임
-
+    // ✅ 사용자 상태 관리 (nickname → UserStatus)
     @Builder.Default
-    private ConcurrentHashMap<String, Boolean> userReadyStatus = new ConcurrentHashMap<>(); // ✅ 참가자 닉네임 → 준비 상태
+    private ConcurrentHashMap<String, UserStatus> userStatusMap = new ConcurrentHashMap<>();
 
-    // 유저 입장 시간을 기록하는 맵 ( 닉네임 -> 입장 시간(밀리초))
-    private Map<String, Long> userJoinTimes; // 유저 입장 시간 기록
+    // ✅ 유저 입장 시간 기록
+    @Builder.Default
+    private Map<String, Long> userJoinTimes = new ConcurrentHashMap<>();
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserStatus {
+        private boolean isHost;
+        private boolean isReady;
+    }
 }
+
