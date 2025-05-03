@@ -52,7 +52,7 @@ const RoomUserCard = ({ user }) => {
               className="w-12 h-12 mb-2"
             />
             <div className="text-white text-m mt-1">{user.nickname}</div>
-            <div className="text-fuchsia-400 text-sm">{user.typing}</div>
+            {/* <div className="text-fuchsia-400 text-sm">{user.typing}</div> */}
             <div className={`mt-2 ${user.isReady ? "text-green-400" : "text-gray-400"}`}>
               {user.isReady ? "Ready" : "Not Ready"}
             </div>
