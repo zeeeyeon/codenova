@@ -13,6 +13,7 @@ import kr.codenova.backend.multi.dto.request.ReadyGameRequest;
 import kr.codenova.backend.multi.dto.request.StartGameRequest;
 import kr.codenova.backend.multi.exception.InvalidGameStartException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
+import kr.codenova.backend.multi.exception.UserNotFoundException;
 import kr.codenova.backend.multi.room.Room;
 import kr.codenova.backend.multi.room.RoomService;
 import lombok.RequiredArgsConstructor;
