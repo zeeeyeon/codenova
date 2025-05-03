@@ -20,23 +20,17 @@ const RoomWaitingPage = () => {
         navigate("/multi"); // multi 페이지로 이동
       };
 
-      const {
-        roomTitle,
-        isPublic,
-        language,
-        currentPeople,
-        standardPeople,
-        roomCode
-      } = state || {};
+
       
-      const [roomInfo, setRoomInfo] = useState({
-        roomTitle,
-        isPublic,
-        language,
-        currentPeople,
-        standardPeople,
-        roomCode
-      });
+      const [roomInfo, setRoomInfo] = useState(() => ({
+        roomTitle: state?.roomTitle || "",
+        isPublic: state?.isPublic ?? true,
+        language: state?.language || "Unknown",
+        currentPeople: state?.currentPeople || 1,
+        standardPeople: state?.standardPeople || 4,
+        roomCode: state?.roomCode || "",
+      }));
+
       
       const dummyUsers = [
         { slot: 1, nickname: "동현갈비", profileImage: "url1", typing: "???타수", isReady: true, isHost: true },
@@ -55,12 +49,23 @@ const RoomWaitingPage = () => {
           setRoomInfo(prev => ({
             ...prev,
             currentPeople: updatedRoom.currentCount,
-            roomCode: updatedRoom.roomCode
+            roomCode: updatedRoom.roomCode,
+            isPublic: !updatedRoom.isLocked
           }));
         }
       };
+
+      const registerSafely = () => {
+        const socket = getSocket();
+        if (socket && socket.connected) {
+          socket.on("room_update", handleRoomUpdate);
+        } else {
+          setTimeout(registerSafely, 300);
+        }
+      }
     
-      socket.on("room_update", handleRoomUpdate);
+      registerSafely();
+
       return () => socket.off("room_update", handleRoomUpdate);
     }, [roomId]);
     
@@ -82,7 +87,7 @@ const RoomWaitingPage = () => {
         <div className="relative z-10 flex items-center gap-2 mt-5">
             <img
               src={roomInfo.isPublic ? unlockImg : lockImg}
-              alt={isPublic ? "공개방" : "비공개방"}
+              alt={roomInfo.isPublic ? "공개방" : "비공개방"}
               className="w-6 h-6"
             />
             <h2 className="text-2xl">{roomInfo.roomTitle}</h2>
