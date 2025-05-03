@@ -10,23 +10,21 @@ const EnterRoomModal = ({
     currentPeople,
     standardPeople,
     onClose, 
-    onEnter, 
-    correctRoomCode }) => {
+    onEnter,
+  }) => {
   const [roomCode, setRoomCode] = useState("");
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
 
-    const handleEnter = () => {
-    if (roomCode === correctRoomCode) {
-        onEnter(roomCode); // ✅ 성공!
-    } else {
-        setError(true);    // ❌ 에러 표시
-        setShake(true);    // ❌ 흔들림 추가
-        setTimeout(() => {
-        setShake(false);
-        }, 500); // 흔들림은 0.5초만
-    }
-    };
+  const handleEnter = () => {
+    onEnter(roomCode, (success) => {
+      if (!success) {
+        setError(true);
+        setShake(true);
+        setTimeout(() => setShake(false), 500);
+      }
+    });
+  };
 
 
   return (
