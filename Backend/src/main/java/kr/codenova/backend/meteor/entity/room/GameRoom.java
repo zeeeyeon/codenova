@@ -93,6 +93,11 @@ public class GameRoom {
 
         }
     }
+    public void finish() {
+        synchronized (gameLock) {
+            this.status = GameStatus.FINISHED;
+        }
+    }
 
     /**
      * 랜덤방인지 아닌지 체크하고 4명이 아직 안찼고 대기중인 방 탐색
