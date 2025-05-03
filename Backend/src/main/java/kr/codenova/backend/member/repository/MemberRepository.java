@@ -13,7 +13,6 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Integer> {
 
     @Query("SELECT m FROM Member m WHERE m.id = :id")
-    @EntityGraph(attributePaths = {"nickname"})
     Optional<Member> findByIdColumn(@Param("id")String id);
     Optional<Member> findByNickname(String nickname);
 }
