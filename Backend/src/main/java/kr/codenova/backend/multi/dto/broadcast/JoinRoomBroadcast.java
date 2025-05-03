@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Data
 @AllArgsConstructor
@@ -21,11 +22,13 @@ public class JoinRoomBroadcast {
     @Data
     public static class UserStatus {
         private String nickname;
+        private Boolean isHost;
         private Boolean isReady;
 
-        public UserStatus(String nickname, Boolean isReady) {
+        public UserStatus(String nickname, Room.UserStatus status) {
             this.nickname = nickname;
-            this.isReady = isReady;
+            this.isHost = status.isHost();
+            this.isReady = status.isReady();
         }
     }
 
@@ -33,9 +36,10 @@ public class JoinRoomBroadcast {
         this.roomId = room.getRoomId();
         this.roomCode = room.getIsLocked() ? room.getRoomCode() : null; // ✅ 조건부 포함
         List<UserStatus> status = new ArrayList<>();
-        Map<String, Boolean> userReadyStatus = room.getUserReadyStatus();
-        for (Map.Entry<String, Boolean> entry : userReadyStatus.entrySet()) {
-            status.add(new UserStatus(entry.getKey(), entry.getValue()));
+        ConcurrentHashMap<String, Room.UserStatus> userStatusMap = room.getUserStatusMap();
+        for (Map.Entry<String, Room.UserStatus> entry : userStatusMap.entrySet()) {
+            UserStatus userStatus = new UserStatus(entry.getKey(), entry.getValue());
+            status.add(userStatus);
         }
         this.status = status;
     }
