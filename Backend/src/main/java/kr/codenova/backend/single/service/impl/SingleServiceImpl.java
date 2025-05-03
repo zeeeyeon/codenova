@@ -18,6 +18,7 @@ import kr.codenova.backend.single.repository.TypingSpeedRepository;
 import kr.codenova.backend.single.service.GptClient;
 import kr.codenova.backend.single.service.SingleService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import static kr.codenova.backend.global.response.ResponseCode.CODE_NOT_FOUND;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SingleServiceImpl implements SingleService {
@@ -62,6 +64,8 @@ public class SingleServiceImpl implements SingleService {
         String nickname = memberRepository.findById(memberId)
                 .map(Member::getNickname)
                 .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND_USER));
+
+        log.warn("nickname={}", nickname);
 
         return typingSpeedRepository.findByMemberIdAndLanguage(memberId, request.language())
                 .map(existing -> {
