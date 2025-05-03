@@ -1,5 +1,6 @@
 package kr.codenova.backend.member.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
@@ -15,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 import static kr.codenova.backend.global.response.ResponseCode.*;
 
@@ -64,8 +67,11 @@ public class MemberController {
         );
     }
     @PostMapping("/guest")
-    public ResponseEntity<?> guestLogin() {
+    public ResponseEntity<?> guestLogin(HttpServletResponse response) {
+        String guestId = UUID.randomUUID().toString();
+        String token = "Bearer " + guestId;
         GuestLoginDto guestInfo = memberService.guestLogin();
+        response.addHeader("Authorization", token);
         return new ResponseEntity<>(Response.create(SUCCESS_LOGIN, guestInfo), SUCCESS_LOGIN.getHttpStatus());
     }
 }

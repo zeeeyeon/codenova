@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GuestLoginDto {
-    private String guestId;
     private String nickname;
+    private String userType;
 }
