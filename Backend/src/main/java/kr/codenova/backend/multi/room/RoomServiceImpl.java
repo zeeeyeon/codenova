@@ -50,7 +50,6 @@ public class RoomServiceImpl implements RoomService {
         String roomCode = request.getIsLocked() ? generatedRoomCode() : null;
         String sessionId = client.getSessionId().toString();
 
-        // 방 생성 시 즉시 방장 지정
         Room room = Room.builder()
                 .roomId(roomId)
                 .roomTitle(request.getTitle())
@@ -61,18 +60,14 @@ public class RoomServiceImpl implements RoomService {
                 .isStarted(false)
                 .roomCode(roomCode)
                 .createdAt(LocalDateTime.now())
-                .ownerNickname(request.getNickname())
                 .build();
-
+        roomMap.put(roomId, room);
         log.info("방 생성 : " + room.toString());
 
         // 유저 준비 상태 초기화
-        room.getUserReadyStatus().put(request.getNickname(), false);
+        room.getUserStatusMap().put(request.getNickname(), new Room.UserStatus(true, false));
 
         // 유저 입장 시간 기록 (자동 방장 위임에 필요)
-        if (room.getUserJoinTimes() == null) {
-            room.setUserJoinTimes(new HashMap<>());
-        }
         room.getUserJoinTimes().put(request.getNickname(), System.currentTimeMillis());
 
         // 유저-방 매핑 정보 저장
@@ -85,14 +80,13 @@ public class RoomServiceImpl implements RoomService {
         CreateRoomResponse response = new CreateRoomResponse(room);
         ackSender.sendAckData(response);
 
-        // 방 정보 저장
-        roomMap.put(roomId, room);
+        // 방 정보 저장 및 브로드캐스트
 
-        // 방 업데이트 브로드캐스트
         RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
         getServer().getBroadcastOperations().sendEvent("room_update", broadcast);
 
         log.info("방 생성 완료: " + request.getTitle() + ", 방장: " + request.getNickname() + ", 세션ID: " + sessionId);
+        log.info("roomMap 저장 확인: " + roomId + " → " + roomMap.containsKey(roomId));
     }
 
     // 방 조회
@@ -120,7 +114,7 @@ public class RoomServiceImpl implements RoomService {
         }
 
         room.setCurrentCount(room.getCurrentCount() + 1);
-        room.getUserReadyStatus().put(request.getNickname(), false);
+        room.getUserStatusMap().put(request.getNickname(), new Room.UserStatus(false, false));
         roomMap.put(room.getRoomId(), room);
 
         // ✅ 클라이언트 방 조인
@@ -174,29 +168,36 @@ public class RoomServiceImpl implements RoomService {
         room.setCurrentCount(Math.max(room.getCurrentCount() - 1, 0));
 
         // 방장 권한 위임 처리
-        boolean isOwner = request.getNickname().equals(room.getOwnerNickname());
-        String newOwnerNickname = null;
+        Room.UserStatus userStatus = room.getUserStatusMap().get(request.getNickname());
 
-        if (isOwner && room.getCurrentCount() > 0) {
+        boolean isHost = userStatus.isHost();
+        String newHostNickname = null;
+
+
+
+        if (isHost && room.getCurrentCount() > 0) {
             // 방장이 나가고 다른 유저가 남아있는 경우, 가장 먼저 입장한 유저에게 방장 권한 위임
             Map<String, Long> joinTimes = room.getUserJoinTimes();
 
             // 방장을 제외한 유저 중 가장 입장 시간이 빠른 유저 찾기
-            newOwnerNickname = joinTimes.entrySet().stream()
+            newHostNickname = joinTimes.entrySet().stream()
                     .filter(entry -> !entry.getKey().equals(request.getNickname()))
                     .min(Map.Entry.comparingByKey()) // 입장 시간이 가장 빠른 유저
                     .map(Map.Entry::getKey)
                     .orElse(null);
-            if (newOwnerNickname != null) {
+
+
+            if (newHostNickname != null) {
                 // 새 방장 설정
-                room.setOwnerNickname(newOwnerNickname);
+                Room.UserStatus newHostStatus = room.getUserStatusMap().get(newHostNickname);
+                newHostStatus.setHost(true);
                 log.info("방장 권한 위임: {} -> {}, 방: {}",
-                        request.getNickname(), newOwnerNickname, request.getRoomId());
+                        request.getNickname(), newHostNickname, request.getRoomId());
 
                 // 방장 권한 위임 이벤트 브로드캐스트
                 ChangeHostBroadcast hostChangedBroadcast = new ChangeHostBroadcast(
                         request.getRoomId(),
-                        newOwnerNickname
+                        newHostNickname
                 );
 
                 getServer().getRoomOperations(request.getRoomId())
@@ -205,7 +206,7 @@ public class RoomServiceImpl implements RoomService {
         }
 
         // 유저 준비 상태 및 입장 시간 정보 제거
-        room.getUserReadyStatus().remove(request.getNickname());
+        room.getUserStatusMap().remove(request.getNickname());
         room.getUserJoinTimes().remove(request.getNickname());
 
         // userRoomMap에서 사용자 정보 제거
