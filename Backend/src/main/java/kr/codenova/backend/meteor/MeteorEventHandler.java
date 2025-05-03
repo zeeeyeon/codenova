@@ -340,7 +340,7 @@ public class MeteorEventHandler implements SocketEventHandler {
             log.warn("handleInputText: text를 입력해주세요 ");
             return;
         }
-        InputTextResponse response = new InputTextResponse(text, nickname);
+        InputTextResponse response = new InputTextResponse(nickname,text);
         // 클라이언트가 속한 방 ID 찾기
         //    getAllRooms()에는 세션ID(=client.getSessionId().toString())도 포함되므로, 이를 제외하고 방 ID를 꺼냄.
 //        String roomId = client.getAllRooms().stream()
