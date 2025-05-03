@@ -18,6 +18,7 @@ public class RedisRankingService {
 
     public void saveTypingSpeed(Language language, String nickname, double speed) {
         String key = getRankingKey(language);
+        System.out.println("[saveTypingSpeed] Save - key: " + key + ", nickname: '" + nickname + "', speed: " + speed);
         redisTemplate.opsForZSet().add(key, nickname, speed);
     }
 
@@ -41,8 +42,15 @@ public class RedisRankingService {
     private RankingResponse.MyRank getMyRank(Language language, String nickname) {
         String key = getRankingKey(language);
 
+        System.out.println("[getMyRank] key = " + key);
+        System.out.println("[getMyRank] nickname = '" + nickname + "'");
+        System.out.println("[getMyRank] Nickname(trimmed): '" + nickname.trim() + "'");
+
+
         Long rank = redisTemplate.opsForZSet().reverseRank(key, nickname);
         Double score = redisTemplate.opsForZSet().score(key, nickname);
+
+        System.out.println("[getMyRank] rank = " + rank + ", score = " + score);
 
         if (rank == null || score == null) return null;
 
