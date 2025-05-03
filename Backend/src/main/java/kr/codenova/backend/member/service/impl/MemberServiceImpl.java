@@ -1,16 +1,19 @@
 package kr.codenova.backend.member.service.impl;
 
 import kr.codenova.backend.global.exception.CustomException;
+import kr.codenova.backend.member.dto.GuestLoginDto;
 import kr.codenova.backend.member.dto.SignupDto;
 import kr.codenova.backend.member.entity.Member;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.member.repository.MemberRepository;
 import kr.codenova.backend.member.service.MemberService;
+import kr.codenova.backend.member.util.GenerateGuestNickname;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -44,5 +47,12 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public boolean isNicknameExist(String nickname) {
         return memberRepository.findByNickname(nickname).isEmpty();
+    }
+
+    @Override
+    public GuestLoginDto guestLogin() {
+        String nickname = new GenerateGuestNickname().guestNickname();
+        String userType = "guest";
+        return new GuestLoginDto(nickname, userType);
     }
 }

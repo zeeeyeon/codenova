@@ -65,7 +65,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         // 채팅 이벤트
         server().addEventListener("sendChat", SendChatRequest.class, (client, data, ack) -> handleSendChat(client, data));
         // 목숨 차감 이벤트
-        server().addEventListener("lifeLost", RemoveWordRequest.class, (client, data, ack) -> handleRemoveWord(client, data));
+//        server().addEventListener("lifeLost", RemoveWordRequest.class, (client, data, ack) -> handleRemoveWord(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
@@ -241,14 +241,13 @@ public class MeteorEventHandler implements SocketEventHandler {
                     .players(room.getPlayers())
                     .fallingWords(fallingWords)
                     .initialLives(5)
-                    .initialDropInterval(2000)
-                    .initialFallDuration(10000)
+                    .initialDropInterval(1500)
+                    .initialFallDuration(8000)
                     .message("게임이 시작되었습니다.")
                     .build();
 
             server().getRoomOperations(roomId)
                     .sendEvent("gameStart", resp);
-
             wordDropScheduler.startDrooping(
                     roomId,
                     resp.getInitialDropInterval(),
@@ -341,7 +340,7 @@ public class MeteorEventHandler implements SocketEventHandler {
             log.warn("handleInputText: text를 입력해주세요 ");
             return;
         }
-        InputTextResponse response = new InputTextResponse(text, nickname);
+        InputTextResponse response = new InputTextResponse(nickname,text);
         // 클라이언트가 속한 방 ID 찾기
         //    getAllRooms()에는 세션ID(=client.getSessionId().toString())도 포함되므로, 이를 제외하고 방 ID를 꺼냄.
 //        String roomId = client.getAllRooms().stream()
@@ -378,15 +377,21 @@ public class MeteorEventHandler implements SocketEventHandler {
             return;
         }
 
-
         GameRoom room = roomManager.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
         if (room.getStatus() != GameStatus.PLAYING) {
             return;
         }
+
         // 1. 맞았는지 체크 & activeWords에서 제거
         boolean isCorrect = room.checkWordAndUpdateScore(text, sessionId);
-        //  2. 누적 점수 계산
+
+        // 맞은 경우 단어 임팩트 타이머 취소
+        if (isCorrect) {
+            wordDropScheduler.cancelWordImpact(roomId, text);
+        }
+
+        // 2. 누적 점수 계산
         int updatedScore = room.getScoreMap().getOrDefault(sessionId, 0);
 
         CheckTextResponse response = new CheckTextResponse(
@@ -397,7 +402,15 @@ public class MeteorEventHandler implements SocketEventHandler {
         );
         server().getRoomOperations(roomId).sendEvent("textCheck", response);
 
-
+        // 3) 승리 조건 검사
+        if (isCorrect
+                && !room.hasMoreFallingWords()
+                && !room.hasActiveWords()
+        ) {
+            // 남은 단어도 없고, 화면에도 떠 있는 단어가 없을 때
+            wordDropScheduler.cancel(roomId);
+            gameEndService.endGame(roomId, true);
+        }
     }
     private void handleSendChat(SocketIOClient client, SendChatRequest data) {
         String message = data.getMessage();
@@ -416,28 +429,34 @@ public class MeteorEventHandler implements SocketEventHandler {
                 nickname,
                 message
         );
-        server().getRoomOperations(roomId).sendEvent("chatSend", client, response);
+        server().getRoomOperations(roomId).sendEvent("chatSend", response);
 
     }
 
-    private void handleRemoveWord(SocketIOClient client, RemoveWordRequest data) {
-        String roomId = data.getRoomId();
-        String word = data.getWord();
-
-        GameRoom room = roomManager.findById(roomId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
-        // 1. 낙하중인 리스트에서 단어 삭제
-        boolean isGameOver = room.handleWordMissAndCheckGameOver(word);
-
-        // 2. 목숨 하나 삭제하고 남은 목숨 반환
-        RemoveWordResponse response = new RemoveWordResponse(room.getLife());
-        server().getRoomOperations(roomId).sendEvent("lostLife", response);
-        // 3. 목숨이 0이면 게임 종료
-        if (isGameOver) {
-            wordDropScheduler.cancel(roomId);
-            gameEndService.endGame(roomId, false);
-        }
-    }
+//    private void handleRemoveWord(SocketIOClient client, RemoveWordRequest data) {
+//        String roomId = data.getRoomId();
+//        String word = data.getWord();
+//
+//        GameRoom room = roomManager.findById(roomId)
+//                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+//        // 1. 낙하중인 리스트에서 단어 삭제
+//        boolean isGameOver = room.handleWordMissAndCheckGameOver(word);
+//        int currentLife = room.getLife();
+//
+//        // 2. 목숨 하나 삭제하고 남은 목숨 반환
+//        RemoveWordResponse response = new RemoveWordResponse(currentLife);
+//        server().getRoomOperations(roomId).sendEvent("lostLife", response);
+//        // 3. 목숨이 0이면 게임 종료
+//        if (isGameOver) {
+//            wordDropScheduler.cancel(roomId);
+//            gameEndService.endGame(roomId, false);
+//        } else{
+//            if(!room.hasActiveWords() && !room.hasMoreFallingWords()) {
+//                wordDropScheduler.cancel(roomId);
+//                gameEndService.endGame(roomId, true);
+//            }
+//        }
+//    }
 
     public ConnectListener listenConnected() {
         return (client) -> {
