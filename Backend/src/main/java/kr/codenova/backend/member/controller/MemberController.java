@@ -3,6 +3,7 @@ package kr.codenova.backend.member.controller;
 import jakarta.validation.Valid;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
+import kr.codenova.backend.member.dto.GuestLoginDto;
 import kr.codenova.backend.member.dto.SignupDto;
 import kr.codenova.backend.member.dto.MemberProfileDto;
 import kr.codenova.backend.member.entity.Member;
@@ -15,8 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import static kr.codenova.backend.global.response.ResponseCode.GET_USER_PROFILE;
-import static kr.codenova.backend.global.response.ResponseCode.SUCCESS_SIGNUP;
+import static kr.codenova.backend.global.response.ResponseCode.*;
 
 @RestController
 @RequestMapping("/api/member")
@@ -62,6 +62,11 @@ public class MemberController {
                 Response.create(code, null),
                 code.getHttpStatus()
         );
+    }
+    @PostMapping("/guest")
+    public ResponseEntity<?> guestLogin() {
+        GuestLoginDto guestInfo = memberService.guestLogin();
+        return new ResponseEntity<>(Response.create(SUCCESS_LOGIN, guestInfo), SUCCESS_LOGIN.getHttpStatus());
     }
 }
 
