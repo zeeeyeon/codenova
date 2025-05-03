@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getSocket } from "../../sockets/socketClient";
 import EndGameBtn from "../../assets/images/end_game_button.png";
 import ConfirmModal from "../../components/modal/ConfirmModal";
-import { exitMeteoGame, exitMeteoRoom, onCheckText, onCheckTextResponse, onGameEnd,  onRemoveHeartResponse } from "../../sockets/meteoSocket";
+import { exitMeteoGame, exitMeteoRoom, offUserInput, onCheckText, onCheckTextResponse, onGameEnd,  onRemoveHeartResponse, onUserInput, onUserInputResponse } from "../../sockets/meteoSocket";
 import GameResultModal from "../../components/modal/GameResultModal";
 import redHeart from "../../assets/images/red_heart.png";
 import blackHeart from "../../assets/images/black_heart.png";
@@ -20,9 +20,10 @@ const MeteoGamePage = () => {
   const { roomId, players } = gameData || {};
   const [gameResult, setGameResult] = useState(null); // null이면 모달 안 띄움
   const [lifesLeft, setLifesLeft] = useState(5);
+  const [userInputTexts, setUserInputTexts] = useState({});
 
-  // 초기값은 무조건 4명
-  const [playerList, setPlayerList] = useState(["player1", "player2", "player3", "player4"]);
+  // 닉네임 매핑
+  const [playerList, setPlayerList] = useState(players?.map(p => p.nickname) || []);
 
   const [input, setInput] = useState("");
   const [fallingWords, setFallingWords] = useState([]);
@@ -98,7 +99,7 @@ const MeteoGamePage = () => {
       }
       const spawnTime = parsedTime;
       // console.log("[타이밍 확인] now:", now, "spawnTime:", spawnTime, "Δ:", now - spawnTime);
-      console.log("[wordFalling] word:", word, "fallDuration:", fallDuration, "timestamp:", timestamp);
+      // console.log("[wordFalling] word:", word, "fallDuration:", fallDuration, "timestamp:", timestamp);
 
       setFallingWords(prev => {
         const existing = prev.map(w => w.left);
@@ -137,7 +138,7 @@ const MeteoGamePage = () => {
     if (!socket) return;
 
     const handleLeave = (data) => {
-      console.log("[onExitMeteoGame] gameLeave 수신", data);
+      // console.log("[onExitMeteoGame] gameLeave 수신", data);
       const { leftUser, currentPlayers } = data;
 
       // 본인이면 → 메인으로 이동
@@ -169,8 +170,10 @@ const MeteoGamePage = () => {
       const nickname = localStorage.getItem("nickname");
   
       // 서버로 입력 단어 전송
+      onUserInput({ roomId, nickname, text });
       onCheckText({ roomId, nickname, text });
       setInput(""); // 입력창 초기화
+      setUserInputTexts(prev => ({ ...prev, [nickname]: "" }));
     }
   };
   
@@ -196,7 +199,7 @@ const MeteoGamePage = () => {
   
   useEffect(() => {
     const handleGameEnd = (data) => {
-      console.log("[onGameEnd] gameEnd 수신", data);
+      // console.log("[onGameEnd] gameEnd 수신", data);
       setGameResult(data);
     };
   
@@ -209,7 +212,7 @@ const MeteoGamePage = () => {
   
   useEffect(() => {
     const handleLostLife = (data) => {
-      console.log("[onRemoveHeartResponse] lostLife 수신", data);
+      // console.log("[onRemoveHeartResponse] lostLife 수신", data);
       setLifesLeft(data.lifesLeft);
     };
   
@@ -220,6 +223,16 @@ const MeteoGamePage = () => {
     };
   }, []);
   
+  useEffect(() => {
+    onUserInputResponse(({ nickname, text }) => {
+      console.log("[onUserInputResponse] 수신:", nickname, text);
+      setUserInputTexts(prev => ({ ...prev, [nickname]: text }));
+    });
+  
+    return () => {
+      offUserInput();
+    };
+  }, []);
   
 
   return (
@@ -246,26 +259,49 @@ const MeteoGamePage = () => {
       ))}
     </div>
 
-      {/* 플레이어 애니메이션 */}
-      <div ref={playersRef} className="absolute bottom-10 left-1 flex z-20">
-        {playerList.map((nickname, idx) => (
-          <Player
-            key={nickname}
-            autoplay
-            loop
-            src={typingLottie}
-            className="w-[12rem] h-[12rem] inline-block"
-            style={{ marginLeft: idx === 0 ? 0 : "-5rem" }}
-          />
-        ))}
+    <div ref={playersRef} className="absolute bottom-[-1rem] left-1 flex z-20">
+      {playerList.map((nickname, idx) => (
+      <div
+        key={nickname}
+        className="flex flex-col items-center"
+        style={{ marginLeft: idx === 0 ? 0 : "-5rem" }}
+      >
+        {/* 1. 캐릭터 (맨 위 고정) */}
+        <Player
+          autoplay
+          loop
+          src={typingLottie}
+          className="w-[12rem] h-[12rem]"
+        />
+
+        {/* ✅ 2~3. 닉네임 + 입력 텍스트 (살짝 위로 이동) */}
+        <div className="flex flex-col items-center -translate-y-10">
+          <div className="text-white text-lg leading-none">
+            {nickname}
+          </div>
+          <div className="text-pink-300 font-bold text-xl mt-1 min-h-[1.5rem] leading-tight">
+            {userInputTexts[nickname] || ""}
+          </div>
+        </div>
       </div>
+      ))}
+    </div>
+
 
       {/* 입력창 */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30">
         <input
           type="text"
           value={input}
-          onChange={e => setInput(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setInput(value);
+          
+            const roomId = localStorage.getItem("roomId");
+            const nickname = localStorage.getItem("nickname");
+            onUserInput({ roomId, nickname, text: value });
+          }}
+          
           onKeyDown={handleKeyDown}
           placeholder="단어를 입력하세요..."
           className="w-[20rem] z-50 h-14 text-xl text-center font-bold text-black bg-[#f0f0f0] border-[3px] border-[#3a3a3a] rounded-lg shadow-md outline-none focus:ring-2 focus:ring-pink-300"
@@ -304,9 +340,9 @@ const MeteoGamePage = () => {
             onConfirm={() => {
               const roomId = localStorage.getItem("roomId");
               const nickname = localStorage.getItem("nickname");
-              console.log("roomId:", roomId); // null이면 문제 있음
-              console.log("nickname:", nickname); // null이면 문제 있음
-              console.log("🔥 exit 요청할 roomId / nickname:", roomId, nickname);
+              // console.log("roomId:", roomId); // null이면 문제 있음
+              // console.log("nickname:", nickname); // null이면 문제 있음
+              // console.log("🔥 exit 요청할 roomId / nickname:", roomId, nickname);
             
               exitMeteoGame({ roomId, nickname });
             
