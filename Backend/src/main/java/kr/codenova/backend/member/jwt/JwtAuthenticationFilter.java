@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.codenova.backend.global.response.Response;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
+import kr.codenova.backend.member.auth.CustomMemberDetailsService;
 import kr.codenova.backend.member.dto.LoginDto;
 import kr.codenova.backend.member.dto.LoginResDto;
 import org.slf4j.Logger;
@@ -29,9 +30,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     private Logger log = LoggerFactory.getLogger(getClass());
     private final AuthenticationManager authenticationManager;
     private final ObjectMapper objectMapper;
+    private final CustomMemberDetailsService memberDetailsService;
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, CustomMemberDetailsService memberDetailsService) {
         this.authenticationManager = authenticationManager;
+        this.memberDetailsService = memberDetailsService;
         this.objectMapper = new ObjectMapper();
         setFilterProcessesUrl("/api/member/login");
     }
