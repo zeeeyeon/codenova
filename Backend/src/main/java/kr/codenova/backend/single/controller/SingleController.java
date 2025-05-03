@@ -50,7 +50,7 @@ public class SingleController {
         boolean isNewRecord = false;
         log.warn("id ={}. nickname={}, nickname2={},  speed={}", memberDetails.getMember().getMemberId(), memberDetails.getMember().getNickname(), memberDetails.getNickname(),  request.speed());
 
-        if (memberDetails != null && memberDetails.getMember() != null) isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), memberDetails.getMember().getNickname() , request);
+        if (memberDetails != null && memberDetails.getMember() != null) isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), request);
         SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.speed());
         ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SUCCESS;
         return new ResponseEntity<>(Response.create(resultCode, response), resultCode.getHttpStatus());

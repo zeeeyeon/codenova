@@ -6,6 +6,8 @@ import kr.codenova.backend.common.enums.Language;
 import kr.codenova.backend.common.repository.CsRepository;
 import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
+import kr.codenova.backend.member.entity.Member;
+import kr.codenova.backend.member.repository.MemberRepository;
 import kr.codenova.backend.single.dto.request.SingleCodeResultRequest;
 import kr.codenova.backend.single.dto.response.*;
 import kr.codenova.backend.single.entity.Report;
@@ -36,6 +38,7 @@ public class SingleServiceImpl implements SingleService {
     private final GptClient gptClient;
     private final ReportAsyncService reportAsyncService;
     private final RedisRankingService redisRankingService;
+    private final MemberRepository memberRepository;
 
 
     @Override
@@ -55,7 +58,11 @@ public class SingleServiceImpl implements SingleService {
     }
 
     @Override
-    public boolean saveTypingSpeed(int memberId, String nickname, SingleCodeResultRequest request) {
+    public boolean saveTypingSpeed(int memberId, SingleCodeResultRequest request) {
+        String nickname = memberRepository.findById(memberId)
+                .map(Member::getNickname)
+                .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND_USER));
+
         return typingSpeedRepository.findByMemberIdAndLanguage(memberId, request.language())
                 .map(existing -> {
                     if (existing.isUpdatable(request.speed())) {
