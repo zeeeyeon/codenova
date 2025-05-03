@@ -41,15 +41,9 @@ public class SecurityConfig {
 
     // JWT 필터 등록이 필요함
     public static class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity> {
-        private final CustomMemberDetailsService memberDetailsService;
-
-        public CustomSecurityFilterManager(CustomMemberDetailsService memberDetailsService) {
-            this.memberDetailsService = memberDetailsService;
-        }
-
         public void configure(HttpSecurity builder) throws Exception {
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
-            builder.addFilter(new JwtAuthenticationFilter(authenticationManager, memberDetailsService));
+            builder.addFilter(new JwtAuthenticationFilter(authenticationManager));
             builder.addFilter(new JwtAuthorizationFilter(authenticationManager));
             super.configure(builder);
         }
@@ -93,7 +87,7 @@ public class SecurityConfig {
                                 CustomResponseUtil.fail(response, "권한이 없습니다", HttpStatus.FORBIDDEN);
                             });
                 })
-                .with(new CustomSecurityFilterManager(memberDetailsService), CustomSecurityFilterManager::getClass);
+                .with(new CustomSecurityFilterManager(), CustomSecurityFilterManager::getClass);
 
         return http.build();
     }
