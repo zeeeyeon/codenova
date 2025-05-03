@@ -17,6 +17,7 @@ public class RoomUpdateBroadcast {
     private Integer maxCount;
     private Integer currentCount;
     private String language;
+    private String roomCode;
     private Boolean isStarted;
     private Boolean isLocked; // true = 비공개, false = 공개
 
@@ -29,6 +30,7 @@ public class RoomUpdateBroadcast {
                 .language(room.getLanguage())
                 .isStarted(room.getIsStarted())
                 .isLocked(room.getIsLocked())
+                .roomCode(room.getRoomCode())
                 .build();
     }
 }
