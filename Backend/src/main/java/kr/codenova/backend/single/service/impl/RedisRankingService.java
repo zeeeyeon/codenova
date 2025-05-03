@@ -1,6 +1,8 @@
 package kr.codenova.backend.single.service.impl;
 
 import kr.codenova.backend.common.enums.Language;
+import kr.codenova.backend.member.entity.Member;
+import kr.codenova.backend.member.repository.MemberRepository;
 import kr.codenova.backend.single.dto.response.RankingResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,25 +19,31 @@ import java.util.Set;
 public class RedisRankingService {
 
     private final StringRedisTemplate redisTemplate;
+    private final MemberRepository memberRepository;
 
     public void saveTypingSpeed(Language language, String nickname, double speed) {
         String key = getRankingKey(language);
-        log.warn("[saveTypingSpeed] Save - key: " + key + ", nickname: '" + nickname + "', speed: " + speed);
         redisTemplate.opsForZSet().add(key, nickname, speed);
     }
 
-    public RankingResponse getRanking(Language language, String nickname) {
+    public RankingResponse getRanking(Language language, int memberId) {
         List<RankingResponse.RankingEntry> top10 = getTop10(language);
+        String nickname = getNicknameFromMemberId(memberId); // 변경
         RankingResponse.MyRank myRank = (nickname != null) ? getMyRank(language, nickname) : null;
         return new RankingResponse(top10, myRank);
+    }
+
+    private String getNicknameFromMemberId(int memberId) {
+        if (memberId <= 0) return null;
+        return memberRepository.findById(memberId)
+                .map(Member::getNickname)
+                .orElse(null);
     }
 
     private List<RankingResponse.RankingEntry> getTop10(Language language) {
         String key = getRankingKey(language);
         Set<ZSetOperations.TypedTuple<String>> top10 = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, 9);
-
         if (top10 == null) return List.of();
-
         return top10.stream()
                 .map(entry -> new RankingResponse.RankingEntry(entry.getValue(), entry.getScore()))
                 .toList();
@@ -43,19 +51,9 @@ public class RedisRankingService {
 
     private RankingResponse.MyRank getMyRank(Language language, String nickname) {
         String key = getRankingKey(language);
-
-        log.warn("[getMyRank] key = " + key);
-        log.warn("[getMyRank] nickname = '" + nickname + "'");
-        log.warn("[getMyRank] Nickname(trimmed): '" + nickname.trim() + "'");
-
-
         Long rank = redisTemplate.opsForZSet().reverseRank(key, nickname);
         Double score = redisTemplate.opsForZSet().score(key, nickname);
-
-        log.warn("[getMyRank] rank = " + rank + ", score = " + score);
-
         if (rank == null || score == null) return null;
-
         return new RankingResponse.MyRank(rank.intValue() + 1, score);
     }
 
