@@ -53,16 +53,19 @@ public class GameServiceImpl implements GameService {
         }
 
         // ✅ 준비 상태 토글
-        Map<String, Boolean> readyStatus = room.getUserReadyStatus();
-        Boolean current = readyStatus.getOrDefault(request.getNickname(), false);
-        readyStatus.put(request.getNickname(), !current);
+        Room.UserStatus userStatus = room.getUserStatusMap().get(request.getNickname());
+        if (userStatus == null) {
+            throw new UserNotFoundException("해당 유저는 방에 존재하지 않습니다.");
+        }
+
+        userStatus.setReady(!userStatus.isReady());
 
         ReadyGameBroadcast broadcast = buildReadyBroadcast(request.getRoomId());
         getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("ready_status_update", broadcast);
 
         // ✅ 모두 준비 완료됐는지 체크
-        boolean allReady = readyStatus.values().stream().allMatch(Boolean::booleanValue);
+        boolean allReady = room.getUserStatusMap().values().stream().allMatch(Room.UserStatus::isReady);
 
         if (allReady) {
             // ✅ 모두 준비 완료 -> ready_all 브로드캐스트
@@ -79,8 +82,8 @@ public class GameServiceImpl implements GameService {
         }
 
         List<ReadyGameBroadcast.UserReadyStatus> users = new ArrayList<>();
-        for (Map.Entry<String, Boolean> entry : room.getUserReadyStatus().entrySet()) {
-            users.add(new ReadyGameBroadcast.UserReadyStatus(entry.getKey(), entry.getValue()));
+        for (Map.Entry<String, Room.UserStatus> entry : room.getUserStatusMap().entrySet()) {
+            users.add(new ReadyGameBroadcast.UserReadyStatus(entry.getKey(), entry.getValue().isReady()));
         }
 
         return new ReadyGameBroadcast(roomId, users);
@@ -112,7 +115,7 @@ public class GameServiceImpl implements GameService {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
 
-        if (!room.getOwnerNickname().equals(nickname)) {
+        if (!room.getUserStatusMap().get(nickname).isHost()) {
             throw new InvalidGameStartException("방장만 게임을 시작할 수 있습니다.");
         }
 
@@ -120,8 +123,8 @@ public class GameServiceImpl implements GameService {
             throw new InvalidGameStartException("2명 이상이어야 게임을 시작할 수 있습니다.");
         }
 
-        for (Boolean ready : room.getUserReadyStatus().values()) {
-            if (!ready) {
+        for (Room.UserStatus status : room.getUserStatusMap().values()) {
+            if (!status.isReady()) {
                 throw new InvalidGameStartException("모든 참가자가 준비 완료되어야 게임을 시작할 수 있습니다.");
             }
         }
