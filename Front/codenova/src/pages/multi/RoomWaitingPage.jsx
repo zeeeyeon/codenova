@@ -48,14 +48,14 @@ const RoomWaitingPage = () => {
     socket.emit("room_list", (rooms) => {
       const myRoom = rooms.find((r) => String(r.roomId) === String(roomId));
       if (myRoom) {
-        setRoomInfo({
+        setRoomInfo((prev) => ({
           roomTitle: myRoom.title,
           isPublic: !myRoom.isLocked,
           language: myRoom.language,
           currentPeople: myRoom.currentCount,
           standardPeople: myRoom.maxCount,
-          roomCode: myRoom.roomCode,
-        });
+          roomCode: prev.roomCode, // ✅ 여기 유지!
+        }));
       }
     });
 
