@@ -25,11 +25,11 @@ const RoomChatBox = ({messages = [], onSendMessage }) => {
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={
-              msg.type === "notice"
-                ? "text-green-400 text-center"
-                : "text-white"
-            }
+              className={`text-m ${
+                msg.text.includes("입장") ? "text-green-400 text-center" :
+                msg.text.includes("퇴장") ? "text-red-400 text-center" :
+                "text-white"
+              }`}
           >
             {msg.text}
           </div>
