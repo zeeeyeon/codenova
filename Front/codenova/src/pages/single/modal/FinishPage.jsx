@@ -1,31 +1,31 @@
 import box from '../../../assets/images/board1.jpg'
 import cup from '../../../assets/images/cup.png'
-import csReportBtn from '../../../assets/images/cs_report_btn.png'
-import okBtn from '../../../assets/images/ok_btn.png'
+import restartBtn from '../../../assets/images/restart_btn.png'
+import stopBtn from '../../../assets/images/stop_btn.png'
 import { formatTime } from '../../../utils/formatTimeUtils'
 
-import authApi from "../../../api/authAxiosConfig"
-import { useState } from 'react'
+import { postRecord } from '../../../api/singleApi'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import CsWordSelectPage from './CsWordSelectPage'
+// import CsWordSelectPage from './CsWordSelectPage'
 
-const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words}) => {
+const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words, onRestart}) => {
 
     const navigate = useNavigate();
 
+    const [userType ,setUserType] = useState(null);
+
+    
     const [isApiLoading, setIsApiLoading] = useState(false);
-    const [apiError, setApiError] = useState(null);
-    const [isCsWordSelect, setIsCsWordSelect] = useState(false)
+    
+    useEffect(() => {
+        const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
+        setUserType(auth?.state?.user?.userType);
 
+    }, [])
 
-    const handleConfirmClick = () => {
-
-        if (isCS) { 
-            window.location.href = "/single/select/language"; // 원하는 페이지로 이동 (URL을 적절히 수정)
-            return; // 페이지 이동 후 나머지 코드를 실행하지 않도록 return
-        }
+    const saveRecord = async () => {
         setIsApiLoading(true);
-        setApiError(null); // 초기화
 
         const data = {
             codeId : codeId,
@@ -33,15 +33,44 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words}) =>
             time : elapsedTime,
             speed : cpm
         }
-        authApi.post('/api/single/code/result', data)
-            .then(res => {
-                console.log("api 결과", res.data);
-                setIsApiLoading(false);
-                window.location.href = "/single/select/language"; //저장되면 나가기
-            })
-            .catch(e => {
-                console.error("api 요청 실패:" , e);
-            });
+        try {
+            const response = await postRecord(data);
+            const {code, message} = response.status;
+            if (code === 200){
+                alert(message || "기록이 저장되었습니다.")
+            } else{
+                alert("기록 저장에 실패하였습니다.")
+            }
+        } 
+        catch (e) {
+            alert("서버 오류로 인해 기록을 저장할 수 없습니다.");
+        }finally {
+            setIsApiLoading(false);  
+        } 
+    }
+
+    // 다시 하기
+    const handleRestartClick = async () => {
+
+        if (userType !== "guest"){
+            await saveRecord()
+        }
+        onRestart(); // 부모에서 상태 초기화
+    }
+
+
+    // 그만하기
+    const handleConfirmClick = async () => {
+
+        if (userType === "guest") {
+            alert("비회원은 기록을 저장할 수 없습니다.")
+            navigate("/single/select/language"); 
+            return;
+        }
+        await saveRecord();
+        navigate("/single/select/language");
+
+        
     };
 
     return (
@@ -88,30 +117,27 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words}) =>
                     </div>
 
                     {/* 버튼 컨테이너  */}
-                    <div className={`mt-10 flex gap-4 ${isCS ? 'w-[30vw]' : 'w-[15vw]'} max-w-[400px] justify-center gap-12`}>
-                        {isCS && (
-                            <img
-                                src={csReportBtn}
-                                alt="CS 리포트"
-                                className="w-full max-w-[200px] rounded-3xl transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]"
-                                onClick={() => setIsCsWordSelect(true)}
-                            />
-                        )}
-                        <div 
+                    <div className={`mt-10 flex w-[30vw] max-w-[400px] justify-center gap-12`}>
+                
+                        <img
+                            src={restartBtn}
+                            alt="다시하기"
+                            className={`w-full max-w-[200px] rounded-3xl transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94] ${isApiLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onClick={handleRestartClick}
+                            style={{ pointerEvents: isApiLoading ? 'none' : 'auto' }} // 비활성화 시 클릭 방지
+                        />
+                        <img
+                            src={stopBtn}
                             onClick={handleConfirmClick}
+                            alt="확인"
                             className={`w-full max-w-[200px] rounded-3xl transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94] ${isApiLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             style={{ pointerEvents: isApiLoading ? 'none' : 'auto' }} // 비활성화 시 클릭 방지
-                        >
-                            <img
-                                src={okBtn}
-                                alt="확인"
-                                className="w-full max-w-[200px] rounded-3xl"
-                            />
-                        </div>
+                        />
                     </div>
                 </div>
             
             </div>
+            {/* 
             {isCsWordSelect && (
                 <div className="absolute inset-0 flex items-center justify-center z-50">
                     <CsWordSelectPage
@@ -119,7 +145,7 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words}) =>
                         word = {words}
                     />
                 </div>
-            )}
+            )} */}
         </div>
     )
      
