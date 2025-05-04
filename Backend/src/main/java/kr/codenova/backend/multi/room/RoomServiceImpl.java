@@ -18,6 +18,7 @@ import kr.codenova.backend.multi.dto.response.RoomStatusResponse;
 import kr.codenova.backend.multi.exception.InvalidPasswordException;
 import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
+import kr.codenova.backend.multi.room.Room.UserStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -67,7 +68,7 @@ public class RoomServiceImpl implements RoomService {
         log.info("방 생성 : " + room.toString());
 
         // 유저 준비 상태 초기화
-        room.getUserStatusMap().put(request.getNickname(), new Room.UserStatus(true, false));
+        room.getUserStatusMap().put(request.getNickname(), new UserStatus(true, false));
 
         // 유저 입장 시간 기록 (자동 방장 위임에 필요)
         room.getUserJoinTimes().put(request.getNickname(), System.currentTimeMillis());
@@ -102,6 +103,7 @@ public class RoomServiceImpl implements RoomService {
         RoomStatusResponse response = new RoomStatusResponse(room);
         client.sendEvent("room_status", response);
 
+
         JoinRoomBroadcast broadcast = new JoinRoomBroadcast(room);
         getServer().getBroadcastOperations().sendEvent("join_room", broadcast);
 
@@ -127,7 +129,8 @@ public class RoomServiceImpl implements RoomService {
         }
 
         room.setCurrentCount(room.getCurrentCount() + 1);
-        room.getUserStatusMap().put(request.getNickname(), new Room.UserStatus(false, false));
+        room.getUserStatusMap().put(request.getNickname(), new UserStatus(false, false));
+        room.getUserJoinTimes().put(request.getNickname(), System.currentTimeMillis());
         roomMap.put(room.getRoomId(), room);
 
         // ✅ 클라이언트 방 조인
@@ -181,14 +184,18 @@ public class RoomServiceImpl implements RoomService {
         room.setCurrentCount(Math.max(room.getCurrentCount() - 1, 0));
 
         // 방장 권한 위임 처리
-        Room.UserStatus userStatus = room.getUserStatusMap().get(request.getNickname());
+        UserStatus userStatus = room.getUserStatusMap().get(request.getNickname());
 
         boolean isHost = userStatus.isHost();
+        // ✅ 클라이언트 방 나가기
+        client.leaveRoom(request.getRoomId());
         String newHostNickname = null;
 
 
 
         if (isHost && room.getCurrentCount() > 0) {
+            room.getUserStatusMap().remove(request.getNickname());
+
             // 방장이 나가고 다른 유저가 남아있는 경우, 가장 먼저 입장한 유저에게 방장 권한 위임
             Map<String, Long> joinTimes = room.getUserJoinTimes();
 
@@ -200,21 +207,19 @@ public class RoomServiceImpl implements RoomService {
                     .orElse(null);
 
 
+
             if (newHostNickname != null) {
                 // 새 방장 설정
-                Room.UserStatus newHostStatus = room.getUserStatusMap().get(newHostNickname);
+                UserStatus newHostStatus = room.getUserStatusMap().get(newHostNickname);
                 newHostStatus.setHost(true);
                 log.info("방장 권한 위임: {} -> {}, 방: {}",
                         request.getNickname(), newHostNickname, request.getRoomId());
 
-                // 방장 권한 위임 이벤트 브로드캐스트
-                ChangeHostBroadcast hostChangedBroadcast = new ChangeHostBroadcast(
-                        request.getRoomId(),
-                        newHostNickname
-                );
+                RoomStatusResponse roomStatusResponse = new RoomStatusResponse(room);
+
 
                 getServer().getRoomOperations(request.getRoomId())
-                        .sendEvent("host_changed", hostChangedBroadcast);
+                        .sendEvent("host_changed", roomStatusResponse);
             }
         }
 
@@ -237,9 +242,6 @@ public class RoomServiceImpl implements RoomService {
                                 request.getNickname() + "님이 퇴장했습니다."
                         ))
                 );
-
-        // ✅ 클라이언트 방 나가기
-        client.leaveRoom(request.getRoomId());
 
         // ✅ 방 삭제 or 업데이트 브로드캐스트
         if (room.getCurrentCount() == 0) {
