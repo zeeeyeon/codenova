@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import kr.codenova.backend.member.dto.ProfileUpdateDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,7 +46,8 @@ public class Member {
         this.phoneNum = phoneNum;
     }
 
-    public void changePhoneNum(String phoneNum) {
-        this.phoneNum = phoneNum;
+    public void updateProfile(ProfileUpdateDto dto) {
+        this.nickname = dto.getNickname();
+        this.phoneNum = dto.getPhoneNum();
     }
 }
