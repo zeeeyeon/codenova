@@ -197,8 +197,9 @@ const Keyboard = () => {
 
     return (
         <div className = "relative w-[500px] h-[140px] scale-[1.3] origin-top-left">
-            {keyboardLayout.map((key) => (
+            {keyboardLayout.map((key, idx) => (
                 <Key
+                    key={idx}
                     sprite={key.sprite}
                     label={key.id}
                     isPressed={pressKey === key.id}

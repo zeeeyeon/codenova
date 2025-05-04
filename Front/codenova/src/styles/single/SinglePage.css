@@ -47,8 +47,7 @@ input {
   width: 1px;
   height: 20px;
   background-color: #ffffff; /* 커서 색상 - 원하는 색상으로 변경 가능 */
-  margin-left: -1px;
-  /* vertical-align: middle; */
+  /* margin-left: -1px; */
   animation: blink 1s step-end infinite;
 }
 
