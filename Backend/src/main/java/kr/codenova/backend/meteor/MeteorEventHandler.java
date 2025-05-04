@@ -39,6 +39,7 @@ public class MeteorEventHandler implements SocketEventHandler {
     private final TaskScheduler taskScheduler;
 
 
+
     private SocketIOServer server() {
         return SocketIOServerProvider.getServer();
     }
@@ -66,6 +67,8 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().addEventListener("sendChat", SendChatRequest.class, (client, data, ack) -> handleSendChat(client, data));
         // 목숨 차감 이벤트
 //        server().addEventListener("lifeLost", RemoveWordRequest.class, (client, data, ack) -> handleRemoveWord(client, data));
+        // 게임 재도전 이벤트
+        server().addEventListener("retryGame", RetryGameRequest.class, (client, data, ack) -> handleRetryGame(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
@@ -432,31 +435,75 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().getRoomOperations(roomId).sendEvent("chatSend", response);
 
     }
+    private void handleRetryGame(SocketIOClient client, RetryGameRequest data) {
+        String sessionId = client.getSessionId().toString();
+        String roomId = data.getRoomId();
 
-//    private void handleRemoveWord(SocketIOClient client, RemoveWordRequest data) {
-//        String roomId = data.getRoomId();
-//        String word = data.getWord();
-//
-//        GameRoom room = roomManager.findById(roomId)
-//                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
-//        // 1. 낙하중인 리스트에서 단어 삭제
-//        boolean isGameOver = room.handleWordMissAndCheckGameOver(word);
-//        int currentLife = room.getLife();
-//
-//        // 2. 목숨 하나 삭제하고 남은 목숨 반환
-//        RemoveWordResponse response = new RemoveWordResponse(currentLife);
-//        server().getRoomOperations(roomId).sendEvent("lostLife", response);
-//        // 3. 목숨이 0이면 게임 종료
-//        if (isGameOver) {
-//            wordDropScheduler.cancel(roomId);
-//            gameEndService.endGame(roomId, false);
-//        } else{
-//            if(!room.hasActiveWords() && !room.hasMoreFallingWords()) {
-//                wordDropScheduler.cancel(roomId);
-//                gameEndService.endGame(roomId, true);
-//            }
-//        }
-//    }
+        GameRoom room = roomManager.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+
+        // FINISHED 상태인 방에서만 재도전 허용
+        if (room.getStatus() != GameStatus.FINISHED) {
+            client.sendEvent("gameRetry",
+                    new ErrorResponse("INVALID_STATE", "게임이 종료된 상태에서만 재도전이 가능합니다."));
+            return;
+        }
+
+        boolean allReady = room.isReady(sessionId);
+
+        int readyCount = room.retryCount();
+
+        if (allReady) {
+
+            String newRoomId = UUID.randomUUID().toString();
+
+            List<UserInfo> retryPlayers = new ArrayList<>(room.getPlayers());
+
+            GameRoom newRoom = new GameRoom(
+                    newRoomId,
+                    room.isPrivate(),
+                    room.isPrivate() ? generateRoomCode() : null,
+                    room.getMaxPlayers(),
+                    room.getHostSessionId()
+            );
+
+            for (UserInfo player : retryPlayers) {
+                newRoom.addPlayer(player);
+
+                SocketIOClient playerClient = server().getClient(UUID.fromString(player.getSessionId()));
+                if (playerClient != null) {
+                    playerClient.leaveRoom(roomId);
+                    playerClient.joinRoom(newRoomId);
+                }
+            }
+
+            roomManager.addRoom(newRoom);
+
+            roomManager.removeRoom(roomId);
+
+            RetryGameResponse response = RetryGameResponse.builder()
+                    .roomId(newRoomId)
+                    .players(newRoom.getPlayers())
+                    .readyCount(readyCount)
+                    .allReady(true)
+                    .build();
+
+            server().getRoomOperations(newRoomId).sendEvent("gameRetry", response);
+
+
+        }else{
+            RetryGameResponse response = RetryGameResponse.builder()
+                    .roomId(roomId)
+                    .players(room.getPlayers())
+                    .readyCount(readyCount)
+                    .allReady(false)
+                    .build();
+
+            server().getRoomOperations(roomId).sendEvent("gameRetry", response);
+        }
+
+    }
+
 
     public ConnectListener listenConnected() {
         return (client) -> {

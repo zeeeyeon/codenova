@@ -14,8 +14,7 @@ import org.springframework.stereotype.Component;
 
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,24 +26,47 @@ import java.util.concurrent.atomic.AtomicLong;
 public class WordDropScheduler {
     private final RoomManager roomManager;
     private final TaskScheduler taskScheduler;
-    private final GameEndService gameEndService;
 
+    public interface GameEndListener {
+        void onGameEnd(String roomId, boolean isSuccess);
+    }
+    private final List<GameEndListener> gameEndListeners = new ArrayList<>();
+
+    public void addGameEndListener(GameEndListener listener) {
+        gameEndListeners.add(listener);
+    }
+
+    private void notifyGameEnd(String roomId, boolean isSuccess) {
+        for (GameEndListener listener : gameEndListeners) {
+            listener.onGameEnd(roomId, isSuccess);
+        }
+    }
     private SocketIOServer server() {
         return SocketIOServerProvider.getServer();
     }
 
     private final Map<String, ScheduledFuture<?>> futures = new ConcurrentHashMap<>();
     private final Map<String, Map<String, ScheduledFuture<?>>> wordImpactFutures = new ConcurrentHashMap<>();
+    // 게임 종료 상태 추적
+    private final Set<String> endedGameRooms = ConcurrentHashMap.newKeySet();
 
     public void startDrooping(String roomId, long spawnInterval, long initialFallDuration) {
         // 기존에 스케줄이 있으면 취소
         cancel(roomId);
+
+        // 게임 종료 상태 초기화
+        endedGameRooms.remove(roomId);
 
         AtomicLong fallDuration = new AtomicLong(initialFallDuration);
         AtomicLong elapsed = new AtomicLong(0);
 
         ScheduledFuture<?> spawnFuture = taskScheduler.scheduleAtFixedRate(() -> {
             GameRoom room = roomManager.findById(roomId).orElse(null);
+            // 0. 이미 종료된 게임이면 처리 안함
+            if (endedGameRooms.contains(roomId)) {
+                return;
+            }
+
             // 1. 빈 방이면 스케줄 취소
             if (room == null || room.getStatus() != GameStatus.PLAYING) {
                 cancel(roomId);
@@ -86,31 +108,44 @@ public class WordDropScheduler {
 
         Date executionTime = new Date(System.currentTimeMillis() + fallDuration);
         ScheduledFuture<?> future = taskScheduler.schedule(() -> {
+            if (endedGameRooms.contains(roomId)) {
+                return;
+            }
+
             GameRoom room = roomManager.findById(roomId).orElse(null);
             if (room == null) return;
 
             // 단어가 활성화 상태인지 확인
             if (room.getActiveFallingWords().contains(word)) {
-                boolean isGameOver = room.handleWordMissAndCheckGameOver(word);
 
-                int remainingLives = room.getLife();
-
-                RemoveWordResponse response = new RemoveWordResponse(word,remainingLives);
-                server().getRoomOperations(roomId).sendEvent("lostLife", response);
-
-                if (isGameOver) {
-                    cancel(roomId);
-                    gameEndService.endGame(roomId, false);
-                } else {
-                    if (!room.hasActiveWords() && !room.hasMoreFallingWords()) {
-                        cancel(roomId);
-                        gameEndService.endGame(roomId, true);
+                synchronized (this) {
+                    if (endedGameRooms.contains(roomId)) {
+                        return;
                     }
-                }
 
-            }
-            if (wordImpactFutures.containsKey(roomId)) {
-                wordImpactFutures.get(roomId).remove(word);
+                    boolean isGameOver = room.handleWordMissAndCheckGameOver(word);
+
+                    int remainingLives = room.getLife();
+
+                    RemoveWordResponse response = new RemoveWordResponse(word, remainingLives);
+                    server().getRoomOperations(roomId).sendEvent("lostLife", response);
+
+                    if (isGameOver) {
+                        endedGameRooms.add(roomId);
+                        cancel(roomId);
+                        notifyGameEnd(roomId, false);
+                    } else {
+                        if (!room.hasActiveWords() && !room.hasMoreFallingWords()) {
+                            endedGameRooms.add(roomId);
+                            cancel(roomId);
+                            notifyGameEnd(roomId, true);
+                        }
+                    }
+
+                }
+                if (wordImpactFutures.containsKey(roomId)) {
+                    wordImpactFutures.get(roomId).remove(word);
+                }
             }
 
         }, executionTime);
@@ -133,6 +168,7 @@ public class WordDropScheduler {
 
     // 방 취소 메서드 업데이트
     public void cancel(String roomId) {
+        endedGameRooms.add(roomId);
         ScheduledFuture<?> f = futures.remove(roomId);
         if (f != null) f.cancel(false);
 
@@ -142,4 +178,5 @@ public class WordDropScheduler {
             roomWordFutures.values().forEach(future -> future.cancel(false));
         }
     }
+
 }
