@@ -102,8 +102,14 @@ const SignupPage = () => {
               type="text"
               value={id}
               onChange={(e) => {
-                setId(e.target.value);
-                setIdCheck(null);
+                const value = e.target.value;
+                const onlyEngNum = /^[a-zA-Z0-9]*$/;
+                if (onlyEngNum.test(value)) {
+                  setId(value);
+                  setIdCheck(null);
+                } else {
+                  alert("영문자와 숫자만 입력할 수 있습니다.");
+                }
               }}
               className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="Enter your ID"
@@ -124,9 +130,15 @@ const SignupPage = () => {
             <input
               type="text"
               value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length <= 11) {
+                  setNickname(value);
+                  setNicknameCheck(null);
+                }
+              }}
               className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
-              placeholder="Enter your nickname"
+              placeholder="11자 내로 닉네임을 입력하세요"
             />
             <button
               onClick={handleNicknameCheck}

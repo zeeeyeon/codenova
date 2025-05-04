@@ -11,7 +11,7 @@ import useAuthStore from "./store/authStore";
 import RankingRoutes from "./routes/RankingRoutes";
 import { connectSocket, disconnectSocket } from "./sockets/socketClient";
 import { useEffect, useRef } from "react";
-
+import PrivateRoute from "./routes/PrivateRoute";
 function App() {
   const isAuthenticated = useAuthStore((state) => !!state.token);
 
@@ -29,17 +29,61 @@ function App() {
 
   return (
     <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage/>} />
-          <Route path="/main/*" element={<MainPage />} />
-          <Route path="/auth/login" element={<LoginPage />} />
-          <Route path="/auth/signup" element={<SignupPage />} />
-          <Route path="/single/*" element={<SingleRoutes />} />
-          <Route path="/multi/*" element={<MultiRoutes />} />
-          <Route path="/meteo/*" element={<MeteoRoutes />} />
-          <Route path="/mypage/*" element={<MyPageRoutes />} />
-          <Route path="/ranking/*" element={<RankingRoutes />} />
-        </Routes>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth/login" element={<LoginPage />} />
+        <Route path="/auth/signup" element={<SignupPage />} />
+
+        {/* 🔐 보호된 라우트 */}
+        <Route
+          path="/main/*"
+          element={
+            <PrivateRoute>
+              <MainPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/single/*"
+          element={
+            <PrivateRoute>
+              <SingleRoutes />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/multi/*"
+          element={
+            <PrivateRoute>
+              <MultiRoutes />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/meteo/*"
+          element={
+            <PrivateRoute>
+              <MeteoRoutes />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/mypage/*"
+          element={
+            <PrivateRoute>
+              <MyPageRoutes />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ranking/*"
+          element={
+            <PrivateRoute>
+              <RankingRoutes />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
     </BrowserRouter>
   );
 }

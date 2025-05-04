@@ -19,13 +19,13 @@ const MainPage = () => {
   const navigate = useNavigate()
   const [showRoomModal, setShowRoomModal] = useState(false);
 
-  useEffect(() => {
-    const accessToken = getAccessToken();
-    if (!accessToken) {
-      alert("로그인이 필요합니다.");
-      navigate("/auth/login");
-    }
-  }, [navigate]);
+  // useEffect(() => {
+  //   const accessToken = getAccessToken();
+  //   if (!accessToken) {
+  //     alert("로그인이 필요합니다.");
+  //     navigate("/auth/login");
+  //   }
+  // }, [navigate]);
 
 
   const nickname = useAuthStore((state) => state.user?.nickname)
