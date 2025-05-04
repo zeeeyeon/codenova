@@ -16,6 +16,7 @@ const RoomWaitingPage = () => {
     const navigate = useNavigate();
     const [isReady, setIsReady] = useState(false); 
     const [users, setUsers] = useState([]);
+    const [chatMessages, setChatMessages] = useState([]);  // 입장알림림
 
     const handleLeaveRoom = () => {
         navigate("/multi"); // multi 페이지로 이동
@@ -71,7 +72,7 @@ const RoomWaitingPage = () => {
   }, [roomId]);
 
   
-  // 방 최토 입장시 room_status 요청
+  // 방 최초초 입장시 room_status 요청
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
@@ -160,6 +161,21 @@ const RoomWaitingPage = () => {
     };
   }, [roomInfo?.standardPeople]);
 
+  // join_notice 브로드캐스트트
+  useEffect(() => {
+  const socket = getSocket();
+  if (!socket) return;
+
+  const handleJoinNotice = (data) => {
+    console.log("📢 join_notice 수신:", data);
+    setChatMessages((prev) => [...prev, { type: "notice", text: data.message }]);
+  };
+
+  socket.on("join_notice", handleJoinNotice);
+  return () => socket.off("join_notice", handleJoinNotice);
+}, []);
+  
+
     return (
         <div
             className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
@@ -189,7 +205,7 @@ const RoomWaitingPage = () => {
 
           {/* 채팅박스 */}
           <div className="w-[90%] flex justify-start items-start gap-6 z-10 pl-6">
-            <RoomChatBox />
+            <RoomChatBox messages={chatMessages} />
             <RoomInfoPanel 
               isPublic={roomInfo.isPublic}
               roomTitle={roomInfo.roomTitle}
