@@ -8,7 +8,7 @@ import xBtn from "../../assets/images/x_btn.png"
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { checkNicknameApi } from '../../api/authApi'
-import { getMyProfile } from '../../api/myPage'
+import { getMyProfile, upDateMyProfile } from '../../api/myPage'
 
 const MyPage= () => {
 
@@ -19,10 +19,10 @@ const MyPage= () => {
 
     const [id, setId] = useState("")
     const [nicknameCheck, setNicknameCheck] = useState(false);
-    const [nickname, setNickName] = useState("");
-    const [newNickname, setNewNickName] = useState("");
-    const [number, setNumber] = useState("");
-    const [newNumber, setNewNumber] = useState("");
+    const [nickname, setNickName] = useState(null);
+    const [newNickname, setNewNickName] = useState(null);
+    const [number, setNumber] = useState(null);
+    const [newNumber, setNewNumber] = useState(null);
     const [userScoreList, setUserScoreList] = useState([]);
 
     useEffect(() =>{
@@ -85,22 +85,42 @@ const MyPage= () => {
     
     const handleUpdate = async () => {
         
-        if (!nicknameCheck) { // 사용자가 새 닉네임을 입력했지만 중복 검사를 하지 않은 경우
-            setNicknameCheck(false);
-            alert("새 닉네임의 변경 가능 여부를 먼저 확인해주세요");
+        const nicknameChanged = newNickname && newNickname !== nickname;
+        const numberChanged = newNumber && newNumber !== number;
+        
+        if(numberChanged && newNumber.length !== 13){ //번호를 입력했지만 올라르지 않을때
+            alert("올바른 번호를 입력해주세요")
             return;
         }
-        const nicknameChanged = newNickname && newNickname !== nickname;
-        const numberChanged = newNumber && newNumber !== number && newNumber.length === 11;
-        
+        if(nicknameChanged && !nicknameCheck){ //변경 닉네임을 입력했지만 중복검사를 하지 않았을때
+            alert("닉네임 중복 검사를 하지 않았습니다")
+            return;
+        }
+
         // 변경 사항 없을 때
         if (!nicknameChanged && !numberChanged) {
           alert("변경된 내용이 없습니다.");
           return;
         }
 
-        try {
+        const updatedProfile = {
+            nickname: nicknameChanged ? newNickname : "",
+            phoneNum: numberChanged ? newNumber : "",
+        };
 
+        try {
+            const response = await upDateMyProfile(updatedProfile);
+            const {code, message} = response.status;
+            if (code === 200){
+                setNickName(response.content.nickname);
+                setNumber(response.content.phoneNum);
+                setNewNickName('');
+                setNewNumber('');
+                setNicknameCheck(false);
+                alert("수정이 완료되었습니다.")
+            } else{
+                alert(message)
+            }
         } catch (e){
             console.error(e);
             alert("수정중 오류가 발생했습니다.")
@@ -150,6 +170,7 @@ const MyPage= () => {
                               value={newNickname}
                               onChange={(e) => {
                                 setNewNickName(e.target.value)
+                                setNicknameCheck(false)
                               }}
                               className="w-[50%] h-[110%] bg-transparent border-2 text-xl text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 "
                               style={{
@@ -172,9 +193,17 @@ const MyPage= () => {
                         <input
                             type="tel"
                               value={newNumber}
+                              maxLength={13}
                               onChange={(e) => {
-                                const onlyNumbers = e.target.value.replace(/[^0-9]/g, '');
-                                setNewNumber(onlyNumbers);
+                                let input = e.target.value.replace(/[^0-9]/g, ''); // 숫자만 남기기
+
+                                    if (input.length <= 3) {
+                                      setNewNumber(input);
+                                    } else if (input.length <= 7) {
+                                      setNewNumber(`${input.slice(0, 3)}-${input.slice(3)}`);
+                                    } else {
+                                      setNewNumber(`${input.slice(0, 3)}-${input.slice(3, 7)}-${input.slice(7, 11)}`);
+                                    }
                               }}
                               className="w-[50%] h-[110%] bg-transparent border-2 text-xl text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                               style={{
@@ -210,7 +239,7 @@ const MyPage= () => {
                         />
                     </div>
                     <div className=" w-[60%] text-center">
-                        최고타수 : 999타 
+                        최고타수 : {Math.floor(userScoreList?.[currentLangIndex]?.score) || "0"}
                     </div>
                               
                     {/* 버튼 컨테이너  */}
