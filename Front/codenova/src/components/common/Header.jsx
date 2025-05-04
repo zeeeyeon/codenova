@@ -30,6 +30,7 @@ const Header = () => {
           src={mypageIcon}
           alt="My Page"
           className="w-20 h-20 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
+          onClick={() => navigate("/mypage")}
         />
         <img
           src={rankingIcon}
