@@ -74,7 +74,7 @@ const RoomWaitingPage = () => {
           language: updatedRoom.language,
           currentPeople: updatedRoom.currentCount,
           standardPeople: updatedRoom.maxCount,
-          roomCode: prev.roomCode,
+          roomCode: updatedRoom.roomCode ?? prev.roomCode,
         }));
 
         socket.emit("room_status", {
@@ -113,6 +113,7 @@ const RoomWaitingPage = () => {
         language: data.language,
         currentPeople: data.currentCount,
         standardPeople: data.maxCount,
+        roomCode: data.roomCode ?? prev.roomCode
       }));
   
       // 사용자 슬롯 세팅
@@ -208,6 +209,42 @@ useEffect(() => {
   return () => socket.off("leave_notice", handleLeaveNotice);
 }, []);
 
+// 대기방 채팅 
+
+const handleSendMessage = (messageText) => {
+  const socket = getSocket();
+  if (!socket || !nickname || !roomId) return;
+
+  const messageData = {
+    roomId,
+    nickname,
+    message: messageText.text,
+  };
+
+  console.log("📫emit send_chat : ", messageData);
+  socket.emit("send_chat", messageData);
+};
+
+useEffect(() => {
+  const socket = getSocket();
+  if (!socket) return;
+
+  const handleReceiveChat = (data) => {
+    console.log("send_chat 수신 :", data);
+    setChatMessages((prev) => [
+      ...prev,
+      {
+        type : "chat",
+        text: `${data.nickname}: ${data.message}`,
+        timestamp: data.timestamp,
+      },
+    ]);
+  };
+
+  socket.on("send_chat", handleReceiveChat);
+  return () => socket.off("send_chat", handleReceiveChat);
+}, []);
+
   
 
     return (
@@ -239,7 +276,10 @@ useEffect(() => {
 
           {/* 채팅박스 */}
           <div className="w-[90%] flex justify-start items-start gap-6 z-10 pl-6">
-            <RoomChatBox messages={chatMessages} />
+            <RoomChatBox 
+                messages={chatMessages}
+                onSendMessage={handleSendMessage}
+                />
             <RoomInfoPanel 
               isPublic={roomInfo.isPublic}
               roomTitle={roomInfo.roomTitle}
