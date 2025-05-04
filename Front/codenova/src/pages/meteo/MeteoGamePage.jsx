@@ -136,19 +136,17 @@ const MeteoGamePage = () => {
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
-
+  
+    // 1. 정상 종료 처리
     const handleLeave = (data) => {
-      // console.log("[onExitMeteoGame] gameLeave 수신", data);
       const { leftUser, currentPlayers } = data;
-
-      // 본인이면 → 메인으로 이동
+  
       if (leftUser.nickname === localStorage.getItem("nickname")) {
         localStorage.removeItem("roomId");
         localStorage.removeItem("roomCode");
         navigate("/main");
       } else {
         setPlayerList(currentPlayers.map(p => p.nickname));
-
         const id = Date.now() + Math.random();
         setLeaveMessages(prev => [...prev, { id, text: `${leftUser.nickname} 님이 게임을 나갔습니다.` }]);
         setTimeout(() => {
@@ -156,10 +154,35 @@ const MeteoGamePage = () => {
         }, 3000);
       }
     };
-    socket.off("gameLeave", handleLeave); // ✅ 중복 방지
+    socket.off("gameLeave", handleLeave);
     socket.on("gameLeave", handleLeave);
-    return () => getSocket().off("gameLeave", handleLeave);
+  
+    // 2. 비정상 종료 처리
+    const handleGameLeave = (data) => {
+      const { leftUser, currentPlayers } = data;
+  
+      if (leftUser.nickname === localStorage.getItem("nickname")) {
+        localStorage.removeItem("roomId");
+        localStorage.removeItem("roomCode");
+        navigate("/main");
+      } else {
+        setPlayerList(currentPlayers.map(p => p.nickname));
+        const id = Date.now() + Math.random();
+        setLeaveMessages(prev => [...prev, { id, text: `${leftUser.nickname} 님이 게임을 나갔습니다.` }]);
+        setTimeout(() => {
+          setLeaveMessages(prev => prev.filter(msg => msg.id !== id));
+        }, 3000);
+      }
+    };
+    socket.off("playDisconnected", handleGameLeave);
+    socket.on("playDisconnected", handleGameLeave);
+  
+    return () => {
+      socket.off("gameLeave", handleLeave);
+      socket.off("playDisconnected", handleGameLeave);
+    };
   }, []);
+  
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -225,7 +248,7 @@ const MeteoGamePage = () => {
   
   useEffect(() => {
     onUserInputResponse(({ nickname, text }) => {
-      console.log("[onUserInputResponse] 수신:", nickname, text);
+      // console.log("[onUserInputResponse] 수신:", nickname, text);
       setUserInputTexts(prev => ({ ...prev, [nickname]: text }));
     });
   
@@ -276,11 +299,11 @@ const MeteoGamePage = () => {
 
         {/* ✅ 2~3. 닉네임 + 입력 텍스트 (살짝 위로 이동) */}
         <div className="flex flex-col items-center -translate-y-10">
-        <div className="text-white text-m leading-none text-center break-normal whitespace-pre-wrap max-w-[6rem]">
+        <div className="text-white text-sm leading-none text-center break-normal whitespace-pre-wrap max-w-[6rem]">
           {nickname}
         </div>
 
-          <div className="text-pink-300 font-bold text-xl mt-1 min-h-[1.5rem] leading-tight">
+          <div className="text-pink-300 text-lg mt-1 min-h-[1.5rem] leading-tight">
             {userInputTexts[nickname] || ""}
           </div>
         </div>

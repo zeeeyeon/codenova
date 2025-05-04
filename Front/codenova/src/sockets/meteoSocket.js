@@ -175,13 +175,13 @@ export const onChatMessageResponse = (callback) => {
 // 사용자 입력값 실시간으로 보여지게 하기
 export const onUserInput = ({ roomId, nickname, text }) => {
   getSocket().emit("inputText", { roomId, nickname, text });
-  console.log("[onUserInput] userInput emit 보냄", { roomId, nickname, text });
+  // console.log("[onUserInput] userInput emit 보냄", { roomId, nickname, text });
 };
 
 // 사용자 입력값 실시간으로 보여지게 하기 수신
 export const onUserInputResponse = (callback) => {
   getSocket().on("textInput", (data) => {
-    console.log("[onUserInputResponse] userInput 수신", data);
+    // console.log("[onUserInputResponse] userInput 수신", data);
     callback(data);
   });
 };  
@@ -189,5 +189,13 @@ export const onUserInputResponse = (callback) => {
 // 사용자 입력값 실시간으로 보여지게 하기 해제
 export const offUserInput = () => {
   getSocket().off("userInput");
+};
+
+// 게임 도중 나갈 때 브로드캐스트
+export const onGameLeave = (callback) => {
+  getSocket().on("playerDisconnected", (data) => {
+    console.log("[onGameLeave] gameLeave 수신", data);
+    callback(data);
+  });
 };
 
