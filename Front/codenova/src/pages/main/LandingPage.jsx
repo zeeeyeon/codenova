@@ -3,9 +3,43 @@ import logoImage from "../../assets/images/codenova_logo.png";
 import signupButton from "../../assets/images/signup_button.png";
 import loginButton from "../../assets/images/login_button.png";
 import multibg from "../../assets/images/multi_background.png";
+import guestButton from "../../assets/images/guest_login.png";
+import { guestLoginApi } from "../../api/authApi";
+import useAuthStore from "../../store/authStore";
+import { connectSocket } from "../../sockets/socketClient";
+
 
 const LandingPage = () => {
   const navigate = useNavigate()
+  const login = useAuthStore((state) => state.login);
+
+  const handleGuestLogin = async () => {
+    try {
+      const res = await guestLoginApi();
+      const accessToken = res.headers["authorization"]?.split(" ")[1];
+      const { nickname, userType } = res.data.content;
+
+      if (!accessToken) {
+        alert("비회원 토큰이 없습니다!");
+        return;
+      }
+
+      document.cookie = `accessToken=${accessToken}; path=/; max-age=86400;`;
+
+      login({
+        nickname,
+        token: accessToken,
+        userType: userType || "guest",
+      });
+
+      connectSocket();
+      navigate("/main");
+    } catch (err) {
+      console.error(err);
+      alert("비회원 로그인 실패!");
+    }
+  };
+
   return (
     <div
       className="h-screen w-screen bg-cover bg-center"
@@ -19,14 +53,20 @@ const LandingPage = () => {
         <img
           src={signupButton}
           alt="Sign Up"
-          className="w-[16rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
+          className="w-[14rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
           onClick={() => navigate("/auth/signup")}
         />
         <img
           src={loginButton}
           alt="Log In"
-          className="w-[16rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
+          className="w-[14rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
           onClick={() => navigate("/auth/login")} 
+        />
+        <img
+          src={guestButton}
+          alt="GuestLogin"
+          className="w-[14rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
+          onClick={ handleGuestLogin } 
         />
       </div>
 

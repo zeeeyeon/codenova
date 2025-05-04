@@ -147,10 +147,10 @@ export const onRandomMatch = (nickname) => {
 export const onRandomMatchResponse = (callback) => {
   const socket = getSocket();
   const handler = (data) => {
-    // console.log("[onRandomMatchResponse] matchRandom 수신:", data);
+    console.log("[onRandomMatchResponse] matchRandom 수신:", data);
     callback(data);
   };
-  socket.on("matchRandom", handler);
+  socket.once("matchRandom", handler);
 };
 
 // 랜덤매칭 해제

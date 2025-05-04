@@ -5,6 +5,8 @@ import endBtn from "../../assets/images/end_game_button.png";
 import retryBtn from "../../assets/images/try_again_button.png";
 
 const GameResultModal = ({ results, success, onExit, onRetry }) => {
+
+  
   return (
     <div className="fixed inset-0 z-[1000] bg-black bg-opacity-70 flex items-center justify-center">
       <div className="relative w-[56rem] h-[38rem] bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${board3})` }}>
@@ -17,7 +19,7 @@ const GameResultModal = ({ results, success, onExit, onRetry }) => {
           {results.map((r, idx) => (
             <div key={idx} className="flex flex-col items-center text-white">
               <img src={customer} alt="user" className="w-[5.5rem] h-[5.5rem]" />
-              <div className="mt-2 text-2xl">{r.nickname}</div>
+              <div className="mt-2 text-lg break-normal whitespace-pre-wrap max-w-[6rem]">{r.nickname}</div>
               <div className="text-xl">{r.correctCount}개</div>
             </div>
           ))}
