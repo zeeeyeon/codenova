@@ -1,5 +1,5 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom"; // 라우터의 파라미터 읽어오기
-import {useState, useEffect} from "react";
+import {useState, useEffect, use} from "react";
 import { getSocket } from "../../sockets/socketClient";
 import multiBg from "../../assets/images/multi_background.png";
 import boardBg from "../../assets/images/board1.jpg";
@@ -9,6 +9,8 @@ import RoomUserList from "../../components/multi/waiting/RoomUserList";
 import Header from "../../components/common/Header";
 import RoomChatBox from "../../components/multi/waiting/RoomChatBox";
 import RoomInfoPanel from "../../components/multi/waiting/RoomInfoPanel";
+import useAuthStore from "../../store/authStore";
+
 
 const RoomWaitingPage = () => {
     const {roomId} = useParams(); // url에 담긴 roomId 읽어오기
@@ -17,10 +19,20 @@ const RoomWaitingPage = () => {
     const [isReady, setIsReady] = useState(false); 
     const [users, setUsers] = useState([]);
     const [chatMessages, setChatMessages] = useState([]);  // 입장알림림
+    const nickname = useAuthStore((state) => state.user?.nickname);
 
+
+    // 나가기
     const handleLeaveRoom = () => {
-        navigate("/multi"); // multi 페이지로 이동
-      };
+      const socket = getSocket();
+      console.log("[LEAVE] emit leave_room", {
+        roomId,
+        nickname,
+      });
+      socket.emit("leave_room", { roomId, nickname });
+    
+      navigate("/multi");
+    };
 
       // 초기값 사용하기 위함.
       const [roomInfo, setRoomInfo] = useState(() => ({
@@ -64,6 +76,12 @@ const RoomWaitingPage = () => {
           standardPeople: updatedRoom.maxCount,
           roomCode: prev.roomCode,
         }));
+
+        socket.emit("room_status", {
+          roomId,
+          nickname: state?.nickname,
+          roomCode: state?.roomCode
+        });
       }
     };
 
@@ -135,7 +153,7 @@ const RoomWaitingPage = () => {
       console.log("🟢 join_room 수신:", data);
       
       // data.status 기준으로 유저 슬롯 구성
-      const updatedSlots = Array.from({ length: roomInfo.standardPeople }, (_, i) => {
+      const updatedSlots = Array.from({ length: 4 }, (_, i) => {
         const user = data.status[i];
         if (user) {
           return {
@@ -174,6 +192,22 @@ const RoomWaitingPage = () => {
   socket.on("join_notice", handleJoinNotice);
   return () => socket.off("join_notice", handleJoinNotice);
 }, []);
+
+
+// leave_notice 브로드캐스트
+useEffect(() => {
+  const socket = getSocket();
+  if (!socket) return;
+
+  const handleLeaveNotice = (data) => {
+    console.log("📤 leave_notice 수신:", data);
+    setChatMessages((prev) => [...prev, { type: "notice", text: data.message }]);
+  };
+
+  socket.on("leave_notice", handleLeaveNotice);
+  return () => socket.off("leave_notice", handleLeaveNotice);
+}, []);
+
   
 
     return (
