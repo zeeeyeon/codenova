@@ -8,20 +8,53 @@ import xBtn from "../../assets/images/x_btn.png"
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { checkNicknameApi } from '../../api/authApi'
+import { getMyProfile } from '../../api/myPage'
 
 const MyPage= () => {
 
     const navigate = useNavigate();
-    const languages = ['Python', 'JS', 'Java', 'Go', 'C', 'SQL'];
     const btn_class = 'cursor-pointer scale-75 transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'
 
     const [currentLangIndex, setCurrentLangIndex] = useState(0);
-    const [nicknameCheck, setNicknameCheck] = useState(false);
-    const [nickname, setNickName] = useState("동현갈비");
-    const [newNickname, setNewNickName] = useState("");
 
-    const [number, setNumber] = useState("01020032718");
+    const [id, setId] = useState("")
+    const [nicknameCheck, setNicknameCheck] = useState(false);
+    const [nickname, setNickName] = useState("");
+    const [newNickname, setNewNickName] = useState("");
+    const [number, setNumber] = useState("");
     const [newNumber, setNewNumber] = useState("");
+    const [userScoreList, setUserScoreList] = useState([]);
+
+    useEffect(() =>{
+        console.log(userScoreList)
+    },[userScoreList])
+
+    const getMemberData = async () => {
+
+        try {
+            const response = await getMyProfile();
+            const { code , message } = response.status;
+            
+            if (code === 200) {
+                setId(response.content.id);
+                setNickName(response.content.nickname);
+                setNumber(response.content.phoneNum);
+                setUserScoreList(response.content.userScoreList)
+              } else {
+                alert(message);
+              }
+        } catch (err) {
+          console.error(err);
+          alert("서버 에러입니다.");
+        }
+        
+
+
+    }
+
+    useEffect(() => {
+        getMemberData()
+    }, [])
 
     const handleNicknameCheck = async () => {
         if (!newNickname) {
@@ -77,11 +110,11 @@ const MyPage= () => {
 
 
     const handlePrev = () => {
-        setCurrentLangIndex((prev) => (prev - 1 + languages.length) % languages.length);
+        setCurrentLangIndex((prev) => (prev - 1 + userScoreList.length) % userScoreList.length);
       };
       
       const handleNext = () => {
-        setCurrentLangIndex((prev) => (prev + 1) % languages.length);
+        setCurrentLangIndex((prev) => (prev + 1) % userScoreList.length);
       };
 
 
@@ -107,7 +140,7 @@ const MyPage= () => {
                 <div className="text-white text-2xl mt-4 w-full h-full flex flex-col items-center gap-4 justify-center">
                     <div className="w-[60%] flex">
                         <div className='w-[32%]'>ID</div>
-                        <span>test01</span>
+                        <span>{id}</span>
                     </div>
 
                     <div className=" w-[60%] flex items-center">
@@ -166,7 +199,7 @@ const MyPage= () => {
                             className={`cursor-pointer scale-75 ${btn_class}`} 
                             onClick={handlePrev}/>
                         <div className="flex justify-center w-[40%]">
-                            {languages[currentLangIndex].toUpperCase()}
+                            {userScoreList?.[currentLangIndex]?.language || ""}
                         </div>
                         
                         <img 
