@@ -142,6 +142,14 @@ public class MeteorEventHandler implements SocketEventHandler {
             return;
         }
 
+        boolean nicknameExists = room.getPlayers().stream()
+                .anyMatch(u -> u.getNickname().equals(nickname));
+        if (nicknameExists) {
+            client.sendEvent("secretRoomJoin",
+                    new ErrorResponse("DUPLICATE_NICKNAME", "이미 방에 동일한 닉네임의 사용자가 있습니다."));
+            return;
+        }
+
         if (room.isFull()) {
             client.sendEvent("secretRoomJoin",
                     new ErrorResponse("ROOM_FULL", "방이 가득 차서 입장할 수 없습니다."));
