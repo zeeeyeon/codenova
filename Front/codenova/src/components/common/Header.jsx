@@ -5,11 +5,21 @@ import helpIcon from "../../assets/images/help_icon.png";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import { disconnectSocket } from "../../sockets/socketClient";
+import { useEffect, useState } from "react";
 
 const Header = () => {
 
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout);
+  const [userType ,setUserType] = useState(null);
+
+  useEffect(() => {
+    const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
+    setUserType(auth?.state?.user?.userType);
+
+  }, [])
+
+
 
   const handleLogout = () => {
     document.cookie = "accessToken=; path=/; max-age=0;";
@@ -36,12 +46,15 @@ const Header = () => {
 
       {/* 오른쪽 아이콘들 */}
       <div className="flex items-center gap-2">
-        <img
+        {userType !== "guest" && (
+          <img
           src={mypageIcon}
           alt="My Page"
           className="w-20 h-20 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
           onClick={() => navigate("/mypage")}
-        />
+          />
+        )}
+        
         <img
           src={rankingIcon}
           alt="Ranking"
