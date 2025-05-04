@@ -145,13 +145,12 @@ export const onRandomMatch = (nickname) => {
 
 // 🔹 랜덤매칭 응답 수신
 export const onRandomMatchResponse = (callback) => {
-  const socket = getSocket();
-  const handler = (data) => {
+  getSocket().on("matchRandom", (data) => {
     console.log("[onRandomMatchResponse] matchRandom 수신:", data);
     callback(data);
-  };
-  socket.on("matchRandom", handler);
+  });
 };
+
 
 // 랜덤매칭 해제
 export const offRandomMatch = () => {
