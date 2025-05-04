@@ -15,6 +15,7 @@ import Crown from "../../assets/images/crown_icon.png";
 import StartButton from "../../assets/images/start_btn.png";
 import WaitButton from "../../assets/images/wait_btn.png";
 import ExitButton from "../../assets/images/multi_exit_btn.png";
+import CopyButton from "../../assets/images/multi_copy_icon.png";
 
 const MeteoLandingPage = () => {
   const navigate = useNavigate();
@@ -26,6 +27,15 @@ const MeteoLandingPage = () => {
   const [messages, setMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const scrollRef = useRef(null);
+
+  const handleCopy = async () => {
+    try {
+        await navigator.clipboard.writeText(roomCode);
+        alert("방 코드가 복사되었습니다.");
+    } catch (err) {
+        alert("복사에 실패했습니다.")
+    }
+}
 
   // players 배열을 users 배열로 변환
   const updateUsersFromPlayers = (playersArray) => {
@@ -365,6 +375,9 @@ const MeteoLandingPage = () => {
             <div className="w-[10rem] h-[8rem] border-4 rounded-xl flex flex-col items-center justify-center text-white text-2xl" style={{ borderColor: "#01FFFE" }}>
               <p className="text-xl mb-1">방코드</p>
               <p className="text-3xl">{roomCode || "-"}</p>
+            <button onClick={handleCopy} className="w-7 h-7 hover:scale-110 transition">
+                <img src={CopyButton} alt="Copy" className="w-full h-full object-contain" />
+            </button>
             </div>
             <div className="w-[10rem] h-[3.5rem] border-4 rounded-xl flex items-center justify-center" style={{ borderColor: "#01FFFE" }}>
             {users.find(user => user?.nickname === nickname)?.isHost ? (
