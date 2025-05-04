@@ -71,15 +71,7 @@ const MeteoLandingPage = () => {
     const handleSecretRoomJoin = (roomData) => {
       console.log("🛰️ [secretRoomJoin 수신]", roomData);
       updateUsersFromPlayers(roomData.players);
-
-      // ✅ system 메시지 추가
-      const joined = roomData.players[roomData.players.length - 1]; // 마지막 들어온 유저
-      if (joined?.nickname) {
-        setMessages(prev => [
-          ...prev,
-          { nickname: "SYSTEM", message: `${joined.nickname} 님이 들어왔습니다.` }
-        ]);
-      }
+      
 
       // ✅ join 성공 시 localStorage 저장
       if (roomData.roomCode && roomData.roomId) {
@@ -124,7 +116,7 @@ const MeteoLandingPage = () => {
       localStorage.removeItem("meteoRoomCode");
       localStorage.removeItem("meteoRoomId");
     };
-  }, [roomCode, nickname, players, navigate]);
+  }, [roomCode, nickname, players, navigate, roomId]);
 
   useEffect(() => {
     const handleUnloadOrBack = () => {
@@ -156,6 +148,19 @@ const MeteoLandingPage = () => {
     const handleMatchRandom = (roomData) => {
       console.log("🛰️ [matchRandom 수신 - LandingPage]", roomData);
       updateUsersFromPlayers(roomData.players);
+      // ✅ 마지막 들어온 유저 추적해서 system 메시지 출력
+      const prevCount = users.filter((u) => u !== null).length;
+      const newCount = roomData.players.length;
+
+      if (newCount > prevCount) {
+        const joined = roomData.players[newCount - 1];
+        if (joined?.nickname) {
+          setMessages((prev) => [
+            ...prev,
+            { nickname: "SYSTEM", message: `${joined.nickname} 님이 들어왔습니다.` },
+          ]);
+        }
+      }
     };
   
     socket.on("matchRandom", handleMatchRandom);
@@ -297,7 +302,7 @@ const MeteoLandingPage = () => {
                   ) : null}
               {/* <img src={profileImages[idx]} alt={`user-profile-${idx}`} className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto" /> */}
               {/* 닉네임 */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-m">
+              <div className="absolute bottom-7 left-1/2 transform -translate-x-1/2 text-white text-m w-[16rem] text-center truncate">
                 {user?.nickname || "-"}
               </div>
             </div>
