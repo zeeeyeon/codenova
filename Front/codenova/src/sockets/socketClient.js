@@ -81,10 +81,12 @@ export const connectSocket = (forceReconnect = false) => {
 export const getSocket = () => {
   if (!socket || !socket.connected) {
     console.warn("⚠️ Socket is not connected.");
+    window.location.reload();
     return null;
   }
   return socket;
 };
+
 
 export const disconnectSocket = () => {
   if (socket) {
@@ -93,3 +95,5 @@ export const disconnectSocket = () => {
     // disconnect 후 socket은 남겨야 reconnect 가능
   }
 };
+
+
