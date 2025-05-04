@@ -13,11 +13,21 @@ const Header = () => {
 
   const handleLogout = () => {
     document.cookie = "accessToken=; path=/; max-age=0;";
-
+  
+    // Zustand 상태 초기화
     logout();
+  
+    // ✅ localStorage 항목 제거
+    localStorage.removeItem("nickname");
+    localStorage.removeItem("meteoRoomId");
+    localStorage.removeItem("meteoRoomCode");
+    localStorage.removeItem("auth-storage"); // ← 이것도 초기화하고 싶다면!
+  
+    // 소켓 연결 해제
     disconnectSocket();
+  
     navigate("/auth/login");
-  }
+  };
 
   return (
     <header className="fixed top-0 left-0 w-full flex justify-between items-center px-3 py-3">
