@@ -10,7 +10,7 @@ import Profile3 from "../../assets/images/profile3.png";
 import Profile4 from "../../assets/images/profile4.png";
 import  { getSocket } from "../../sockets/socketClient";
 import useAuthStore from "../../store/authStore";
-import { exitMeteoRoom, offMeteoGameStart, offRoomExit, onChatMessage, onChatMessageResponse, onMeteoGameStart, onRoomExit, startMeteoGame } from "../../sockets/meteoSocket";
+import { exitMeteoRoom, offMeteoGameStart, offRoomExit, onChatMessage, onMeteoGameStart, onRoomExit, startMeteoGame } from "../../sockets/meteoSocket";
 import Crown from "../../assets/images/crown_icon.png";
 import StartButton from "../../assets/images/start_btn.png";
 import WaitButton from "../../assets/images/wait_btn.png";

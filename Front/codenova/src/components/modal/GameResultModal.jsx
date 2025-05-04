@@ -19,7 +19,7 @@ const GameResultModal = ({ results, success, onExit, onRetry }) => {
           {results.map((r, idx) => (
             <div key={idx} className="flex flex-col items-center text-white">
               <img src={customer} alt="user" className="w-[5.5rem] h-[5.5rem]" />
-              <div className="mt-2 text-lg break-normal whitespace-pre-wrap max-w-[6rem]">{r.nickname}</div>
+              <div className="mt-2 text-lg ">{r.nickname}</div>
               <div className="text-xl">{r.correctCount}개</div>
             </div>
           ))}
