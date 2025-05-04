@@ -268,13 +268,32 @@ const MeteoLandingPage = () => {
       className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
       style={{ backgroundImage: `url(${MeteoBg})` }}
     >
-      <Header />
+      {/* <Header /> */}
 
-      <div className="relative flex justify-center items-center mt-28">
+      <div className="relative flex justify-center items-center mt-20">
         <img src={MeteoBoard} className="w-[66rem] rounded-2xl shadow-xl z-0" alt="meteoBoard" />
         <div className="absolute top-[2%] left-1/2 -translate-x-1/2 z-20 text-1C1C1C text-3xl font-bold">
           지구를 지켜라!
-        </div>
+          </div>
+          <div className="absolute top-[1%] right-[12rem] -translate-x-1/2 z-20">
+            <div className="relative group ml-2">
+              {/* 아이콘에 호버 애니메이션 추가 */}
+              <span className="cursor-help text-black text-4xl font-bold transition duration-200 ease-in-out group-hover:scale-125 group-hover:text-yellow-400 animate-pulse-color">
+                ?
+              </span>
+
+              {/* 툴팁에 페이드 + 슬라이드 효과 */}
+              <div className="absolute top-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-black bg-opacity-90 text-white text-sm px-3 py-2 rounded shadow-md whitespace-nowrap z-30 text-center
+                animate-fade-slide-up">
+                Player 4명이 모두 들어오면<br />
+                방장이 시작 버튼을 눌러<br />
+                지구를 지킬 수 있습니다!
+              </div>
+            </div>
+          </div>
+
+
+
 
         {/* 유저 카드 */}
         <div className="absolute top-[15%] grid grid-cols-4 gap-9 z-10">
