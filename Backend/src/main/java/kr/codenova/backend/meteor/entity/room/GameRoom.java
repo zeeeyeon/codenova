@@ -2,6 +2,7 @@ package kr.codenova.backend.meteor.entity.room;
 
 import kr.codenova.backend.meteor.entity.user.UserInfo;
 import lombok.Getter;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,13 +18,17 @@ public class GameRoom {
     private GameStatus status = GameStatus.WAITING;
     private final String roomCode;
     private final int maxPlayers;
+    private Date finishedAt;
     private final List<UserInfo> players = new CopyOnWriteArrayList<>();
     // 현재 사용자들의 점수 관리
     private final Map<String, Integer> scoreMap = new ConcurrentHashMap<>();
     // 현재 화면에 낙하중인 단어 목록
     private final List<String> activeFallingWords = new CopyOnWriteArrayList<>();
-
+    // 낙하시킬 단어 리스트
     private final Queue<String> fallingWords = new ConcurrentLinkedQueue<>();
+
+    // 재도전 인원
+    private final Set<String> readyForRetryPlayers = ConcurrentHashMap.newKeySet();
 
     // 팀 목숨 관리
     private AtomicInteger life = new AtomicInteger();
@@ -96,8 +101,10 @@ public class GameRoom {
     public void finish() {
         synchronized (gameLock) {
             this.status = GameStatus.FINISHED;
+            this.finishedAt = new Date();
         }
     }
+
 
     /**
      * 랜덤방인지 아닌지 체크하고 4명이 아직 안찼고 대기중인 방 탐색
@@ -198,5 +205,30 @@ public class GameRoom {
         return life.get() <= 0;
     }
 
+    // 재도전 준비
+    public synchronized boolean isReady(String sessionId) {
+        synchronized (playersLock) {
+            // 현재 방에 있는 플레이어인지 확인
+            boolean isInRoom = players.stream().anyMatch(u -> u.getSessionId().equals(sessionId));
 
+            if (!isInRoom) {
+                return false;
+            }
+
+            readyForRetryPlayers.add(sessionId);
+
+            return readyForRetryPlayers.size() == players.size();
+
+        }
+    }
+
+    // 재도전 플레이어 수
+    public int retryCount(){
+        return readyForRetryPlayers.size();
+    }
+
+    // 재도전 준비 상태 초기화
+    public void resetRetryState() {
+        readyForRetryPlayers.clear();
+    }
 }
