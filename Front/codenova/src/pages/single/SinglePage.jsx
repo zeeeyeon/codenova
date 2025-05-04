@@ -180,6 +180,10 @@ const SinglePage = () => {
         }
 
         const key = e.key;
+
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') { // ctrl+V or commend + V 막기기
+            e.preventDefault();
+        }
         
         if (key === 'Enter') {
             e.preventDefault(); // 기본적으로 엔터줄바꾸는거 막기
@@ -430,6 +434,7 @@ const SinglePage = () => {
                                 value={currentInput}
                                 onChange={handleInputChange}  
                                 placeholder="여기에 타이핑하세요"
+                                onPaste={(e) => e.preventDefault()} //마우스 붙여 넣기도 막기기
                             />
 
                         </div>
