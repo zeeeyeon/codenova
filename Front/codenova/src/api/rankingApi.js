@@ -1,6 +1,6 @@
-import authApi from "./authAxiosConfig";
+import api from "./axiosConfig"
 
 export const getRanking = async (lang) => {
-    const response = await authApi.get(`/api/single/ranking/${lang}`)
+    const response = await api.get(`/api/single/ranking/${lang}`)
     return response;
 }
