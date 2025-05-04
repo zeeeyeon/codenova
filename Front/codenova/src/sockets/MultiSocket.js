@@ -62,3 +62,4 @@ export const joinRoom = (payload, callback) => {
         callback?.(res);
     });
 };
+

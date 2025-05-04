@@ -44,7 +44,7 @@ const RoomWaitingPage = () => {
       const socket = getSocket();
       if (!socket) return;
     
-       // ✅ 진입하자마자 최신 room info 요청
+       // 진입하자마자 최신 room info 요청
     socket.emit("room_list", (rooms) => {
       const myRoom = rooms.find((r) => String(r.roomId) === String(roomId));
       if (myRoom) {
@@ -54,23 +54,23 @@ const RoomWaitingPage = () => {
           language: myRoom.language,
           currentPeople: myRoom.currentCount,
           standardPeople: myRoom.maxCount,
-          roomCode: prev.roomCode, // ✅ 여기 유지!
+          roomCode: prev.roomCode,
         }));
       }
     });
 
-    // ✅ 실시간 업데이트 반영
+    // 실시간 업데이트 반영
     const handleRoomUpdate = (updatedRoom) => {
       if (String(updatedRoom.roomId) === String(roomId)) {
         console.log("💡 방 업데이트 수신:", updatedRoom);
-        setRoomInfo({
+        setRoomInfo((prev) => ({
           roomTitle: updatedRoom.title,
           isPublic: !updatedRoom.isLocked,
           language: updatedRoom.language,
           currentPeople: updatedRoom.currentCount,
           standardPeople: updatedRoom.maxCount,
-          roomCode: updatedRoom.roomCode,
-        });
+          roomCode: prev.roomCode,
+        }));
       }
     };
 
@@ -78,6 +78,33 @@ const RoomWaitingPage = () => {
     return () => socket.off("room_update", handleRoomUpdate);
   }, [roomId]);
 
+  // join_room 브로드캐스트
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleJoinRoomBroadcast = (data) => {
+      if (String(data.roomId) === String(roomId)) {
+        console.log("join_room 브로드캐스트 수신 : ", data);
+
+        const newUsers = data.status.map((user, index) => ({
+          slot: index + 1,
+          nickname: user.nickname,
+          isReady: user.isReady,
+          isHost: user.isHost,
+        }));
+
+        while (newUsers.length < 4) {
+          newUsers.push({slot: newUsers.length + 1, empty : true});
+        }
+
+        setUsers(newUsers);
+      }
+    };
+    socket.on("join_room", handleJoinRoomBroadcast);
+    return () => socket.off("join_room", handleJoinRoomBroadcast);
+  }, [roomId]);
     
     
     return (
@@ -104,7 +131,7 @@ const RoomWaitingPage = () => {
           </div>
           {/* 사용자 리스트 */}
   <div className="w-full flex justify-center mt-10">
-    <RoomUserList users={dummyUsers} />
+    <RoomUserList users={users} />
   </div>
 
   {/* 채팅박스 */}
