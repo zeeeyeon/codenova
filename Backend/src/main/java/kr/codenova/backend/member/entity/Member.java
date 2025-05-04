@@ -21,26 +21,31 @@ public class Member {
     @Column(unique = true)
     private String id;
 
-    @NotNull @Size(max = 100)
+    @NotNull @Size(max = 11)
     @Column(unique = true)
     private String nickname;
 
     @NotNull @JsonIgnore
     private String password;
 
+    private String phoneNum;
+
     private int winCount;
     private int playCount;
-    private int bestTyping;
 
 
     @Builder
-    public Member(Integer memberId, String id, String password, String nickname, int winCount, int playCount, int bestTyping) {
+    public Member(Integer memberId, String id, String password, String nickname, int winCount, int playCount, String phoneNum) {
         this.memberId = memberId;
         this.id = id;
         this.password = password;
         this.nickname = nickname;
         this.winCount = winCount;
         this.playCount = playCount;
-        this.bestTyping = bestTyping;
+        this.phoneNum = phoneNum;
+    }
+
+    public void changePhoneNum(String phoneNum) {
+        this.phoneNum = phoneNum;
     }
 }
