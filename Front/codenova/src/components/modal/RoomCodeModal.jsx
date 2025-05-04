@@ -52,14 +52,10 @@ const RoomCodeModal = ({ onClose }) => {
       return;
     }
   
-    // 1. 랜덤 매칭 emit
-    onRandomMatch(nickname);
-  
-    // 2. 응답 수신 후 처리
-    onRandomMatchResponse((roomData) => {
+    // ✅ 응답 리스너 먼저 등록
+    const handleResponse = (roomData) => {
       console.log("🎲 랜덤매칭 완료:", roomData);
   
-      // ✅ 랜덤 매칭 성공 시 저장
       localStorage.setItem("meteoRoomCode", ""); // 랜덤은 코드 없음
       localStorage.setItem("meteoRoomId", roomData.roomId);
   
@@ -71,11 +67,14 @@ const RoomCodeModal = ({ onClose }) => {
         },
       });
   
-      // ✅ cleanup
-      offRandomMatch();
+      offRandomMatch(); // ✅ cleanup
       onClose();
-    });
+    };
+  
+    onRandomMatchResponse(handleResponse); // 1. 리스너 먼저 등록
+    onRandomMatch(nickname);               // 2. emit 실행
   };
+  
   
 
   return (

@@ -17,3 +17,8 @@ export const checkIdApi = async ({ id }) => {
 export const checkNicknameApi = async ({ nickname }) => {
     return await api.get(`/api/member/check-nickname/${nickname}`);
 };
+
+export const guestLoginApi = async () => {
+    return await api.post("/api/member/guest");
+};
+
