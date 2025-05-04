@@ -4,7 +4,7 @@ import useAuthStore from "../store/authStore";
 
 const PrivateRoute = ({ children }) => {
   const token = useAuthStore((state) => state.token);
-  console.log(token)
+//   console.log(token)
   if (!token) {
     return <Navigate to="/" replace />;
   }

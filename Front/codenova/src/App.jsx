@@ -12,6 +12,8 @@ import RankingRoutes from "./routes/RankingRoutes";
 import { connectSocket, disconnectSocket } from "./sockets/socketClient";
 import { useEffect} from "react";
 import PrivateRoute from "./routes/PrivateRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
+
 function App() {
   const isAuthenticated = useAuthStore((state) => !!state.token);
 
@@ -29,6 +31,7 @@ function App() {
 
   return (
     <BrowserRouter>
+    <ErrorBoundary>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth/login" element={<LoginPage />} />
@@ -84,6 +87,7 @@ function App() {
           }
         />
       </Routes>
+    </ErrorBoundary>
     </BrowserRouter>
   );
 }
