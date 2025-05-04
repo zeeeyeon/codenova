@@ -17,7 +17,7 @@ public enum ResponseCode {
     GET_USER_PROFILE(200, HttpStatus.OK, "프로필 조회 성공했습니다."),
     AVAILABLE_ID(200,HttpStatus.OK, "사용가능한 아이디입니다"),
     AVAILABLE_NICKNAME(200,HttpStatus.OK, "사용가능한 닉네임입니다"),
-
+    SUCCESS_CHANGE_PROFILE(200, HttpStatus.OK, "프로필 수정에 성공했습니다."),
     // single
     GET_LANGUAGE_CATEGORIES_SUCCESS(200, HttpStatus.OK, "언어 카테고리 조회에 성공했습니다."),
     GET_CS_CATEGORIES_SUCCESS(200, HttpStatus.OK, "CS 카테고리 조회에 성공했습니다."),
