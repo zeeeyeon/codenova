@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Getter
 @NoArgsConstructor
 @Entity
@@ -47,7 +49,7 @@ public class Member {
     }
 
     public void updateProfile(ProfileUpdateDto dto) {
-        this.nickname = dto.getNickname();
-        this.phoneNum = dto.getPhoneNum();
+        this.nickname = Objects.equals(dto.getNickname(), "") ? this.nickname : dto.getNickname();
+        this.phoneNum = Objects.equals(dto.getPhoneNum(), "") ? this.phoneNum : dto.getPhoneNum();
     }
 }
