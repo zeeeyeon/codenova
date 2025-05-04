@@ -9,9 +9,8 @@ import { Player } from "@lottiefiles/react-lottie-player";
 import battleLottie from "../../assets/lottie/battle.json";
 import defendLottie from "../../assets/lottie/defend.json";
 import { useNavigate } from "react-router-dom"
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import RoomCodeModal from "../../components/modal/RoomCodeModal";
-import { getAccessToken } from "../../utils/tokenUtils";
 import { createMeteoRoom } from "../../sockets/meteoSocket";
 import useAuthStore from "../../store/authStore";
 

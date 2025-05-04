@@ -10,7 +10,7 @@ import MyPageRoutes from "./routes/MyPageRoutes";
 import useAuthStore from "./store/authStore";
 import RankingRoutes from "./routes/RankingRoutes";
 import { connectSocket, disconnectSocket } from "./sockets/socketClient";
-import { useEffect, useRef } from "react";
+import { useEffect} from "react";
 import PrivateRoute from "./routes/PrivateRoute";
 function App() {
   const isAuthenticated = useAuthStore((state) => !!state.token);
