@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { checkNicknameApi } from '../../api/authApi'
 import { getMyProfile, upDateMyProfile } from '../../api/myPage'
+import Header from '../../components/common/Header'
 
 const MyPage= () => {
 
@@ -143,6 +144,7 @@ const MyPage= () => {
             className="w-screen h-screen flex items-center justify-center bg-no-repeat bg-cover bg-center"
             style={{ backgroundImage: `url(${backgroundImg})`}}
         >
+            <Header/>
             <BoardContainer>
                 {/* 타이틀 텍스트 */}
                 <div className="absolute top-[1%] left-1/2 -translate-x-1/2 font-bold text-4xl drop-shadow-md z-10"
