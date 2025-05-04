@@ -276,9 +276,10 @@ const MeteoGamePage = () => {
 
         {/* ✅ 2~3. 닉네임 + 입력 텍스트 (살짝 위로 이동) */}
         <div className="flex flex-col items-center -translate-y-10">
-          <div className="text-white text-lg leading-none">
-            {nickname}
-          </div>
+        <div className="text-white text-m leading-none text-center break-normal whitespace-pre-wrap max-w-[6rem]">
+          {nickname}
+        </div>
+
           <div className="text-pink-300 font-bold text-xl mt-1 min-h-[1.5rem] leading-tight">
             {userInputTexts[nickname] || ""}
           </div>

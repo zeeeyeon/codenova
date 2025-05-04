@@ -7,7 +7,7 @@ import { loginApi } from "../../api/authApi";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import { connectSocket } from "../../sockets/socketClient";
-
+import signupButton from "../../assets/images/signup_button.png";
 const LoginPage = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
@@ -92,6 +92,12 @@ const LoginPage = () => {
               alt="Login Button"
               onClick={handleLogin}
               className="w-[10rem]  cursor-pointer transition-all duration-150 hover:translate-y-[2px] hover:brightness-110 hover:scale-[0.98] active:scale-[0.95]"
+            />
+            <img
+            src={signupButton}
+            alt="Sign Up"
+            className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
+            onClick={() => navigate("/")}
             />
           </div>
         </div>
