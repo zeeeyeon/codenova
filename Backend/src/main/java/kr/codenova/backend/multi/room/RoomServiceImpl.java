@@ -11,8 +11,10 @@ import kr.codenova.backend.multi.dto.broadcast.RoomUpdateBroadcast;
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
 import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
 import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
+import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
 import kr.codenova.backend.multi.dto.response.CreateRoomResponse;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
+import kr.codenova.backend.multi.dto.response.RoomStatusResponse;
 import kr.codenova.backend.multi.exception.InvalidPasswordException;
 import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
@@ -92,6 +94,17 @@ public class RoomServiceImpl implements RoomService {
     // 방 조회
     public Room getRoom(String roomId) {
         return roomMap.get(roomId);
+    }
+
+    // 방 현재 상태 조회
+    public void getRoomStatus(RoomStatusRequest request, SocketIOClient client) {
+        Room room = roomMap.get(request.getRoomId());
+        RoomStatusResponse response = new RoomStatusResponse(room);
+        client.sendEvent("room_status", response);
+
+        JoinRoomBroadcast broadcast = new JoinRoomBroadcast(room);
+        getServer().getBroadcastOperations().sendEvent("join_room", broadcast);
+
     }
 
     // 공개방 입장

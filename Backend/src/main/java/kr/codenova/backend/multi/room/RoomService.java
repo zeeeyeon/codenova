@@ -5,6 +5,7 @@ import com.corundumstudio.socketio.SocketIOClient;
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
 import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
 import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
+import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
 
 import java.util.Collection;
@@ -34,4 +35,6 @@ public interface RoomService {
     public String generatedRoomCode();
 
     public Boolean existsRoom(String roomId);
+
+    void getRoomStatus(RoomStatusRequest request, SocketIOClient client);
 }

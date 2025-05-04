@@ -3,6 +3,7 @@ package kr.codenova.backend.multi.room;
 import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
 import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
+import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
 import kr.codenova.backend.multi.exception.InvalidPasswordException;
 import kr.codenova.backend.multi.exception.RoomFullException;
@@ -65,6 +66,17 @@ public class RoomSocketHandler implements SocketEventHandler {
                 client.sendEvent("error", new SocketErrorResponse("방 퇴장 실패"));
             }
         });
+
+        // 방 상태 보기
+        server.addEventListener("room_status", RoomStatusRequest.class, (client, request, ackSender) -> {
+            try {
+                roomService.getRoomStatus(request, client);
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("방 퇴장 실패"));
+            }
+        });
+
+
     }
 
 }
