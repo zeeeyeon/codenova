@@ -150,10 +150,25 @@ const MultiPage = () => {
     } else {
       joinRoom({ roomId: selectedRoom.id, roomCode, nickname }, handleJoinResponse);
     }
-  
-
   };
   
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+  
+    const handleRoomRemoved = (removedRoomId) => {
+      console.log("🗑️ room_removed 수신:", removedRoomId);
+      setRoomList((prev) => prev.filter((room) => room.id !== removedRoomId));
+    };
+  
+    socket.on("room_removed", handleRoomRemoved);
+  
+    return () => {
+      socket.off("room_removed", handleRoomRemoved);
+    };
+  }, []);
+
+
   return (
     <div
       className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"

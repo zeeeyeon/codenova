@@ -1,5 +1,5 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom"; // 라우터의 파라미터 읽어오기
-import {useState, useEffect} from "react";
+import {useState, useEffect, use} from "react";
 import { getSocket } from "../../sockets/socketClient";
 import multiBg from "../../assets/images/multi_background.png";
 import boardBg from "../../assets/images/board1.jpg";
@@ -9,6 +9,8 @@ import RoomUserList from "../../components/multi/waiting/RoomUserList";
 import Header from "../../components/common/Header";
 import RoomChatBox from "../../components/multi/waiting/RoomChatBox";
 import RoomInfoPanel from "../../components/multi/waiting/RoomInfoPanel";
+import useAuthStore from "../../store/authStore";
+
 
 const RoomWaitingPage = () => {
     const {roomId} = useParams(); // url에 담긴 roomId 읽어오기
@@ -16,11 +18,21 @@ const RoomWaitingPage = () => {
     const navigate = useNavigate();
     const [isReady, setIsReady] = useState(false); 
     const [users, setUsers] = useState([]);
+    const [chatMessages, setChatMessages] = useState([]);  // 입장알림림
+    const nickname = useAuthStore((state) => state.user?.nickname);
 
+
+    // 나가기
     const handleLeaveRoom = () => {
-        navigate("/multi"); // multi 페이지로 이동
-      };
-
+      const socket = getSocket();
+      console.log("[LEAVE] emit leave_room", {
+        roomId,
+        nickname,
+      });
+      socket.emit("leave_room", { roomId, nickname });
+    
+      navigate("/multi");
+    };
 
       // 초기값 사용하기 위함.
       const [roomInfo, setRoomInfo] = useState(() => ({
@@ -31,20 +43,13 @@ const RoomWaitingPage = () => {
         standardPeople: state?.standardPeople || 4,
         roomCode: state?.roomCode || "",
       }));
-
-      
-      const dummyUsers = [
-        { slot: 1, nickname: "동현갈비", profileImage: "url1", typing: "???타수", isReady: true, isHost: true },
-        { slot: 2, nickname: "과일왕자이과람", profileImage: "url2", typing: "???타수", isReady: false },
-        { slot: 3, nickname: "TIMMY이지연", profileImage: "url3", typing: "???타수", isReady: true },
-        { slot: 4, empty: true }
-    ];
-      
+    
+    // 방 정보 최신화용 
     useEffect(() => {
       const socket = getSocket();
       if (!socket) return;
     
-       // ✅ 진입하자마자 최신 room info 요청
+       // 진입하자마자 최신 room info 요청
     socket.emit("room_list", (rooms) => {
       const myRoom = rooms.find((r) => String(r.roomId) === String(roomId));
       if (myRoom) {
@@ -54,22 +59,28 @@ const RoomWaitingPage = () => {
           language: myRoom.language,
           currentPeople: myRoom.currentCount,
           standardPeople: myRoom.maxCount,
-          roomCode: prev.roomCode, // ✅ 여기 유지!
+          roomCode: prev.roomCode,
         }));
       }
     });
 
-    // ✅ 실시간 업데이트 반영
+    // 실시간 업데이트 반영
     const handleRoomUpdate = (updatedRoom) => {
       if (String(updatedRoom.roomId) === String(roomId)) {
         console.log("💡 방 업데이트 수신:", updatedRoom);
-        setRoomInfo({
+        setRoomInfo((prev) => ({
           roomTitle: updatedRoom.title,
           isPublic: !updatedRoom.isLocked,
           language: updatedRoom.language,
           currentPeople: updatedRoom.currentCount,
           standardPeople: updatedRoom.maxCount,
-          roomCode: updatedRoom.roomCode,
+          roomCode: updatedRoom.roomCode ?? prev.roomCode,
+        }));
+
+        socket.emit("room_status", {
+          roomId,
+          nickname: state?.nickname,
+          roomCode: state?.roomCode
         });
       }
     };
@@ -78,8 +89,164 @@ const RoomWaitingPage = () => {
     return () => socket.off("room_update", handleRoomUpdate);
   }, [roomId]);
 
+  
+  // 방 최초초 입장시 room_status 요청
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
     
-    
+    // 방 상태 요청(room_status 응답 : 현재 유저 목록 등등)
+    socket.emit("room_status", {
+      roomId: roomId,
+      nickname: state?.nickname,
+      roomCode: state?.roomCode
+    });
+  
+    const handleRoomStatus = (data) => {
+      console.log("✅ room_status 응답 수신:", data);
+  
+      // roomInfo 세팅 (추가로 방 정보도 최신화)
+      setRoomInfo((prev) => ({
+        ...prev,
+        roomTitle: data.roomTitle,
+        isPublic: !data.isLocked,
+        language: data.language,
+        currentPeople: data.currentCount,
+        standardPeople: data.maxCount,
+        roomCode: data.roomCode ?? prev.roomCode
+      }));
+  
+      // 사용자 슬롯 세팅
+      const slotData = Array.from({ length: data.maxCount }, (_, i) => {
+        const user = data.users[i];
+        if (user) {
+          return {
+            slot: i + 1,
+            nickname: user.nickname,
+            isHost: user.isHost,
+            isReady: user.isReady,
+            empty: false,
+          };
+        } else {
+          return {
+            slot: i + 1,
+            empty: true,
+          };
+        }
+      });
+  
+      setUsers(slotData);
+    };
+  
+    socket.on("room_status", handleRoomStatus);
+  
+    return () => {
+      socket.off("room_status", handleRoomStatus);
+    };
+  }, [roomId]);
+
+  // join 브로드캐스트
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !roomInfo?.standardPeople) return;
+  
+    const handleJoinRoom = (data) => {
+      console.log("🟢 join_room 수신:", data);
+      
+      // data.status 기준으로 유저 슬롯 구성
+      const updatedSlots = Array.from({ length: 4 }, (_, i) => {
+        const user = data.status[i];
+        if (user) {
+          return {
+            slot: i + 1,
+            nickname: user.nickname,
+            isHost: user.isHost,
+            isReady: user.isReady,
+            empty: false,
+          };
+        } else {
+          return {
+            slot: i + 1,
+            empty: true,
+          };
+        }
+      });
+  
+      setUsers(updatedSlots);
+    };
+    socket.on("join_room", handleJoinRoom);
+    return () => {
+      socket.off("join_room", handleJoinRoom);
+    };
+  }, [roomInfo?.standardPeople]);
+
+  // join_notice 브로드캐스트트
+  useEffect(() => {
+  const socket = getSocket();
+  if (!socket) return;
+
+  const handleJoinNotice = (data) => {
+    console.log("📢 join_notice 수신:", data);
+    setChatMessages((prev) => [...prev, { type: "notice", text: data.message }]);
+  };
+
+  socket.on("join_notice", handleJoinNotice);
+  return () => socket.off("join_notice", handleJoinNotice);
+}, []);
+
+
+// leave_notice 브로드캐스트
+useEffect(() => {
+  const socket = getSocket();
+  if (!socket) return;
+
+  const handleLeaveNotice = (data) => {
+    console.log("📤 leave_notice 수신:", data);
+    setChatMessages((prev) => [...prev, { type: "notice", text: data.message }]);
+  };
+
+  socket.on("leave_notice", handleLeaveNotice);
+  return () => socket.off("leave_notice", handleLeaveNotice);
+}, []);
+
+// 대기방 채팅 
+
+const handleSendMessage = (messageText) => {
+  const socket = getSocket();
+  if (!socket || !nickname || !roomId) return;
+
+  const messageData = {
+    roomId,
+    nickname,
+    message: messageText.text,
+  };
+
+  console.log("📫emit send_chat : ", messageData);
+  socket.emit("send_chat", messageData);
+};
+
+useEffect(() => {
+  const socket = getSocket();
+  if (!socket) return;
+
+  const handleReceiveChat = (data) => {
+    console.log("send_chat 수신 :", data);
+    setChatMessages((prev) => [
+      ...prev,
+      {
+        type : "chat",
+        text: `${data.nickname}: ${data.message}`,
+        timestamp: data.timestamp,
+      },
+    ]);
+  };
+
+  socket.on("send_chat", handleReceiveChat);
+  return () => socket.off("send_chat", handleReceiveChat);
+}, []);
+
+  
+
     return (
         <div
             className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
@@ -103,28 +270,31 @@ const RoomWaitingPage = () => {
             <h2 className="text-2xl">{roomInfo.roomTitle}</h2>
           </div>
           {/* 사용자 리스트 */}
-  <div className="w-full flex justify-center mt-10">
-    <RoomUserList users={dummyUsers} />
-  </div>
+          <div className="w-full flex justify-center mt-10">
+            <RoomUserList users={users} />
+          </div>
 
-  {/* 채팅박스 */}
-  <div className="w-[90%] flex justify-start items-start gap-6 z-10 pl-6">
-    <RoomChatBox />
-    <RoomInfoPanel 
-      isPublic={roomInfo.isPublic}
-      roomTitle={roomInfo.roomTitle}
-      language={roomInfo.language}
-      currentPeople={roomInfo.currentPeople}
-      standardPeople={roomInfo.standardPeople}
-      roomCode={roomInfo.roomCode}
-      onLeave={handleLeaveRoom}
-      isReady={isReady}
-      onReady={() => setIsReady(prev => !prev)}
-    />
-  </div>
-        </div>
-        </div>
-    );
+          {/* 채팅박스 */}
+          <div className="w-[90%] flex justify-start items-start gap-6 z-10 pl-6">
+            <RoomChatBox 
+                messages={chatMessages}
+                onSendMessage={handleSendMessage}
+                />
+            <RoomInfoPanel 
+              isPublic={roomInfo.isPublic}
+              roomTitle={roomInfo.roomTitle}
+              language={roomInfo.language}
+              currentPeople={roomInfo.currentPeople}
+              standardPeople={roomInfo.standardPeople}
+              roomCode={roomInfo.roomCode}
+              onLeave={handleLeaveRoom}
+              isReady={isReady}
+              onReady={() => setIsReady(prev => !prev)}
+            />
+          </div>
+                </div>
+                </div>
+            );
 };
 
 export default RoomWaitingPage;
