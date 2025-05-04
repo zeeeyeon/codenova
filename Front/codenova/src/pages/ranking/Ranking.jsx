@@ -8,7 +8,7 @@ import rightBtn from "../../assets/images/right_btn.png"
 import xBtn from "../../assets/images/x_btn.png"
 import { useEffect, useState } from "react"
 import { useNavigate } from 'react-router-dom'
-import { getRanking } from '../../api/rankingApi'
+import { getRanking, getMemberRanking } from '../../api/rankingApi'
 import Header from '../../components/common/Header'
 
 const Ranking = () => {
@@ -24,6 +24,13 @@ const Ranking = () => {
 
     const btn_class = 'cursor-pointer scale-75 transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'
 
+    const [userType ,setUserType] = useState(null);
+
+    useEffect(() => {
+        const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
+        setUserType(auth?.state?.user?.userType);
+    }, [])
+
     // /api/single/ranking/{language}
     const getRankingData = async () => {
         const lang = languages[currentLangIndex];
@@ -33,15 +40,22 @@ const Ranking = () => {
         }
 
         try {
-            const response = await getRanking(lang);
-            const { code, messsage } = response.data.status;
+            let response;
+            if (userType === "guest") {
+                response = await getRanking(lang);
+            } else {
+
+                response = await getMemberRanking(lang);
+            }
+
+            const { code, message } = response.data.status;
             
             if (code === 200){
                 const newRanking = [...ranking]
                 newRanking[currentLangIndex] = response.data.content
                 setRanking(newRanking);
             } else{
-                console.log(messsage);
+                console.log(message);
             }
             
         } catch (e) {
@@ -51,7 +65,7 @@ const Ranking = () => {
 
     useEffect(() => {
         getRankingData();
-    },[currentLangIndex])
+    },[currentLangIndex, userType])
 
     // useEffect(() => {
     //     console.log(ranking);
@@ -104,7 +118,8 @@ const Ranking = () => {
                                     {ranking[currentLangIndex]?.top10?.[0]?.nickname || "없음"}
                                 </span>
                                 <span >
-                                    {ranking[currentLangIndex]?.top10?.[0]?.typingSpeed || "0"}타
+                                    {ranking[currentLangIndex]?.top10?.[0]?.typingSpeed != null ?
+                                    Math.floor(ranking[currentLangIndex]?.top10?.[0]?.typingSpeed) : 0}타
                                 </span>
                             </div>
                             
@@ -118,7 +133,8 @@ const Ranking = () => {
                                     {ranking[currentLangIndex]?.top10?.[1]?.nickname || "없음"}
                                 </span>
                                 <span >
-                                    {ranking[currentLangIndex]?.top10?.[1]?.typingSpeed || "0"}타
+                                    {ranking[currentLangIndex]?.top10?.[1]?.typingSpeed != null ?
+                                    Math.floor(ranking[currentLangIndex]?.top10?.[1]?.typingSpeed) : 0}타
                                 </span>
                             </div>
                             
@@ -132,7 +148,8 @@ const Ranking = () => {
                                     {ranking[currentLangIndex]?.top10?.[2]?.nickname || "없음"}
                                 </span>
                                 <span >
-                                    {ranking[currentLangIndex]?.top10?.[2]?.typingSpeed || "0"}타
+                                    {ranking[currentLangIndex]?.top10?.[2]?.typingSpeed != null ?
+                                    Math.floor(ranking[currentLangIndex]?.top10?.[2]?.typingSpeed) : 0}타
                                 </span>
                             </div>
                             
@@ -151,21 +168,22 @@ const Ranking = () => {
                     <div className=" w-[40%] h-full flex flex-col justify-center text-white gap-4 mt-6">
                         {Array(7).fill(0).map((_,idx) => {
                             const nickname = ranking[currentLangIndex]?.top10?.[idx+3]?.nickname || "없음";
-                            const speed =  ranking[currentLangIndex]?.top10?.[idx+3]?.typingSpeed || "0";
+                            const speed =  ranking[currentLangIndex]?.top10?.[idx+3]?.typingSpeed || 0;
                             return (
                                 <div key={idx} className=" w-full h-auto ">
-                                    {idx + 4}. {nickname} ({speed})
+                                    {idx + 4}. {nickname} ({Math.floor(speed)})
                                 </div>
                             )
                         })}
                         <div className=" w-full h-auto flex justify-end mt-4 text-xl">
-                            내 등수: {ranking[currentLangIndex]?.myRank?.rank ?? "-"}등
-                            ({ranking[currentLangIndex]?.myRank?.typingSpeed ?? "-"}타)
+                            내 등수: {ranking[currentLangIndex]?.myRank?.rank ?? " - "}등
+                            {ranking[currentLangIndex]?.myRank?.typingSpeed != null
+                                ? Math.floor(ranking[currentLangIndex].myRank.typingSpeed)
+                                : " - "
+                            }타
                         </div>
                     </div>
                 </div>
-                
-
             </Board2Container>
 
 
