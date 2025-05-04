@@ -91,6 +91,30 @@ const SinglePage = () => {
         }
     }, [navigate]);
 
+    // 일단 다시시작하면 그코드 다시 시작
+    const resetGame = () => {
+        //setLines([]);                // 코드 줄 초기화
+        //setlinesCharCount([]);       // 줄별 글자 수 초기화
+        //setSpace([]);                // 공백 개수 초기화
+        setCurrentLineIndex(0);      // 현재 줄 인덱스 초기화
+        setCurrentInput("");         // 현재 입력 초기화
+        setCurrentCharIndex(0);      // 현재 문자 인덱스 초기화
+        setWrongChar(false);         // 오타 여부 초기화
+        setShake(false);             // 흔들기 효과 초기화
+
+        setStartTime(null);          // 시작 시간 초기화
+        setElapsedTime(0);           // 경과 시간 초기화
+        setIsStarted(false);         // 게임 시작 상태 초기화
+
+        setProgress(0);              // 달성률 초기화
+        setTotalTypedChars(0);       // 전체 타자 수 초기화
+        setCpm(0);                   // 타자 속도 초기화
+
+        setIsFinished(false);        // 완료 상태 초기화
+
+        inputAreaRef.current?.focus();
+    }
+
     useEffect(() => {
         if (lang) {
             if (lang === 'cs') {
@@ -105,7 +129,7 @@ const SinglePage = () => {
             } else {
                 setIsCs(false);
                 singleLangCode(lang)
-                // getLangCode(525)
+                //getLangCode(476) //476 : h만 있음
                     .then(data => {
                         // console.log("api 결과", data);            
                         const { lines , space, charCount } = processCode(data.content);
@@ -222,8 +246,35 @@ const SinglePage = () => {
 
             // 스크롤을 자동으로 내리기
             codeContainerRef.current.scrollTop += lineHeight;
+            codeContainerRef.current.scrollLeft = 0; // 전줄에서 오른쪽 스클롤 한게 있으면 돌려야함
           }
     }, [currentLineIndex])
+
+    useEffect(() =>{
+        
+        const container = codeContainerRef.current;
+        const cursorEl = document.querySelector('.cursor');            
+        if ( container && cursorEl) {
+
+            const containerRect = container.getBoundingClientRect();
+            const cursorRect = cursorEl.getBoundingClientRect();
+
+            const padding = 50; // 커서가 오른쪽으로 50px 남았을 때 스크롤 하기
+
+             // 커서가 너무 오른쪽에 가까워졌는지 확인
+            
+             if (cursorRect.right > containerRect.right - padding) {
+                // 오른쪽으로 약간 스크롤
+                container.scrollLeft += 400;
+            }
+
+            // 커서가 왼쪽 밖으로 밀린 경우 (역방향 처리도 가능)
+            if (cursorRect.left < containerRect.left + 20) {
+                container.scrollLeft -= 400;
+            }
+        }
+          
+    }, [currentInput])
 
     const handleInputChange = (e) => {
         const value = e.target.value;
@@ -289,13 +340,13 @@ const SinglePage = () => {
                         >
                             <pre 
                                 ref={codeContainerRef}
-                                className="overflow-auto w-full h-[85%] whitespace-pre-wrap p-4 text-xl custom-scrollbar mb-2">
+                                className="overflow-auto w-full h-[85%] p-4 text-xl custom-scrollbar mb-2">
                                 {/* <code
                                     className="hljs"
                                     dangerouslySetInnerHTML={{ __html: highlightedCode }}
                                 /> */}
 
-                                <code className={getLanguageClass(lang)}>
+                                <code className={`codeLine ${getLanguageClass(lang)}`}>
                                     {lines.map((line, idx) => {
                                         
                                         // 현재 줄을 이차원 배열에서 문자를 하나씩 가져오기
@@ -305,7 +356,7 @@ const SinglePage = () => {
                                         const lineWithSpace = space[idx];
 
                                         return (
-                                            <div key={idx} className='codeLine max-h-[28px]'>
+                                            <div key={idx} className='max-h-[28px]'>
                                                 {idx < currentLineIndex ? (
                                                     // 이미 완료한 줄
                                                     <span>
@@ -343,10 +394,11 @@ const SinglePage = () => {
                                                             }
                                                         
                                                             return (
-                                                                <span key={i} className={`cursor-container ${className}`}>
-                                                                    {/* 현재 입력 위치에 커서 표시 */}
+                                                                <span key={i} className="cursor-container">
                                                                     {i === normalizedInput.length && <span className="cursor"></span>}
-                                                                    {char === ' ' ? '\u00A0' : char}  {/* 공백 문자 처리 */}
+                                                                    <span className={className}>
+                                                                        {char === ' ' ? '\u00A0' : char}
+                                                                    </span>
                                                                 </span>
                                                             );
                                                         })}
@@ -409,6 +461,7 @@ const SinglePage = () => {
                         cpm = {cpm}
                         elapsedTime = {elapsedTime}
                         isCS = {lang === 'cs'}
+                        onRestart={resetGame}
                     />
                 </div>
             )}
