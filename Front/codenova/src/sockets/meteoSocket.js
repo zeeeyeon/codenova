@@ -150,7 +150,7 @@ export const onRandomMatchResponse = (callback) => {
     console.log("[onRandomMatchResponse] matchRandom 수신:", data);
     callback(data);
   };
-  socket.once("matchRandom", handler);
+  socket.on("matchRandom", handler);
 };
 
 // 랜덤매칭 해제
