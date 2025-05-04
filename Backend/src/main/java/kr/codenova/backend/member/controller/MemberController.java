@@ -7,7 +7,7 @@ import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
 import kr.codenova.backend.member.dto.GuestLoginDto;
-import kr.codenova.backend.member.dto.MemberPhoneNumDto;
+import kr.codenova.backend.member.dto.ProfileUpdateDto;
 import kr.codenova.backend.member.dto.SignupDto;
 import kr.codenova.backend.member.dto.MemberProfileDto;
 import kr.codenova.backend.member.entity.Member;
@@ -20,7 +20,6 @@ import kr.codenova.backend.single.repository.TypingSpeedRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -73,16 +72,16 @@ public class MemberController {
     }
 
     @PostMapping("/profile")
-    public ResponseEntity<?> updatePhoneNum(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody MemberPhoneNumDto dto) {
+    public ResponseEntity<?> updatePhoneNum(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody ProfileUpdateDto dto) {
         Member findMember = memberRepository.findByIdColumn(memberDetails.getMember().getId())
                 .orElseThrow(() -> new CustomException(NOT_FOUND_USER));
 
         log.info(dto.getPhoneNum());
-        findMember.changePhoneNum(dto.getPhoneNum());
+        findMember.updateProfile(dto);
 
         memberRepository.save(findMember);
         return new ResponseEntity<>(
-                Response.create(ResponseCode.SUCCESS_CHANGE_PROFILE, findMember.getPhoneNum()), SUCCESS_CHANGE_PROFILE.getHttpStatus()
+                Response.create(ResponseCode.SUCCESS_CHANGE_PROFILE, findMember), SUCCESS_CHANGE_PROFILE.getHttpStatus()
         );
     }
 

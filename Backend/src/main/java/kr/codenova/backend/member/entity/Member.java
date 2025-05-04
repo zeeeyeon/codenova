@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import kr.codenova.backend.member.dto.ProfileUpdateDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.Objects;
 
 @Getter
 @NoArgsConstructor
@@ -45,7 +48,8 @@ public class Member {
         this.phoneNum = phoneNum;
     }
 
-    public void changePhoneNum(String phoneNum) {
-        this.phoneNum = phoneNum;
+    public void updateProfile(ProfileUpdateDto dto) {
+        this.nickname = Objects.equals(dto.getNickname(), "") ? this.nickname : dto.getNickname();
+        this.phoneNum = Objects.equals(dto.getPhoneNum(), "") ? this.phoneNum : dto.getPhoneNum();
     }
 }
