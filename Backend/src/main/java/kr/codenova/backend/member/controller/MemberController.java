@@ -81,7 +81,7 @@ public class MemberController {
 
         memberRepository.save(findMember);
         return new ResponseEntity<>(
-                Response.create(ResponseCode.SUCCESS_CHANGE_PROFILE, dto), SUCCESS_CHANGE_PROFILE.getHttpStatus()
+                Response.create(ResponseCode.SUCCESS_CHANGE_PROFILE, findMember), SUCCESS_CHANGE_PROFILE.getHttpStatus()
         );
     }
 
