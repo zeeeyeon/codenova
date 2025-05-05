@@ -68,7 +68,7 @@ public class RoomServiceImpl implements RoomService {
         log.info("방 생성 : " + room.toString());
 
         // 유저 준비 상태 초기화
-        room.getUserStatusMap().put(request.getNickname(), new UserStatus(true, false));
+        room.getUserStatusMap().put(request.getNickname(), new UserStatus(true, true));
 
         // 유저 입장 시간 기록 (자동 방장 위임에 필요)
         room.getUserJoinTimes().put(request.getNickname(), System.currentTimeMillis());
@@ -212,6 +212,7 @@ public class RoomServiceImpl implements RoomService {
                 // 새 방장 설정
                 UserStatus newHostStatus = room.getUserStatusMap().get(newHostNickname);
                 newHostStatus.setHost(true);
+                newHostStatus.setReady(true);
                 log.info("방장 권한 위임: {} -> {}, 방: {}",
                         request.getNickname(), newHostNickname, request.getRoomId());
 
