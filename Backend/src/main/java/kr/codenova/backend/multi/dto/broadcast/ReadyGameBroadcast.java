@@ -1,5 +1,6 @@
 package kr.codenova.backend.multi.dto.broadcast;
 
+import kr.codenova.backend.multi.room.Room;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,10 +18,12 @@ public class ReadyGameBroadcast {
     public static class UserReadyStatus {
         private String nickname;
         private Boolean isReady;
+        private Boolean isHost;
 
-        public UserReadyStatus(String nickname, Boolean isReady) {
+        public UserReadyStatus(String nickname, Room.UserStatus status) {
             this.nickname = nickname;
-            this.isReady = isReady;
+            this.isReady = status.isReady();
+            this.isHost = status.isHost();
         }
     }
 }
