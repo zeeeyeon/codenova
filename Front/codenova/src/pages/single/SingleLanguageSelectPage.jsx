@@ -2,8 +2,11 @@ import backgroundImg from '../../assets/images/single_background.jpg'
 import javaBtn from '../../assets/images/java_button.png'
 import pythonBtn from '../../assets/images/python_button.png'
 import sqlBtn from '../../assets/images/SQL_button.png'
+import jsBtn from '../../assets/images/js_button.png'
+import goBtn from '../../assets/images/go_button.png'
 import cBtn from '../../assets/images/C_button.png'
 import csBtn from '../../assets/images/CS_button.png'
+import lockIcon from '../../assets/images/lock_icon.png'
 import cancelBtn from '../../assets/images/cancel_btn.png'
 import BoardContainer from '../../components/single/BoardContainer'
 import Header from '../../components/common/Header'
@@ -34,8 +37,19 @@ const SingleLanguageSelectPage = () => {
           <img src={javaBtn} alt="자바" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/java')}/>
           <img src={pythonBtn} alt="파이썬" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'onClick={() => navigate('/single/game/python')}/>
           <img src={sqlBtn} alt="SQL" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/sql')} />
-          <img src={cBtn} alt="C언어" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/js')}/>
-          <img src={csBtn} alt="CS" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/select/cs')}/>
+          <img src={jsBtn} alt="js" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/js')}/>
+          {/* <img src={goBtn} alt="go" className='w-[13vw] cursor-pointer transition-all duration-150 brightness-50 pointer-events-none' onClick={() => navigate('/single/select/go')}/> */}
+          <div className="relative group w-[13vw]">
+            <img src={goBtn} alt="go" className='w-full cursor-pointer transition-all duration-150 brightness-50 pointer-events-none' onClick={() => navigate('/single/select/go')}/>
+            <img
+              src={lockIcon}
+              alt="lock"
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[20%] "
+            />
+            <div className="absolute  left-1/2 -translate-x-1/2 hidden group-hover:block bg-black text-white text-sm px-2 py-1 rounded shadow-md whitespace-nowrap z-10">
+                GO언어 추후 GOGO 예정!!
+              </div>
+          </div>
         </div>
 
         {/* 취소 버튼 */}
