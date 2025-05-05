@@ -59,6 +59,8 @@ public class GameServiceImpl implements GameService {
             throw new UserNotFoundException("해당 유저는 방에 존재하지 않습니다.");
         }
 
+
+
         userStatus.setReady(!userStatus.isReady());
 
         ReadyGameBroadcast broadcast = buildReadyBroadcast(request.getRoomId());
@@ -84,7 +86,7 @@ public class GameServiceImpl implements GameService {
 
         List<ReadyGameBroadcast.UserReadyStatus> users = new ArrayList<>();
         for (Map.Entry<String, Room.UserStatus> entry : room.getUserStatusMap().entrySet()) {
-            users.add(new ReadyGameBroadcast.UserReadyStatus(entry.getKey(), entry.getValue().isReady()));
+            users.add(new ReadyGameBroadcast.UserReadyStatus(entry.getKey(), entry.getValue()));
         }
 
         return new ReadyGameBroadcast(roomId, users);
