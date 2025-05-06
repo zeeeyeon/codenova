@@ -106,6 +106,9 @@ public class GameServiceImpl implements GameService {
                 3
         );
         room.setIsStarted(true);
+        room.setRoundNumber(1);
+        resetRoundData(room);
+
         getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("game_started", countdown);
 
@@ -231,6 +234,48 @@ public class GameServiceImpl implements GameService {
         } else {
             return "기본 문장입니다. (DB에 내용이 없습니다)";
         }
+    }
+
+
+
+
+    // 라운드별 점수 계산
+    public void calculateScores(Room room) {
+
+        HashMap<String, Integer> roundScoreMap = new HashMap<>();
+
+        for (String nickname : room.getFinishTimeMap().keySet()) {
+            Double userTime = room.getFinishTimeMap().get(nickname);
+
+            // 10초 초과 시 retire 간주 -> 시간 차는 무조건 15초로 고정
+            double timeDiff = (userTime - room.getFirstFinishTime() > 10.0) ? 15.0 : Math.max(0, userTime - room.getFirstFinishTime());
+
+            int typo = room.getTypoCountMap().getOrDefault(nickname, 0);
+            int score = (int) Math.max(0, 100 - (timeDiff * 2.0) - typo * (4.0));
+
+            roundScoreMap.put(nickname, score);
+            room.getScoreMap().put(nickname, room.getScoreMap().getOrDefault(nickname, 0) + score);
+        }
+
+        room.setRoundScoreMap(roundScoreMap);
+    }
+
+    private void resetRoundData(Room room) {
+        room.setFirstFinishTime(null);
+        room.setFirstFinisherNickname(null);
+        room.getFinishTimeMap().clear();
+        room.getTypoCountMap().clear();
+        room.getRoundScoreMap().clear();
+    }
+
+    // 라운드별 점수 응답
+    public Map<String, Integer> getRoundScoreBoard(Room room) {
+        return new HashMap<>(room.getRoundScoreMap());
+    }
+
+    // 최종 점수 응답
+    public Map<String, Integer> getFinalScoreBoard(Room room) {
+        return new HashMap<>(room.getScoreMap());
     }
 
 }
