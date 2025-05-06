@@ -335,8 +335,11 @@ const MeteoGamePage = () => {
             </div>
 
             <div className="text-pink-300 text-lg mt-1 min-h-[1.5rem] max-w-[6rem] leading-tight">
-              {userInputTexts[nickname] || ""}
+              {userInputTexts[nickname]?.length > 6
+                ? userInputTexts[nickname].slice(0, 6) + "..."
+                : userInputTexts[nickname] || ""}
             </div>
+
           </div>
         </div>
       );
