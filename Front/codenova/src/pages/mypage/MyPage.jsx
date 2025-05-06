@@ -12,12 +12,13 @@ import { useNavigate } from 'react-router-dom'
 import { checkNicknameApi } from '../../api/authApi'
 import { getMyProfile, upDateMyProfile } from '../../api/myPage'
 import Header from '../../components/common/Header'
+import TutoModal from '../../components/common/TutoModal'
 
 const MyPage= () => {
 
     const navigate = useNavigate();
     const btn_class = 'cursor-pointer scale-75 transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'
-
+    const [showTutoModal, setShowTutoModal] = useState(false)
     const [currentLangIndex, setCurrentLangIndex] = useState(0);
 
     const [id, setId] = useState("")
@@ -146,10 +147,15 @@ const MyPage= () => {
             className="w-screen h-screen flex items-center justify-center bg-no-repeat bg-cover bg-center"
             style={{ backgroundImage: `url(${backgroundImg})`}}
         >
-            <Header/>
+            {showTutoModal && (
+                <div className="z-[9999]">
+                    <TutoModal onClose={() => setShowTutoModal(false)} />
+                </div>
+            )}
+            <Header onShowTuto={() => setShowTutoModal(true)}/>
             <BoardContainer>
                 {/* 타이틀 텍스트 */}
-                <div className="absolute top-[1%] left-1/2 -translate-x-1/2 font-bold text-4xl drop-shadow-md z-10"
+                <div className="absolute top-[1%] left-1/2 -translate-x-1/2 text-3xl drop-shadow-md z-10"
                     style={{color: '#1C1C1C'}}
                 >
                     마이페이지
