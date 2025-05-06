@@ -237,7 +237,7 @@ const MeteoLandingPage = () => {
             }
     
             // ✅ 페이지 이동
-            navigate("/meteo/game", { state: { ...gameData } });
+            navigate("/meteo/game", { state: { ...gameData } }, 3000);
           }
         }, 1000);
       });
