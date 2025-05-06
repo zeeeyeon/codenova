@@ -13,18 +13,12 @@ import { useState } from "react";
 import RoomCodeModal from "../../components/modal/RoomCodeModal";
 import { createMeteoRoom } from "../../sockets/meteoSocket";
 import useAuthStore from "../../store/authStore";
+import TutoModal from "../../components/common/TutoModal";
 
 const MainPage = () => {
   const navigate = useNavigate()
   const [showRoomModal, setShowRoomModal] = useState(false);
-
-  // useEffect(() => {
-  //   const accessToken = getAccessToken();
-  //   if (!accessToken) {
-  //     alert("로그인이 필요합니다.");
-  //     navigate("/auth/login");
-  //   }
-  // }, [navigate]);
+  const [showTutoModal, setShowTutoModal] = useState(false);
 
 
   const nickname = useAuthStore((state) => state.user?.nickname)
@@ -55,10 +49,10 @@ const MainPage = () => {
       className="h-screen w-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
       style={{ backgroundImage: `url(${multibg})` }}
     >
-      <Header />
+      <Header onShowTuto={() => setShowTutoModal(true)} />
 
       {/* 보드 2개 (배틀모드 / 협력모드) */}
-      <div className="flex justify-center items-center gap-20 mt-44">
+      <div className="flex justify-center items-center gap-20 mt-44 z-30">
         {/* 배틀모드 박스 */}
         <div className="relative w-[24rem] h-[30rem] shadow-2xl rounded-2xl">
           <img src={boardImage} alt="Battle Mode Board" className="w-full h-full rounded-2xl" />
@@ -130,6 +124,7 @@ const MainPage = () => {
         </div>
       </div>
       {showRoomModal && <RoomCodeModal onClose={() => setShowRoomModal(false)} />}
+      {showTutoModal && <TutoModal onClose={() => setShowTutoModal(false)} />}
     </div>
 
 );
