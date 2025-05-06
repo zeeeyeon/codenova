@@ -184,11 +184,15 @@ public class GameServiceImpl implements GameService {
     public void finishGame(FinishGameRequest request) {
         saveUserResult(request.getRoomId(), request.getNickname(), request.getTypingSpeed(), request.getFinishTime());
 
-        if (isAllUsersFinished(request.getRoomId())) {
-            GameResultBroadcast broadcast = summarizeGameResult(request.getRoomId());
-            getServer().getRoomOperations(request.getRoomId())
-                    .sendEvent("game_result", broadcast);
-        }
+    // 7. 라운드 종료
+    public void endRound(String roomId) {
+        Room room = roomService.getRoom(roomId);
+        calculateScores(room);
+        room.setRoundNumber(room.getRoundNumber() + 1);
+        resetRoundData(room);
+        getServer().getRoomOperations(roomId)
+                    .sendEvent("round_score", getRoundScoreBoard(room));
+    }
 
         Room room = roomService.getRoom(request.getRoomId());
         room.setIsStarted(false);
