@@ -1,6 +1,9 @@
 package kr.codenova.backend.multi.game;
 
 import com.corundumstudio.socketio.SocketIOServer;
+import kr.codenova.backend.multi.dto.EndGameRequest;
+import kr.codenova.backend.multi.dto.RoundEndRequest;
+import kr.codenova.backend.multi.dto.TypoRequest;
 import kr.codenova.backend.multi.dto.request.*;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
 import kr.codenova.backend.global.socket.SocketEventHandler;
@@ -43,12 +46,30 @@ public class GameSocketHandler implements SocketEventHandler {
             }
         });
 
-        // 4. 게임 종료
-        server.addEventListener("finish_game", FinishGameRequest.class, (client, request, ackSender) -> {
+        // 4. 라운드 종료 (프론트 10초 타이머 이후 호출)
+        server.addEventListener("round_end", RoundEndRequest.class, (client, request, ackSender) -> {
             try {
-                gameService.finishGame(request); // ✅ Service에 위임
+                gameService.endRound(request.getRoomId());
             } catch (Exception e) {
-                client.sendEvent("error", new SocketErrorResponse("게임 종료 처리 중 오류 발생"));
+                client.sendEvent("error", new SocketErrorResponse("라운드 종료 처리 오류"));
+            }
+        });
+
+        // 5. 게임 종료
+        server.addEventListener("end_game", EndGameRequest.class, (client, request, ackSender) -> {
+            try {
+                gameService.endGame(request.getRoomId());
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("게임 종료 처리 오류"));
+            }
+        });
+
+        // 6. 오타 발생 시
+        server.addEventListener("typo_occurred", TypoRequest.class, (client, request, ackSender) -> {
+            try {
+                gameService.addTypo(request.getRoomId(), request.getNickname());
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("오타 처리 오류"));
             }
         });
     }
