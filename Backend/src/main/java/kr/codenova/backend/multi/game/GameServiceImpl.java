@@ -105,6 +105,7 @@ public class GameServiceImpl implements GameService {
                 "모두 준비되었습니다. 곧 시작합니다.",
                 3
         );
+        room.setIsStarted(true);
         getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("game_started", countdown);
 
@@ -176,6 +177,9 @@ public class GameServiceImpl implements GameService {
             getServer().getRoomOperations(request.getRoomId())
                     .sendEvent("game_result", broadcast);
         }
+
+        Room room = roomService.getRoom(request.getRoomId());
+        room.setIsStarted(false);
     }
 
     // 8. 게임 종료 시 유저 결과 저장
