@@ -6,6 +6,7 @@ import kr.codenova.backend.common.repository.CodeRepository;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
 import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
+import kr.codenova.backend.multi.dto.RoundScoreBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.*;
 import kr.codenova.backend.multi.dto.request.FinishGameRequest;
 import kr.codenova.backend.multi.dto.request.ProgressUpdateRequest;
@@ -26,6 +27,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static kr.codenova.backend.multi.dto.RoundScoreBroadcast.*;
+import static kr.codenova.backend.multi.dto.broadcast.GameResultBroadcast.*;
+
 @Service
 @RequiredArgsConstructor
 public class GameServiceImpl implements GameService {
@@ -40,7 +44,7 @@ public class GameServiceImpl implements GameService {
     }
 
     // 방 별로 완료한 유저들의 결과 저장
-    private final Map<String, List<GameResultBroadcast.UserResultStatus>> finishedUserResults = new ConcurrentHashMap<>();
+    private final Map<String, List<UserResultStatus>> finishedUserResults = new ConcurrentHashMap<>();
 
     // ✅ 방의 참가자 수 저장 (필요함)
     private final Map<String, Integer> roomUserCounts = new ConcurrentHashMap<>();
@@ -180,58 +184,39 @@ public class GameServiceImpl implements GameService {
                 .sendEvent("progress_update", request);
     }
 
-    // 7. 게임 종료
-    public void finishGame(FinishGameRequest request) {
-        saveUserResult(request.getRoomId(), request.getNickname(), request.getTypingSpeed(), request.getFinishTime());
-
     // 7. 라운드 종료
     public void endRound(String roomId) {
         Room room = roomService.getRoom(roomId);
         calculateScores(room);
+
+        RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
+
+        getServer().getRoomOperations(roomId)
+                    .sendEvent("round_score", broadcast);
+
         room.setRoundNumber(room.getRoundNumber() + 1);
         resetRoundData(room);
+    }
+
+    // 8. 게임 종료
+    public void endGame(String roomId) {
+        Room room = roomService.getRoom(roomId);
+        GameResultBroadcast result = buildGameResultBroadcast(room);
         getServer().getRoomOperations(roomId)
-                    .sendEvent("round_score", getRoundScoreBoard(room));
+                .sendEvent("game_result", result);
     }
 
-        Room room = roomService.getRoom(request.getRoomId());
-        room.setIsStarted(false);
-    }
-
-    // 8. 게임 종료 시 유저 결과 저장
-    public void saveUserResult(String roomId, String nickname, Double typingSpeed, LocalDateTime finishTime) {
-        finishedUserResults.computeIfAbsent(roomId, k -> new ArrayList<>())
-                .add(new GameResultBroadcast.UserResultStatus(nickname, typingSpeed, finishTime));
+    // 9. 오타 발생
+    public void addTypo(String roomId, String nickname) {
+        Room room = roomService.getRoom(roomId);
+        Map<String, Integer> typoCountMap = room.getTypoCountMap();
+        typoCountMap.put(nickname, typoCountMap.getOrDefault(nickname, 0) + 1);
     }
 
     // 9. 방 참가자 전원이 게임 완료 체크
     public boolean isAllUsersFinished(String roomId) {
         return finishedUserResults.getOrDefault(roomId, Collections.emptyList()).size()
                 >= roomUserCounts.getOrDefault(roomId, Integer.MAX_VALUE);
-    }
-
-    // 10. 게임 결과 요약
-    public GameResultBroadcast summarizeGameResult(String roomId) {
-        List<GameResultBroadcast.UserResultStatus> results = finishedUserResults.getOrDefault(roomId, new ArrayList<>());
-
-        // ✅ finishTime 기준으로 정렬
-        results.sort(Comparator.comparing(GameResultBroadcast.UserResultStatus::getFinishTime));
-
-        // ✅ 순위 매기기 (리스트 순서 그대로 rank 부여)
-        int rank = 1;
-        for (GameResultBroadcast.UserResultStatus userResult : results) {
-            userResult.setRank(rank++);
-        }
-
-        GameResultBroadcast broadcast = new GameResultBroadcast();
-        broadcast.setRoomId(roomId);
-        broadcast.setResults(results);
-
-        // ✅ 다 끝나면 데이터 초기화
-        finishedUserResults.remove(roomId);
-        roomUserCounts.remove(roomId);
-
-        return broadcast;
     }
 
     // 11. 방 별 유저 수 저장
@@ -250,7 +235,56 @@ public class GameServiceImpl implements GameService {
     }
 
 
+    public RoundScoreBroadcast buildRoundScoreBroadcast(Room room) {
+        List<UserRoundResult> results = new ArrayList<>();
 
+        for (String nickname : room.getUserStatusMap().keySet()) {
+            Double finishTime = room.getFinishTimeMap().get(nickname);
+            int typo = room.getTypoCountMap().getOrDefault(nickname, 0);
+            int score = room.getRoundScoreMap().getOrDefault(nickname, 0);
+
+            boolean isRetire = (finishTime == null || finishTime - room.getFirstFinishTime() > 10.0);
+
+            results.add(new UserRoundResult(
+                    nickname,
+                    score,
+                    typo,
+                    isRetire ? null : finishTime,
+                    isRetire
+            ));
+        }
+
+        return new RoundScoreBroadcast(room.getRoomId(), room.getRoundNumber(), results);
+    }
+
+    public GameResultBroadcast buildGameResultBroadcast(Room room) {
+        List<UserResultStatus> results = new ArrayList<>();
+
+        for (String nickname : room.getUserStatusMap().keySet()) {
+            int totalScore = room.getScoreMap().getOrDefault(nickname, 0);
+            int typo = room.getTypoCountMap().getOrDefault(nickname, 0);
+            Double finishTime = room.getFinishTimeMap().get(nickname);
+            boolean isRetire = (finishTime == null || finishTime - room.getFirstFinishTime() > 10.0);
+
+            results.add(UserResultStatus.builder()
+                    .nickname(nickname)
+                            .score(totalScore)
+                            .typoCount(typo)
+                            .retire(isRetire)
+                            .time(isRetire ? null : finishTime)
+                            .build()
+            );
+
+        }
+
+        // ✅ 점수 기준 정렬 및 순위 매기기
+        results.sort((a, b) -> Integer.compare(b.getScore(), a.getScore()));
+        for (int i = 0; i < results.size(); i++) {
+            results.get(i).setRank(i + 1);
+        }
+
+        return new GameResultBroadcast(room.getRoomId(), results);
+    }
 
     // 라운드별 점수 계산
     public void calculateScores(Room room) {
@@ -279,11 +313,6 @@ public class GameServiceImpl implements GameService {
         room.getFinishTimeMap().clear();
         room.getTypoCountMap().clear();
         room.getRoundScoreMap().clear();
-    }
-
-    // 라운드별 점수 응답
-    public Map<String, Integer> getRoundScoreBoard(Room room) {
-        return new HashMap<>(room.getRoundScoreMap());
     }
 
     // 최종 점수 응답
