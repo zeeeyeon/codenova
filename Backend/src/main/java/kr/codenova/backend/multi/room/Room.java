@@ -45,11 +45,14 @@ public class Room {
 
     private int roundNumber; // 현재 라운드
     private String firstFinisherNickname; // 첫 도착 유저 닉네임
-    private Double firstFinishTime; // 첫 도착 유저 시간
-
+    private Integer firstFinishTime; // 첫 도착 유저 시간
+    @Builder.Default
     private Map<String, Double> finishTimeMap = new ConcurrentHashMap<>(); // 도착 시간
+    @Builder.Default
     private Map<String, Integer> typoCountMap = new ConcurrentHashMap<>(); // 오타 횟수
+    @Builder.Default
     private Map<String, Integer> scoreMap = new ConcurrentHashMap<>(); // 누적 점수
+    @Builder.Default
     private Map<String, Integer> roundScoreMap = new ConcurrentHashMap<>(); // 현재 라운드 점수
 
 
@@ -57,7 +60,7 @@ public class Room {
         return firstFinisherNickname != null;
     }
 
-    public void setFirstFinisher(String nickname, double time) {
+    public void setFirstFinisher(String nickname, Integer time) {
         this.firstFinisherNickname = nickname;
         this.firstFinishTime = time;
     }
