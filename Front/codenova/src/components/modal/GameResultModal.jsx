@@ -21,7 +21,7 @@ const GameResultModal = ({ results, success, onExit, onRetry }) => {
         return (
           <div key={idx} className="flex flex-col items-center">
             <img src={customer} alt="user" className="w-[5.5rem] h-[5.5rem]" />
-            <div className={`mt-2 text-lg ${isMe ? "text-cyan-300 font-bold" : "text-white"}`}>
+            <div className={`mt-2 text-lg ${isMe ? "text-cyan-300" : "text-white"}`}>
               {r.nickname}
             </div>
             <div className={`text-xl ${isMe ? "text-cyan-300" : "text-white"}`}>
