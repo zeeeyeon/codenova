@@ -144,11 +144,10 @@ const MeteoLandingPage = () => {
     };
   
     window.addEventListener("beforeunload", handleUnloadOrBack); // 새로고침 / 탭 종료
-    window.addEventListener("popstate", handleUnloadOrBack);     // 브라우저 뒤로가기
-  
+ 
+
     return () => {
       window.removeEventListener("beforeunload", handleUnloadOrBack);
-      window.removeEventListener("popstate", handleUnloadOrBack);
     };
   }, [nickname]);
   useEffect(() => {
