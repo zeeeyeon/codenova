@@ -10,13 +10,15 @@ import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import { disconnectSocket } from "../../sockets/socketClient";
 import { useEffect, useState } from "react";
+import TutoModal from "./TutoModal";
 
-const Header = () => {
+const Header = ({onShowTuto}) => {
 
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout);
   const [userType ,setUserType] = useState(null);
   const [nickname ,setNickname] = useState(null);
+  const [showTuto, setShowTuto] = useState(false);
 
   useEffect(() => {
     const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
@@ -73,6 +75,7 @@ const Header = () => {
           src={helpIcon2}
           alt="Help"
           className="w-16 h-16 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"
+          onClick={onShowTuto}
         />
         <img 
           src={logoutIcon} 
@@ -84,6 +87,7 @@ const Header = () => {
           로그아웃
         </button> */}
       </div>
+      {showTuto && <TutoModal onClose={() => setShowTuto(false)} />}
     </header>
   );
 };

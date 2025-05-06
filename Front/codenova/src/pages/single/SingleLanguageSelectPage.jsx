@@ -10,19 +10,26 @@ import lockIcon from '../../assets/images/lock_icon.png'
 import cancelBtn from '../../assets/images/cancel_btn.png'
 import BoardContainer from '../../components/single/BoardContainer'
 import Header from '../../components/common/Header'
-
+import TutoModal from '../../components/common/TutoModal'
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 
 
 const SingleLanguageSelectPage = () => {
 
   const navigate = useNavigate();
-
+  const [showTutoModal, setShowTutoModal] = useState(false)
   return (
     <div className="w-screen h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center"
       style={{backgroundImage: `url(${backgroundImg})`}}
     >
-      <Header/>
+      {/* 튜토리얼 모달 조건부 렌더링 */}
+      {showTutoModal && (
+        <div className="z-[9999]">
+          <TutoModal onClose={() => setShowTutoModal(false)} />
+        </div>
+      )}
+      <Header onShowTuto={() => setShowTutoModal(true)}/>
 
       <BoardContainer>
         {/* 타이틀 텍스트 */}
