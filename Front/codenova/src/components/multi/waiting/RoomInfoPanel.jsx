@@ -9,7 +9,19 @@ import exitBtn from "../../../assets/images/multi_exit_btn.png";
 import copyBtn from "../../../assets/images/multi_copy_icon.png";
 
 
-const RoomInfoPanel = ({ isPublic, roomCode, language, currentPeople, standardPeople, onLeave, onReady, isReady }) => {
+const RoomInfoPanel = ({ 
+  isPublic, 
+  roomCode, 
+  language, 
+  currentPeople, 
+  standardPeople, 
+  onLeave, 
+  onReady, 
+  isReady,
+  isHost,
+  allReady,
+  onStart
+}) => {
     
     const handleCopy = async () => {
         try {
@@ -53,21 +65,38 @@ const RoomInfoPanel = ({ isPublic, roomCode, language, currentPeople, standardPe
       </div>
 
       {/* 버튼 영역 */}
-      <div className="w-full flex flex-col items-center gap-y-1">
-        {/* 나가기 버튼 */}
-        <button onClick={onLeave} className="w-[145px] h-[45px] hover:brightness-110 hover:scale-95 transition">
-          <img src={exitBtn} alt="Exit" className="w-full h-full object-contain" />
-        </button>
+<div className="w-full flex flex-col items-center gap-y-1">
+  {/* 나가기 버튼 */}
+  <button onClick={onLeave} className="w-[145px] h-[45px] hover:brightness-110 hover:scale-95 transition">
+    <img src={exitBtn} alt="Exit" className="w-full h-full object-contain" />
+  </button>
 
-        {/* Ready/Unready 버튼 */}
-        <button onClick={onReady} className="w-[145px] h-[45px] hover:brightness-110 hover:scale-95 transition">
-          <img 
-            src={isReady ? unReadyBtn : readyBtn} 
-            alt={isReady ? "Unready" : "Ready"} 
-            className={`${isReady ? "scale-95" : "scale-100"} w-full h-full object-contain`} 
-          />
-        </button>
-      </div>
+    {isHost ? (
+      // ✅ 방장: Start 버튼
+      <button
+        onClick={onStart}
+        disabled={!allReady}
+        className={`w-[145px] h-[45px] transition ${
+          allReady ? "hover:brightness-110 hover:scale-95" : "opacity-50 cursor-not-allowed"
+        }`}
+      >
+        <img
+          src={startBtn}
+          alt="Start"
+          className="w-full h-full object-contain"
+        />
+      </button>
+    ) : (
+      // ✅ 일반 유저: Ready/Unready 버튼
+      <button onClick={onReady} className="w-[145px] h-[45px] hover:brightness-110 hover:scale-95 transition">
+        <img 
+          src={isReady ? unReadyBtn : readyBtn} 
+          alt={isReady ? "Unready" : "Ready"} 
+          className="w-full h-full object-contain"
+        />
+      </button>
+    )}
+  </div>
 
     </div>
   );

@@ -28,6 +28,7 @@ const RoomChatBox = ({messages = [], onSendMessage }) => {
               className={`text-m ${
                 msg.text.includes("입장") ? "text-green-400 text-center" :
                 msg.text.includes("퇴장") ? "text-red-400 text-center" :
+                msg.text.includes("게임을 시작") ? "text-yellow-300" :
                 "text-white"
               }`}
           >

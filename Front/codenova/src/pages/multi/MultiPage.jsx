@@ -18,8 +18,13 @@ const MultiPage = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);   // 클릭한 방
   const [showEnterModal, setShowEnterModal] = useState(false); // 입장 모달
   const [roomList, setRoomList] = useState([]); // 룸 목록
+  const [searchKeyword, setSearchKeyword] = useState(""); // 방 검색색
 
   const navigate = useNavigate();
+
+  const filteredRooms = roomList.filter((room) => 
+    room.title.toLowerCase().includes(searchKeyword.toLowerCase())
+  );
  
   useEffect(() => {
     const socket = getSocket();
@@ -205,6 +210,7 @@ const MultiPage = () => {
           <input
             type="text"
             placeholder="방 검색"
+            onChange={(e) => setSearchKeyword(e.target.value)} // 엔터없이 글자 포함되어있을때 검색 가능
             className="w-full h-[45px] pl-4 pr-[65px] rounded-md text-[17px] font-bold text-black focus:outline-none"
           />
           <button
@@ -215,7 +221,7 @@ const MultiPage = () => {
 
         {/* 방 리스트 */}
         <div className="mt-[4%] w-[80%] h-[60%] overflow-y-auto flex flex-col items-center gap-4 pt-2 z-10">
-          <RoomList rooms={roomList} onEnterClick={handleEnterClick} />
+          <RoomList rooms={filteredRooms} onEnterClick={handleEnterClick} />
         </div>
       </div>
 
