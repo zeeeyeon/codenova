@@ -92,7 +92,8 @@ export const disconnectSocket = () => {
   if (socket) {
     socket.disconnect();
     console.log("[Socket Disconnected] by manual");
-    // disconnect 후 socket은 남겨야 reconnect 가능
+    socket = null;
+    isConnecting = false;
   }
 };
 
