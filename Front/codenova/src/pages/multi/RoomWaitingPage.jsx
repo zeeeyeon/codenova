@@ -16,10 +16,18 @@ const RoomWaitingPage = () => {
     const {roomId} = useParams(); // url에 담긴 roomId 읽어오기
     const {state} = useLocation();  // navigate할때 보낸 데이터
     const navigate = useNavigate();
-    const [isReady, setIsReady] = useState(false); 
     const [users, setUsers] = useState([]);
     const [chatMessages, setChatMessages] = useState([]);  // 입장알림림
+    const [showReadyAlert, setShowReadyAlert] = useState(false);
+    
     const nickname = useAuthStore((state) => state.user?.nickname);
+
+    const myUser = users.find((u) => u.nickname === nickname);
+    const isReady = myUser?.isReady || false;
+    const isHost = myUser?.isHost || false;
+
+    
+    
 
 
     // 나가기
@@ -245,6 +253,91 @@ useEffect(() => {
   return () => socket.off("send_chat", handleReceiveChat);
 }, []);
 
+const handleReadyToggle = () => {
+  const socket = getSocket();
+  if (!socket || !nickname || !roomId) return;
+
+
+  console.log("📤 emit start:", { roomId, nickname });
+  socket.emit("ready", {
+    roomId,
+    nickname
+  });
+};
+
+useEffect(() => {
+  const socket = getSocket();
+  if (!socket) return;
+
+  const handleReadyStatusUpdate = (data) => {
+    console.log("🧪 ready_status_update 수신:", data);
+
+    const newUsers = Array.from({ length: 4 }, (_, i) => {
+      const user = data.users[i];
+      return user
+        ? {
+            slot: i + 1,
+            nickname: user.nickname,
+            isHost: user.isHost,
+            isReady: user.isReady,
+            empty: false,
+          }
+        : {
+            slot: i + 1,
+            empty: true,
+          };
+    });
+
+    setUsers(newUsers); // ✅ 상태 반영
+
+    // 준비 인원 확인은 여기서 해야 함!
+    const readyCount = newUsers.filter(u => !u.empty && u.isReady).length;
+    const totalCount = newUsers.filter(u => !u.empty).length;
+
+    if (readyCount === totalCount && totalCount > 1) {
+      setChatMessages(prev => [
+        ...prev,
+        {
+          type: "notice",
+          text: "모든 플레이어가 준비되었습니다. 방장님은 게임을 시작할 수 있어요!",
+        }
+      ]);
+
+      setShowReadyAlert(true);
+      setTimeout(() => setShowReadyAlert(false), 4000);
+    }
+  };
+
+  socket.on("ready_status_update", handleReadyStatusUpdate);
+  return () => socket.off("ready_status_update", handleReadyStatusUpdate);
+}, [roomInfo.standardPeople]);
+
+
+const handleStartGame = () => {
+  const socket = getSocket();
+  if (!socket || !nickname || !roomId) return;
+
+  console.log("🎮 emit start_game", { roomId, nickname });
+  socket.emit("start_game", { roomId, nickname });
+};
+
+useEffect(() => {
+  const socket = getSocket();
+  if (!socket) return;
+
+  const handleGameStarted = (data) => {
+    console.log("🎮 수신된 이벤트: game_started", data);
+    if (String(data.roomId) === String(roomId)) {
+      navigate(`/multi/game/${roomId}`);
+    }
+  };
+
+  socket.on("game_started", handleGameStarted);
+  return () => socket.off("game_started", handleGameStarted);
+}, [roomId, navigate]);
+
+
+
   
 
     return (
@@ -253,6 +346,14 @@ useEffect(() => {
             style={{ backgroundImage: `url(${multiBg})` }}
         >
             <Header />
+
+            {showReadyAlert && (
+              <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50">
+                <div className="bg-green-500 text-white font-semibold py-3 px-6 rounded-full shadow-lg animate-bounce transition-all duration-500">
+                  모든 플레이어가 준비 완료! 방장님, 게임을 시작해주세요!
+                </div>
+              </div>
+            )}
 
         <div className="absolute top-[53%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[66vw] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
                 <img
@@ -288,8 +389,11 @@ useEffect(() => {
               standardPeople={roomInfo.standardPeople}
               roomCode={roomInfo.roomCode}
               onLeave={handleLeaveRoom}
+              onReady={handleReadyToggle}
+              isHost={isHost}
               isReady={isReady}
-              onReady={() => setIsReady(prev => !prev)}
+              allReady={users.filter((u) => !u.empty && u.isReady).length === users.filter((u) => !u.empty).length}
+              onStart={handleStartGame}
             />
           </div>
                 </div>
