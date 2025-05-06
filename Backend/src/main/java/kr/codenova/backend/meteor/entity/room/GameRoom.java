@@ -58,6 +58,12 @@ public class GameRoom {
             if (isFull()) {
                 throw new IllegalStateException("방이 가득 찼습니다.");
             }
+            boolean isDuplicateNickname = players.stream()
+                    .anyMatch(p -> p.getNickname().equals(user.getNickname()));
+
+            if (isDuplicateNickname) {
+                throw new IllegalStateException("이미 같은 닉네임의 사용자가 존재합니다.");
+            }
             players.add(user);
             scoreMap.put(user.getSessionId(), 0);
         }
