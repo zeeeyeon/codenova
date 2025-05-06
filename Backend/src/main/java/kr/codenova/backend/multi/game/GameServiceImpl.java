@@ -285,24 +285,31 @@ public class GameServiceImpl implements GameService {
 
     // 라운드별 점수 계산
     public void calculateScores(Room room) {
+        Map<String, Integer> roundScoreMap = new HashMap<>();
 
-        HashMap<String, Integer> roundScoreMap = new HashMap<>();
-
-        for (String nickname : room.getFinishTimeMap().keySet()) {
-            Double userTime = room.getFinishTimeMap().get(nickname);
-
-            // 10초 초과 시 retire 간주 -> 시간 차는 무조건 15초로 고정
-            double timeDiff = (userTime - room.getFirstFinishTime() > 10.0) ? 15.0 : Math.max(0, userTime - room.getFirstFinishTime());
-
+        for (String nickname : room.getUserStatusMap().keySet()) {
+            Double finishTime = room.getFinishTimeMap().get(nickname);
             int typo = room.getTypoCountMap().getOrDefault(nickname, 0);
-            int score = (int) Math.max(0, 100 - (timeDiff * 2.0) - typo * (4.0));
+
+            boolean isRetire = (finishTime == null || finishTime - room.getFirstFinishTime() > 10.0);
+            double timeDiff = isRetire ? 15.0 : Math.max(0, finishTime - room.getFirstFinishTime());
+
+            // 점수 계산
+            int score = (int) Math.max(0, 100 - (timeDiff * 2.0) - typo * 4.0);
 
             roundScoreMap.put(nickname, score);
-            room.getScoreMap().put(nickname, room.getScoreMap().getOrDefault(nickname, 0) + score);
+            room.getScoreMap().put(nickname,
+                    room.getScoreMap().getOrDefault(nickname, 0) + score);
+
+            // 미도착자라도 finishTimeMap에 기록 (정상화)
+            if (finishTime == null) {
+                room.getFinishTimeMap().put(nickname, room.getFirstFinishTime() + 15.0);
+            }
         }
 
         room.setRoundScoreMap(roundScoreMap);
     }
+
 
     private void resetRoundData(Room room) {
         room.setFirstFinishTime(null);
