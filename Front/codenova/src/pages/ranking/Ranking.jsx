@@ -182,25 +182,26 @@ const Ranking = () => {
                             
                         }}
                     />
-                    
-                    <div className=" w-[40%] h-full flex flex-col justify-center text-white gap-4 mt-6">
-                        {Array(7).fill(0).map((_,idx) => {
-                            const nickname = ranking[currentLangIndex]?.top10?.[idx+3]?.nickname || "없음";
-                            const speed =  ranking[currentLangIndex]?.top10?.[idx+3]?.typingSpeed || 0;
-                            return (
-                                <div key={idx} className=" w-full h-auto ">
-                                    {idx + 4}. {nickname} ({Math.floor(speed)})
-                                </div>
-                            )
-                        })}
-                        <div className=" w-full h-auto flex justify-end mt-4 text-xl">
-                            내 등수: {` ${ranking[currentLangIndex]?.myRank?.rank}` ?? " - "}등
-                            {ranking[currentLangIndex]?.myRank?.typingSpeed != null
-                                ? ` ${Math.floor(ranking[currentLangIndex].myRank.typingSpeed)}`
-                                : " - "
-                            }타
+                        <div className=" w-[40%] h-full flex flex-col justify-center text-white gap-4 mt-6">
+                            {Array(7).fill(0).map((_,idx) => {
+                                const nickname = ranking[currentLangIndex]?.top10?.[idx+3]?.nickname || "없음";
+                                const speed =  ranking[currentLangIndex]?.top10?.[idx+3]?.typingSpeed || 0;
+                                return (
+                                    <div key={idx} className=" w-full h-auto ">
+                                        {idx + 4}. {nickname} ({Math.floor(speed)})
+                                    </div>
+                                )
+                            })}
+                            {userType !== "guest" && (
+                            <div className=" w-full h-auto flex justify-end mt-4 text-xl">
+                                내 등수: {` ${ranking[currentLangIndex]?.myRank?.rank}` ?? " - "}등
+                                {ranking[currentLangIndex]?.myRank?.typingSpeed != null
+                                    ? ` ${Math.floor(ranking[currentLangIndex].myRank.typingSpeed)}`
+                                    : " - "
+                                }타
+                            </div>
+                            )}
                         </div>
-                    </div>
                 </div>
             </Board2Container>
 
