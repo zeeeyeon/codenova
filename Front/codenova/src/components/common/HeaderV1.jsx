@@ -2,10 +2,6 @@ import logo from "../../assets/images/codenova_logo.png"; // 🚀 왼쪽 로켓 
 import mypageIcon from "../../assets/images/mypage_icon.png";
 import rankingIcon from "../../assets/images/ranking_icon.png";
 import helpIcon from "../../assets/images/help_icon.png";
-import helpIcon2 from "../../assets/images/help_icon2.png";
-import mypageIcon2 from "../../assets/images/mypage_icon2.png";
-import rankingIcon2 from "../../assets/images/ranking_icon2.png";
-import logoutIcon from "../../assets/images/logout_button.png";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import { disconnectSocket } from "../../sockets/socketClient";
@@ -16,12 +12,11 @@ const Header = () => {
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout);
   const [userType ,setUserType] = useState(null);
-  const [nickname ,setNickname] = useState(null);
 
   useEffect(() => {
     const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
     setUserType(auth?.state?.user?.userType);
-    setNickname(auth?.state?.user?.nickname);
+
   }, [])
 
 
@@ -50,39 +45,30 @@ const Header = () => {
       <img src={logo} alt="Logo" className="w-40 cursor-pointer hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" onClick={() => navigate("/main")} />
 
       {/* 오른쪽 아이콘들 */}
-      <div className="flex items-center gap-4">
-        <div className=" text-white text-gl mr-4 text-center">
-          {nickname}님
-        </div>
+      <div className="flex items-center gap-2">
         {userType !== "guest" && (
           <img
-          src={mypageIcon2}
+          src={mypageIcon}
           alt="My Page"
-          className="w-16 h-16 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"
+          className="w-20 h-20 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
           onClick={() => navigate("/mypage")}
           />
         )}
         
         <img
-          src={rankingIcon2}
+          src={rankingIcon}
           alt="Ranking"
-          className="w-16 h-16 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"
+          className="w-20 h-20 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
           onClick={() => navigate("/ranking")}
         />
         <img
-          src={helpIcon2}
+          src={helpIcon}
           alt="Help"
-          className="w-16 h-16 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"
+          className="w-20 h-20 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
         />
-        <img 
-          src={logoutIcon} 
-          alt="로그아웃" 
-          onClick={handleLogout}
-          className="w-20 h-auto cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"
-        />
-        {/* <button onClick={handleLogout} className="text-white">
+        <button onClick={handleLogout} className="text-white">
           로그아웃
-        </button> */}
+        </button>
       </div>
     </header>
   );
