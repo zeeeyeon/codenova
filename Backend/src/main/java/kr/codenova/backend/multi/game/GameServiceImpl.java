@@ -174,7 +174,7 @@ public class GameServiceImpl implements GameService {
         Room room = roomService.getRoom(request.getRoomId());
         String nickname = request.getNickname();
         int progress = request.getProgressPercent();
-        double time = request.getTime();
+        Integer time = request.getTime();
 
         // 1등 유저라면 1등으로 기록
         if(!room.hasFirstFinisher() && progress >= 100) {
@@ -211,12 +211,6 @@ public class GameServiceImpl implements GameService {
         Room room = roomService.getRoom(roomId);
         Map<String, Integer> typoCountMap = room.getTypoCountMap();
         typoCountMap.put(nickname, typoCountMap.getOrDefault(nickname, 0) + 1);
-    }
-
-    // 9. 방 참가자 전원이 게임 완료 체크
-    public boolean isAllUsersFinished(String roomId) {
-        return finishedUserResults.getOrDefault(roomId, Collections.emptyList()).size()
-                >= roomUserCounts.getOrDefault(roomId, Integer.MAX_VALUE);
     }
 
     // 11. 방 별 유저 수 저장
