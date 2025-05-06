@@ -4,7 +4,7 @@ import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
-import jakarta.annotation.PostConstruct;
+
 import kr.codenova.backend.meteor.dto.request.*;
 import kr.codenova.backend.meteor.dto.request.CreateRoomRequest;
 import kr.codenova.backend.meteor.dto.response.*;
@@ -245,26 +245,29 @@ public class MeteorEventHandler implements SocketEventHandler {
         room.initFallingwords(fallingWords);
         room.start();
 
-        // 4️. 3초 뒤에 모든 사용자에게 게임 시작 알림
-        taskScheduler.schedule(() -> {
-            StartGameResponse resp = StartGameResponse.builder()
-                    .roomId(roomId)
-                    .players(room.getPlayers())
-                    .fallingWords(fallingWords)
-                    .initialLives(5)
-                    .initialDropInterval(1500)
-                    .initialFallDuration(8000)
-                    .message("게임이 시작되었습니다.")
-                    .build();
 
-            server().getRoomOperations(roomId)
-                    .sendEvent("gameStart", resp);
+
+        StartGameResponse resp = StartGameResponse.builder()
+                .roomId(roomId)
+                .players(room.getPlayers())
+                .fallingWords(fallingWords)
+                .initialLives(5)
+                .initialDropInterval(1200)
+                .initialFallDuration(8000)
+                .message("게임이 시작되었습니다.")
+                .build();
+
+        server().getRoomOperations(roomId)
+                .sendEvent("gameStart", resp);
+        taskScheduler.schedule(() -> {
             wordDropScheduler.startDrooping(
                     roomId,
                     resp.getInitialDropInterval(),
                     resp.getInitialFallDuration()
             );
-        }, Instant.now().plusSeconds(3));  // ← here
+        }, Instant.now().plusSeconds(4));
+
+
     }
 
     private void handleExitRoom(SocketIOClient client, ExitRoomRequest data) {

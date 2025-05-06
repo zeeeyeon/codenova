@@ -83,13 +83,10 @@ public class WordDropScheduler {
 
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String timestamp = dateFormat.format(new Date());
-            try{
-                Thread.sleep(1000);
+
             server().getRoomOperations(roomId)
                     .sendEvent("wordFalling", new FallingWordResponse(word, fallDuration.get(), timestamp));
-            } catch(InterruptedException e){
-                System.err.println("게임 시작 오류 발생" + e.getMessage());
-            }
+
             scheduleWordImpact(roomId, word, fallDuration.get());
             // 3. 경과 시간 갱신
             long newElapsed = elapsed.addAndGet(spawnInterval);
