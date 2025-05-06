@@ -12,13 +12,15 @@ import { useEffect, useState } from "react"
 import { useNavigate } from 'react-router-dom'
 import { getRanking, getMemberRanking } from '../../api/rankingApi'
 import Header from '../../components/common/Header'
+import TutoModal from "../../components/common/TutoModal"
+
 
 const Ranking = () => {
 
     const navigate = useNavigate();
 
     const languages = ['JAVA', 'PYTHON' , 'SQL' ,'JS'];
-
+    const [showTutoModal, setShowTutoModal] = useState(false)
     const [currentLangIndex, setCurrentLangIndex] = useState(0);
     
     const [ranking, setRanking] = useState([null,null,null,null]); //언어별 랭킹
@@ -86,7 +88,14 @@ const Ranking = () => {
             className="h-screen w-screen bg-cover bg-center bg-no-repeat overflow-hidden flex items-center justify-center"
             style={{ backgroundImage: `url(${bgImg})`}}
         >
-            <Header/>
+        {/* 튜토리얼 모달 조건부 렌더링 */}
+        {showTutoModal && (
+            <div className="z-[9999]">
+            <TutoModal onClose={() => setShowTutoModal(false)} />
+            </div>
+        )}
+
+            <Header onShowTuto={() => setShowTutoModal(true)} />
               
             <Board2Container>
             <div className="absolute top-[0%] -right-[6%] -translate-x-1/2 z-20">
