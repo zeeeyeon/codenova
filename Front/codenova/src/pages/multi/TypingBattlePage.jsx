@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import multiBg from "../../assets/images/multi_background.png";
 import Header from "../../components/common/Header";
@@ -10,6 +10,8 @@ import rocket1 from "../../assets/images/multi_rocket_1.png";
 import rocket2 from "../../assets/images/multi_rocket_2.png";
 import rocket3 from "../../assets/images/multi_rocket_3.png";
 import rocket4 from "../../assets/images/multi_rocket_4.png";
+import { getSocket } from "../../sockets/socketClient";
+
 
 
 
@@ -21,14 +23,33 @@ const TypingBattlePage = () => {
   const [startTime, setStartTime] = useState(null); // 게임 시작 순간간
   const [elapsedTime, setElapsedTime] = useState(0); // 밀리초 단위
   const [timeRunning, setTimeRunning] = useState(false); // 타이머 실행 중 여부
+  const [targetCode, setTargetCode] = useState("");
+  const {state} = useLocation();
+  const rocketImages = [rocket1, rocket2, rocket3, rocket4];
+
+
+  const [users, setUsers] = useState(() => {
+    const initialUsers = state?.users?.filter(u => !u.empty) || [];
+  
+    // rocketImage 부여 (slot 기반)
+    return initialUsers.map(user => ({
+      ...user,
+      rocketImage: rocketImages[user.slot - 1] || rocket1,
+      progress: 0, // 처음엔 0부터 시작
+    }));
+  });
+
+  useEffect(() => {
+    console.log("🔥 TypingBattlePage 초기 users 상태:", state?.users);
+  }, []);
 
     // 임시데이터
-    const dummyUsers = [
-        { nickname: "과일왕자이과람", rocketImage: rocket1, progress: 10 },
-        { nickname: "애옹이볼쫘압", rocketImage: rocket2, progress: 35 },
-        { nickname: "유단비공쮸", rocketImage: rocket3, progress: 55 },
-        { nickname: "갈비나라지연공주", rocketImage: rocket4, progress: 80 },
-      ];
+    // const dummyUsers = [
+    //     { nickname: "과일왕자이과람", rocketImage: rocket1, progress: 10 },
+    //     { nickname: "애옹이볼쫘압", rocketImage: rocket2, progress: 35 },
+    //     { nickname: "유단비공쮸", rocketImage: rocket3, progress: 55 },
+    //     { nickname: "갈비나라지연공주", rocketImage: rocket4, progress: 80 },
+    //   ];
       
 
 
@@ -55,6 +76,76 @@ const TypingBattlePage = () => {
       return () => clearInterval(interval);
     }
   }, [timeRunning, startTime]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+  
+    socket.emit("room_status", { roomId });
+  
+    const handleRoomStatus = (data) => {
+      console.log("🧑‍🚀 TypingBattlePage room_status 수신:", data);
+  
+      const updatedUsers = Array.from({ length: data.maxCount }, (_, i) => {
+        const user = data.users[i];
+        return user
+          ? {
+              slot: i + 1,
+              nickname: user.nickname,
+              isHost: user.isHost,
+              isReady: user.isReady,
+              rocketImage: rocketImages[i], // 로켓 이미지 부여
+              progress: 0,
+              empty: false,
+            }
+          : {
+              slot: i + 1,
+              empty: true,
+            };
+      });
+  
+      setUsers(updatedUsers.filter((u) => !u.empty)); // 빈 슬롯 제거
+    };
+  
+    socket.on("room_status", handleRoomStatus);
+    return () => socket.off("room_status", handleRoomStatus);
+  }, [roomId]);
+  
+
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleTypingStart = (data) => {
+      console.log("🥘 typing_start 수신:", data);
+      setTargetCode(data.script); // 문제 저장
+    };
+
+    socket.on("typing_start", handleTypingStart);
+    return () => socket.off("typing_start", handleTypingStart);
+  }, []);
+  
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+  
+    const handleProgressUpdate = (data) => {
+      console.log("🚀 progress_update 수신:", data);
+  
+      setUsers((prev) =>
+        prev.map((user) =>
+          user.nickname === data.nickname
+            ? { ...user, progress: data.progressPercent }
+            : user
+        )
+      );
+    };
+  
+    socket.on("progress_update", handleProgressUpdate);
+    return () => socket.off("progress_update", handleProgressUpdate);
+  }, []);
+  
 
   
 
@@ -87,14 +178,17 @@ const TypingBattlePage = () => {
         {/* 타이핑 박스 */}
         <div className="h-[40%] flex items-center justify-center ">
         <TypingBox
+            roomId={roomId}
             gameStarted = {gameStarted} 
             elapsedTime={elapsedTime} 
-            onFinish={() => setTimeRunning(false)} />
+            onFinish={() => setTimeRunning(false)}
+            targetCode={targetCode}
+            />
         </div>
   
         {/* 진행 보드 */}
-        <div className="h-[50%] flex items-center justify-center">
-          <ProgressBoard users={dummyUsers}/>
+        <div className="h-[50%] flex items-center justify-start">
+          <ProgressBoard users={users}/>
         </div>
   
       </div>
