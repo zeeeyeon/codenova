@@ -28,6 +28,7 @@ const MeteoLandingPage = () => {
   const [chatInput, setChatInput] = useState("");
   const scrollRef = useRef(null);
   const currentRoomId = localStorage.getItem("meteoRoomId");
+ const [countdown, setCountdown] = useState(null);
 
   const handleCopy = async () => {
     try {
@@ -36,7 +37,9 @@ const MeteoLandingPage = () => {
     } catch (err) {
         alert("복사에 실패했습니다.")
     }
-}
+  }
+
+  
 
   // players 배열을 users 배열로 변환
   const updateUsersFromPlayers = (playersArray) => {
@@ -206,8 +209,20 @@ const MeteoLandingPage = () => {
 
   // 게임 시작
   const handleStartGame = () => {
-    startMeteoGame(roomId);
-  };
+    // 1. 카운트다운 시작
+    setCountdown(3);
+
+    const countdownInterval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === 1) {
+          clearInterval(countdownInterval);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+      startMeteoGame(roomId);
+    };
   
   useEffect(() => {
     onMeteoGameStart((gameData) => {
@@ -215,7 +230,7 @@ const MeteoLandingPage = () => {
   
       const { roomId, players } = gameData;
       const myNickname = localStorage.getItem("nickname"); // 기본 저장되어 있다고 가정
-  
+      
       // ✅ roomId 저장
       localStorage.setItem("roomId", roomId);
   
@@ -302,7 +317,14 @@ const MeteoLandingPage = () => {
       style={{ backgroundImage: `url(${MeteoBg})` }}
     >
       {/* <Header /> */}
-
+    {/* ✅ 카운트다운 UI 여기 삽입 */}
+    {countdown && (
+      <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+        <div className="text-white text-[10rem] font-bold drop-shadow-lg animate-scale-fade">
+          {countdown}
+        </div>
+      </div>
+    )}
       <div className="relative flex justify-center items-center mt-20">
         <div className="relative w-[66rem]">
 
