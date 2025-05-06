@@ -129,28 +129,28 @@ const MeteoLandingPage = () => {
     };
   }, [roomCode, nickname, players, navigate, roomId]);
 
-  // useEffect(() => {
-  //   const handleUnloadOrBack = () => {
-  //     const savedRoomId = localStorage.getItem("meteoRoomId");
-  //     const savedNickname = nickname;
+  useEffect(() => {
+    const handleUnloadOrBack = () => {
+      const savedRoomId = localStorage.getItem("meteoRoomId");
+      const savedNickname = nickname;
   
-  //     if (savedRoomId && savedNickname) {
-  //       console.log("🚪 [뒤로가기/새로고침] 방 나감 처리 시작");
-  //       exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
+      if (savedRoomId && savedNickname) {
+        console.log("🚪 [뒤로가기/새로고침] 방 나감 처리 시작");
+        exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
   
-  //       localStorage.removeItem("meteoRoomCode");
-  //       localStorage.removeItem("meteoRoomId");
-  //     }
-  //   };
+        localStorage.removeItem("meteoRoomCode");
+        localStorage.removeItem("meteoRoomId");
+      }
+    };
   
-  //   window.addEventListener("beforeunload", handleUnloadOrBack); // 새로고침 / 탭 종료
-  //   window.addEventListener("popstate", handleUnloadOrBack);     // 브라우저 뒤로가기
+    window.addEventListener("beforeunload", handleUnloadOrBack); // 새로고침 / 탭 종료
+    window.addEventListener("popstate", handleUnloadOrBack);     // 브라우저 뒤로가기
   
-  //   return () => {
-  //     window.removeEventListener("beforeunload", handleUnloadOrBack);
-  //     window.removeEventListener("popstate", handleUnloadOrBack);
-  //   };
-  // }, [nickname]);
+    return () => {
+      window.removeEventListener("beforeunload", handleUnloadOrBack);
+      window.removeEventListener("popstate", handleUnloadOrBack);
+    };
+  }, [nickname]);
   useEffect(() => {
     const handlePopState = (event) => {
       // 브라우저 alert 사용 (콘솔이 안 보일때도 확인 가능)
