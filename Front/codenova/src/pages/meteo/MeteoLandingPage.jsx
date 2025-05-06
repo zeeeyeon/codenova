@@ -28,18 +28,16 @@ const MeteoLandingPage = () => {
   const [chatInput, setChatInput] = useState("");
   const scrollRef = useRef(null);
   const currentRoomId = localStorage.getItem("meteoRoomId");
- const [countdown, setCountdown] = useState(null);
+  const [countdown, setCountdown] = useState(null);
 
   const handleCopy = async () => {
     try {
-        await navigator.clipboard.writeText(roomCode);
-        alert("방 코드가 복사되었습니다.");
+      await navigator.clipboard.writeText(roomCode);
+      alert("방 코드가 복사되었습니다.");
     } catch (err) {
-        alert("복사에 실패했습니다.")
+      alert("복사에 실패했습니다.");
     }
-  }
-
-  
+  };
 
   // players 배열을 users 배열로 변환
   const updateUsersFromPlayers = (playersArray) => {
@@ -48,7 +46,7 @@ const MeteoLandingPage = () => {
       if (idx < 4) {
         updated[idx] = {
           nickname: player.nickname,
-          isHost: player.isHost || false 
+          isHost: player.isHost || false,
         };
       }
     });
@@ -56,98 +54,99 @@ const MeteoLandingPage = () => {
     setUsers(updated);
   };
 
+  // 1) 방 정보 저장 전용 useEffect
+  useEffect(() => {
+    if (players && players.length > 0) {
+      // 화면에 유저 세팅
+      updateUsersFromPlayers(players);
+
+      // 로컬스토리지에 방 정보 저장
+      localStorage.setItem("meteoRoomCode", roomCode);
+      localStorage.setItem("meteoRoomId", roomId);
+      localStorage.setItem("meteoPlayers", JSON.stringify(players));
+
+      console.log("✅ [방 생성/입장] localStorage 저장 완료");
+    }
+  }, [players, roomCode, roomId]);
+
+  // 2) guard + socket 이벤트 관리
   useEffect(() => {
     const socket = getSocket();
 
-    if (!roomId || !players || players.length === 0 || !nickname || !socket) {
+    // 1) guard: localStorage 기반
+    const savedId = localStorage.getItem("meteoRoomId");
+    const savedPlayers = JSON.parse(
+      localStorage.getItem("meteoPlayers") || "[]"
+    );
+    if (!savedId || savedPlayers.length === 0 || !nickname || !socket) {
       console.warn("❗ 방 정보 없음 또는 소켓 없음 → 메인으로 이동");
-  
+
       // localStorage 정리
       localStorage.removeItem("meteoRoomCode");
       localStorage.removeItem("meteoRoomId");
-  
-      // 메인 페이지로 이동
+      localStorage.removeItem("meteoPlayers");
+
+      // 메인으로 리다이렉트
       navigate("/main");
-      return; 
+      return;
     }
 
-    // 처음 입장했을 때 players가 있다면 users 설정
-    if (players) {
-      updateUsersFromPlayers(players);
-
-      // ✅ 처음 입장할 때 localStorage 저장
-      localStorage.setItem("meteoRoomCode", roomCode);
-      localStorage.setItem("meteoRoomId", roomId);
-      console.log("✅ [방 생성/입장] localStorage 저장 완료");
-    }
-
-    // 서버에서 secretRoomJoin 수신했을 때
+    // 2) guard 통과 후 서버 이벤트 등록
     const handleSecretRoomJoin = (roomData) => {
-      console.log("🛰️ [secretRoomJoin 수신]", roomData);
       updateUsersFromPlayers(roomData.players);
-      
-
-      // ✅ join 성공 시 localStorage 저장
-      if (roomData.roomCode && roomData.roomId) {
-        localStorage.setItem("meteoRoomCode", roomData.roomCode);
-        localStorage.setItem("meteoRoomId", roomData.roomId);
-        console.log("✅ [방 참가] localStorage 저장 완료");
-      }
+      localStorage.setItem("meteoPlayers", JSON.stringify(roomData.players));
+      console.log("🛰️ [secretRoomJoin] localStorage 업데이트");
     };
-    getSocket().on("secretRoomJoin", handleSecretRoomJoin);
+    socket.on("secretRoomJoin", handleSecretRoomJoin);
 
-    onRoomExit((data) => {
+    const handleRoomExit = (data) => {
       const { currentPlayers, leftUser } = data;
-    
-      const mySessionId = getSocket().id;   // ✅ 먼저 socket.id를 mySessionId에 저장
-    
-      console.log("🛰️ [roomExit 수신] 현재 인원:", currentPlayers);
-      console.log("내 세션 ID:", mySessionId, "나간 사람 세션 ID:", leftUser.sessionId);
-    
-      if (currentPlayers) {
-        updateUsersFromPlayers(currentPlayers);
-      }
-    
+      const mySessionId = socket.id;
+
+      updateUsersFromPlayers(currentPlayers);
+
       if (leftUser.sessionId === mySessionId) {
-        console.log("✅ 내가 나갔음. 메인으로 이동.");
         localStorage.removeItem("meteoRoomCode");
         localStorage.removeItem("meteoRoomId");
+        localStorage.removeItem("meteoPlayers");
         navigate("/main");
       } else {
-        console.log("✅ 상대방이 나감. 현재 방 유지.");
-        // ✅ 시스템 메시지 추가
-        setMessages(prev => [
+        setMessages((prev) => [
           ...prev,
-          { nickname: "SYSTEM", message: `${leftUser.nickname} 님이 나갔습니다.` }
+          {
+            nickname: "SYSTEM",
+            message: `${leftUser.nickname} 님이 나갔습니다.`,
+          },
         ]);
       }
-    });
+    };
+    onRoomExit(handleRoomExit);
 
+    // 3) cleanup
     return () => {
-      getSocket().off("secretRoomJoin", handleSecretRoomJoin);
+      socket.off("secretRoomJoin", handleSecretRoomJoin);
       offRoomExit();
-      // 페이지 떠날 때도 깔끔하게 localStorage 삭제
       localStorage.removeItem("meteoRoomCode");
       localStorage.removeItem("meteoRoomId");
+      localStorage.removeItem("meteoPlayers");
     };
-  }, [roomCode, nickname, players, navigate, roomId]);
+  }, [nickname, navigate]);
 
   useEffect(() => {
     const handleUnloadOrBack = () => {
       const savedRoomId = localStorage.getItem("meteoRoomId");
       const savedNickname = nickname;
-  
+
       if (savedRoomId && savedNickname) {
         console.log("🚪 [뒤로가기/새로고침] 방 나감 처리 시작");
         exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
-  
+
         localStorage.removeItem("meteoRoomCode");
         localStorage.removeItem("meteoRoomId");
       }
     };
-  
+
     window.addEventListener("beforeunload", handleUnloadOrBack); // 새로고침 / 탭 종료
- 
 
     return () => {
       window.removeEventListener("beforeunload", handleUnloadOrBack);
@@ -155,32 +154,37 @@ const MeteoLandingPage = () => {
   }, [nickname]);
   useEffect(() => {
     const handlePopState = (event) => {
-      // 브라우저 alert 사용 (콘솔이 안 보일때도 확인 가능)
-
-      alert("방을 나가시겠습니까?");
-
-      const savedNickname = nickname;
-
-      if (currentRoomId && savedNickname) {
-        exitMeteoRoom({ roomId: roomId, nickname: nickname });
-        console.log("🚪 [뒤로가기] 방 나감 처리 시작");
+      // confirm 창 띄우기
+      const leave = window.confirm("방을 나가시겠습니까?");
+      if (leave) {
+        // “확인” 눌렀을 때만 나가기 로직 실행
+        const savedRoomId = localStorage.getItem("meteoRoomId");
+        const savedNickname = nickname;
+        if (savedRoomId && savedNickname) {
+          exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
+        }
+        localStorage.removeItem("meteoRoomCode");
+        localStorage.removeItem("meteoRoomId");
+        navigate("/main");
+      } else {
+        // “취소” 눌렀을 때, history 스택 복원
+        window.history.pushState(
+          { page: "meteo" },
+          "",
+          window.location.pathname
+        );
       }
     };
 
-    // 현재 history 상태 저장
+    // 현재 상태로 히스토리 한번 채워놓고
     window.history.pushState({ page: "meteo" }, "", window.location.pathname);
-
-    // 이벤트 리스너 등록
     window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [nickname]);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [nickname, navigate]);
 
   useEffect(() => {
     const socket = getSocket();
-  
+
     const handleMatchRandom = (roomData) => {
       console.log("🛰️ [matchRandom 수신 - LandingPage]", roomData);
       updateUsersFromPlayers(roomData.players);
@@ -193,19 +197,21 @@ const MeteoLandingPage = () => {
         if (joined?.nickname) {
           setMessages((prev) => [
             ...prev,
-            { nickname: "SYSTEM", message: `${joined.nickname} 님이 들어왔습니다.` },
+            {
+              nickname: "SYSTEM",
+              message: `${joined.nickname} 님이 들어왔습니다.`,
+            },
           ]);
         }
       }
     };
-  
+
     socket.on("matchRandom", handleMatchRandom);
-  
+
     return () => {
       socket.off("matchRandom", handleMatchRandom);
     };
   }, []);
-  
 
   // 게임 시작
   const handleStartGame = () => {
@@ -221,37 +227,37 @@ const MeteoLandingPage = () => {
         return prev - 1;
       });
     }, 1000);
-      startMeteoGame(roomId);
-    };
-  
+    startMeteoGame(roomId);
+  };
+
   useEffect(() => {
     onMeteoGameStart((gameData) => {
       console.log("🎮 [gameStart 수신] 게임 데이터:", gameData);
-  
+
       const { roomId, players } = gameData;
       const myNickname = localStorage.getItem("nickname"); // 기본 저장되어 있다고 가정
-      
+
       // ✅ roomId 저장
       localStorage.setItem("roomId", roomId);
-  
-      // ✅ roomCode가 없다면 빈 문자열로 초기화 
+
+      // ✅ roomCode가 없다면 빈 문자열로 초기화
       if (!localStorage.getItem("roomCode")) {
         localStorage.setItem("roomCode", "");
       }
-  
+
       // ✅ nickname이 날아갔을 경우 보정
       if (!myNickname) {
         const mySessionId = getSocket()?.id;
-        const matched = players.find(p => p.sessionId === mySessionId);
+        const matched = players.find((p) => p.sessionId === mySessionId);
         if (matched?.nickname) {
           localStorage.setItem("nickname", matched.nickname);
         }
       }
-  
+
       // ✅ 페이지 이동
       navigate("/meteo/game", { state: { ...gameData } });
     });
-  
+
     return () => {
       offMeteoGameStart();
     };
@@ -268,7 +274,10 @@ const MeteoLandingPage = () => {
     if (savedRoomId && savedNickname) {
       exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
     } else {
-      console.error("❌ [방 나가기] roomId 또는 nickname 없음", { savedRoomId, savedNickname });
+      console.error("❌ [방 나가기] roomId 또는 nickname 없음", {
+        savedRoomId,
+        savedNickname,
+      });
     }
 
     // ❗ emit 보내고 바로 메인으로 튕기기
@@ -282,34 +291,32 @@ const MeteoLandingPage = () => {
       console.log("[채팅 수신]", data);
       setMessages((prev) => [...prev, data]);
     };
-  
+
     // ✅ 먼저 off 해두고 on
     const socket = getSocket();
     socket.off("chatSend", handleChat);
     socket.on("chatSend", handleChat);
-  
+
     return () => {
       socket.off("chatSend", handleChat);
     };
   }, []);
-  
-  
+
   const sendChat = () => {
     if (!chatInput.trim()) return;
     onChatMessage({
       roomId,
       nickname,
-      message: chatInput.trim()
+      message: chatInput.trim(),
     });
     setChatInput("");
   };
-  
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-  
 
   return (
     <div
@@ -317,21 +324,23 @@ const MeteoLandingPage = () => {
       style={{ backgroundImage: `url(${MeteoBg})` }}
     >
       {/* <Header /> */}
-    {/* ✅ 카운트다운 UI 여기 삽입 */}
-    {countdown && (
-      <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
-        <div className="text-white text-[10rem] font-bold drop-shadow-lg animate-scale-fade">
-          {countdown}
+      {/* ✅ 카운트다운 UI 여기 삽입 */}
+      {countdown && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div className="text-white text-[10rem] font-bold drop-shadow-lg animate-scale-fade">
+            {countdown}
+          </div>
         </div>
-      </div>
-    )}
+      )}
       <div className="relative flex justify-center items-center mt-20">
         <div className="relative w-[66rem]">
-
-        
-        <img src={MeteoBoard} className="w-[66rem] rounded-2xl shadow-xl z-0" alt="meteoBoard" />
-        <div className="absolute top-[2%] left-1/2 -translate-x-1/2 z-20 text-1C1C1C text-3xl font-bold">
-          지구를 지켜라!
+          <img
+            src={MeteoBoard}
+            className="w-[66rem] rounded-2xl shadow-xl z-0"
+            alt="meteoBoard"
+          />
+          <div className="absolute top-[2%] left-1/2 -translate-x-1/2 z-20 text-1C1C1C text-3xl font-bold">
+            지구를 지켜라!
           </div>
           <div className="absolute top-[1%] right-[0rem] -translate-x-1/2 z-20">
             <div className="relative group ml-2">
@@ -341,23 +350,28 @@ const MeteoLandingPage = () => {
               </span>
 
               {/* 툴팁에 페이드 + 슬라이드 효과 */}
-              <div className="absolute top-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-black bg-opacity-90 text-white text-sm px-3 py-2 rounded shadow-md whitespace-nowrap z-30 text-center
-                animate-fade-slide-up">
-                Player 4명이 모두 들어오면<br />
-                방장이 시작 버튼을 눌러<br />
+              <div
+                className="absolute top-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-black bg-opacity-90 text-white text-sm px-3 py-2 rounded shadow-md whitespace-nowrap z-30 text-center
+                animate-fade-slide-up"
+              >
+                Player 4명이 모두 들어오면
+                <br />
+                방장이 시작 버튼을 눌러
+                <br />
                 지구를 지킬 수 있습니다!
               </div>
             </div>
           </div>
 
-
-
-
-        {/* 유저 카드 */}
-        <div className="flex absolute top-[15%] right-[5.5rem] grid-cols-4 gap-9 z-10">
-          {users.map((user, idx) => (
-            <div key={idx} className="relative w-48 h-auto">
-              <img src={UserBoard} alt={`user-board-${idx}`} className="w-full h-auto rounded-xl shadow-md" />
+          {/* 유저 카드 */}
+          <div className="flex absolute top-[15%] right-[5.5rem] grid-cols-4 gap-9 z-10">
+            {users.map((user, idx) => (
+              <div key={idx} className="relative w-48 h-auto">
+                <img
+                  src={UserBoard}
+                  alt={`user-board-${idx}`}
+                  className="w-full h-auto rounded-xl shadow-md"
+                />
                 {/* 왕관 아이콘 (오른쪽 상단) */}
                 {user?.isHost && (
                   <img
@@ -366,17 +380,17 @@ const MeteoLandingPage = () => {
                     className="absolute top-1 right-1 w-5 h-5" // 위치, 크기 조정
                   />
                 )}
-              <div className="absolute top-1 left-1/2 transform -translate-x-1/2 text-black text-xl">
-                No.{idx + 1}
-              </div>
-                  {/* ✅ user가 있을 때만 프로필 사진 */}
-                  {user ? (
-                    <img
-                      src={profileImages[idx]}
-                      alt={`user-profile-${idx}`}
-                      className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto"
-                    />
-                  ) : null}
+                <div className="absolute top-1 left-1/2 transform -translate-x-1/2 text-black text-xl">
+                  No.{idx + 1}
+                </div>
+                {/* ✅ user가 있을 때만 프로필 사진 */}
+                {user ? (
+                  <img
+                    src={profileImages[idx]}
+                    alt={`user-profile-${idx}`}
+                    className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto"
+                  />
+                ) : null}
                 {/* <img src={profileImages[idx]} alt={`user-profile-${idx}`} className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto" /> */}
                 {/* 닉네임 */}
                 <div
@@ -386,90 +400,104 @@ const MeteoLandingPage = () => {
                 >
                   {user?.nickname || "-"}
                 </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 채팅 + 방코드 */}
-        <div className="flex absolute top-[50%] right-[5.5rem] gap-6">
-
-        <div className="w-[44rem] h-[12.5rem] border-4 rounded-xl bg-white bg-opacity-80 p-3 flex flex-col justify-between text-black text-sm" style={{ borderColor: "#01FFFE" }}>
-        {/* 채팅 메시지 영역 */}
-        <div className="flex-1 overflow-y-auto scroll-smooth pr-1">
-          {messages.map((msg, idx) => (
-            <div key={idx}>
-              <strong className="text-blue-700">{msg.nickname}</strong>: {msg.message}
-            </div>
-          ))}
-          <div ref={scrollRef} />
-        </div>
-
-        {/* 채팅 입력창 */}
-        <div className="mt-2 flex gap-2">
-          <input
-            type="text"
-            className="flex-1 px-3 py-1 rounded border border-gray-400 text-black"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendChat()}
-            placeholder="메시지를 입력하세요"
-          />
-          <button
-            onClick={sendChat}
-            className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            전송
-          </button>
-        </div>
-      </div>
-
-          <div className="flex flex-col gap-4">
-            <div className="w-[10rem] h-[8rem] border-4 rounded-xl flex flex-col items-center justify-center text-white text-2xl" style={{ borderColor: "#01FFFE" }}>
-              <p className="text-xl mb-1">방코드</p>
-              <p className="text-3xl">{roomCode || "-"}</p>
-            <button onClick={handleCopy} className="w-7 h-7 hover:scale-110 transition">
-                <img src={CopyButton} alt="Copy" className="w-full h-full object-contain" />
-            </button>
-            </div>
-            <div className="w-[10rem] h-[3.5rem] border-4 rounded-xl flex items-center justify-center" style={{ borderColor: "#01FFFE" }}>
-            {users.find(user => user?.nickname === nickname)?.isHost ? (
-              users.filter(user => user !== null).length === 4 ? (
-                // ✅ 방장이고, 4명 다 찼으면 진짜 Start 버튼
-                <img
-                  src={StartButton}
-                  alt="start"
-                  className="w-full h-full cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
-                  onClick={() => handleStartGame()}
-                />
-              ) : (
-                // ✅ 방장이지만 아직 4명 안 찼으면 흐릿한 Start 버튼
-                <img
-                  src={StartButton}
-                  alt="start-disabled"
-                  className="w-full h-full opacity-50"
-                />
-              )
-            ) : (
-              // ✅ 방장이 아니면 무조건 Wait 버튼
-              <img
-                src={WaitButton}
-                alt="wait"
-                className="w-full h-full opacity-50"
-              />
-            )}
+              </div>
+            ))}
           </div>
 
+          {/* 채팅 + 방코드 */}
+          <div className="flex absolute top-[50%] right-[5.5rem] gap-6">
+            <div
+              className="w-[44rem] h-[12.5rem] border-4 rounded-xl bg-white bg-opacity-80 p-3 flex flex-col justify-between text-black text-sm"
+              style={{ borderColor: "#01FFFE" }}
+            >
+              {/* 채팅 메시지 영역 */}
+              <div className="flex-1 overflow-y-auto scroll-smooth pr-1">
+                {messages.map((msg, idx) => (
+                  <div key={idx}>
+                    <strong className="text-blue-700">{msg.nickname}</strong>:{" "}
+                    {msg.message}
+                  </div>
+                ))}
+                <div ref={scrollRef} />
+              </div>
+
+              {/* 채팅 입력창 */}
+              <div className="mt-2 flex gap-2">
+                <input
+                  type="text"
+                  className="flex-1 px-3 py-1 rounded border border-gray-400 text-black"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && sendChat()}
+                  placeholder="메시지를 입력하세요"
+                />
+                <button
+                  onClick={sendChat}
+                  className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  전송
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <div
+                className="w-[10rem] h-[8rem] border-4 rounded-xl flex flex-col items-center justify-center text-white text-2xl"
+                style={{ borderColor: "#01FFFE" }}
+              >
+                <p className="text-xl mb-1">방코드</p>
+                <p className="text-3xl">{roomCode || "-"}</p>
+                <button
+                  onClick={handleCopy}
+                  className="w-7 h-7 hover:scale-110 transition"
+                >
+                  <img
+                    src={CopyButton}
+                    alt="Copy"
+                    className="w-full h-full object-contain"
+                  />
+                </button>
+              </div>
+              <div
+                className="w-[10rem] h-[3.5rem] border-4 rounded-xl flex items-center justify-center"
+                style={{ borderColor: "#01FFFE" }}
+              >
+                {users.find((user) => user?.nickname === nickname)?.isHost ? (
+                  users.filter((user) => user !== null).length === 4 ? (
+                    // ✅ 방장이고, 4명 다 찼으면 진짜 Start 버튼
+                    <img
+                      src={StartButton}
+                      alt="start"
+                      className="w-full h-full cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
+                      onClick={() => handleStartGame()}
+                    />
+                  ) : (
+                    // ✅ 방장이지만 아직 4명 안 찼으면 흐릿한 Start 버튼
+                    <img
+                      src={StartButton}
+                      alt="start-disabled"
+                      className="w-full h-full opacity-50"
+                    />
+                  )
+                ) : (
+                  // ✅ 방장이 아니면 무조건 Wait 버튼
+                  <img
+                    src={WaitButton}
+                    alt="wait"
+                    className="w-full h-full opacity-50"
+                  />
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-        <img
-        src={ExitButton}
-        alt="exit"
-        onClick={handleExitRoom}
-        className="absolute bottom-3 right-[0rem] w-[8rem] cursor-pointer z-50
+          <img
+            src={ExitButton}
+            alt="exit"
+            onClick={handleExitRoom}
+            className="absolute bottom-3 right-[0rem] w-[8rem] cursor-pointer z-50
         transition-all duration-150 hover:brightness-110 hover:scale-105 active:scale-95"
-        />
-
-      </div>
+          />
+        </div>
       </div>
     </div>
   );

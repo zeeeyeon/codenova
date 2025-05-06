@@ -26,7 +26,7 @@ export const joinMeteoRoom = ({ roomCode, nickname }, onSuccess, onError) => {
     console.log("🔥 [joinMeteoRoom] secretRoomJoin 수신:", roomData);
   });
 
-  getSocket().once("error", (error) => {
+  getSocket().once("codeError", (error) => {
     console.error("[joinMeteoRoom] error 수신", error);
     onError(error.message);
   });
