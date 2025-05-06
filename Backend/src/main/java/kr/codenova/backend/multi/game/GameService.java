@@ -49,18 +49,12 @@ public interface GameService {
     // 8. 게임 종료
     void endGame(String roomId);
 
-    // 8. 게임 종료 시 유저 결과 저장
-    public void saveUserResult(String roomId, String nickname, Double typingSpeed, LocalDateTime finishTime);
+    // 9. 오타 발생
+    void addTypo(String roomId, String nickname);
 
-    // 9. 방 참가자 전원이 게임 완료 체크
-    public boolean isAllUsersFinished(String roomId);
-
-    // 10. 게임 결과 요약
-    public GameResultBroadcast summarizeGameResult(String roomId);
-
-    // 11. 방 별 유저 수 저장
+    // 13. 방 별 유저 수 저장
     public void setRoomUserCount(String roomId, int userCount);
 
-    // 12. 게임 본문 가져오기
+    // 14. 게임 본문 가져오기
     public String getGameContent(String language);
 }
