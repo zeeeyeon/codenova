@@ -41,5 +41,13 @@ public class Room {
         private boolean isHost;
         private boolean isReady;
     }
+    public boolean hasFirstFinisher() {
+        return firstFinisherNickname != null;
+    }
+
+    public void setFirstFinisher(String nickname, double time) {
+        this.firstFinisherNickname = nickname;
+        this.firstFinishTime = time;
+    }
 }
 

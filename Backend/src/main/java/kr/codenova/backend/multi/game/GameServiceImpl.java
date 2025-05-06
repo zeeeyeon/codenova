@@ -167,6 +167,15 @@ public class GameServiceImpl implements GameService {
 
     // 6. 게임 진행률 업데이트
     public void updateProgress(ProgressUpdateRequest request) {
+        Room room = roomService.getRoom(request.getRoomId());
+        String nickname = request.getNickname();
+        int progress = request.getProgressPercent();
+        double time = request.getTime();
+
+        // 1등 유저라면 1등으로 기록
+        if(!room.hasFirstFinisher() && progress >= 100) {
+            room.setFirstFinisher(nickname, time);
+        }
         getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("progress_update", request);
     }
