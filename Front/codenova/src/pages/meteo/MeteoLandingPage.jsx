@@ -329,11 +329,15 @@ const MeteoLandingPage = () => {
                       className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto"
                     />
                   ) : null}
-              {/* <img src={profileImages[idx]} alt={`user-profile-${idx}`} className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto" /> */}
-              {/* 닉네임 */}
-              <div className="absolute bottom-7 left-1/2 transform -translate-x-1/2 text-white text-m w-[16rem] text-center truncate">
-                {user?.nickname || "-"}
-              </div>
+                {/* <img src={profileImages[idx]} alt={`user-profile-${idx}`} className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto" /> */}
+                {/* 닉네임 */}
+                <div
+                  className={`absolute bottom-7 left-1/2 transform -translate-x-1/2 text-m w-[16rem] text-center truncate ${
+                    user?.nickname === nickname ? "text-cyan-300" : "text-white"
+                  }`}
+                >
+                  {user?.nickname || "-"}
+                </div>
             </div>
           ))}
         </div>
