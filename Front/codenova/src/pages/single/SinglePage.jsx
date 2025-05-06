@@ -129,7 +129,7 @@ const SinglePage = () => {
             } else {
                 setIsCs(false);
                 singleLangCode(lang)
-                //getLangCode(476) //476 : h만 있음
+                // getLangCode(476) //476 : h만 있음
                     .then(data => {
                         // console.log("api 결과", data);            
                         const { lines , space, charCount } = processCode(data.content);
