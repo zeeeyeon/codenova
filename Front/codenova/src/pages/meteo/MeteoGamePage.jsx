@@ -305,7 +305,7 @@ const MeteoGamePage = () => {
               {isMe ? `${nickname}` : nickname}
             </div>
 
-            <div className="text-pink-300 text-lg mt-1 min-h-[1.5rem] leading-tight">
+            <div className="text-pink-300 text-lg mt-1 min-h-[1.5rem] max-w-[6rem] leading-tight">
               {userInputTexts[nickname] || ""}
             </div>
           </div>
