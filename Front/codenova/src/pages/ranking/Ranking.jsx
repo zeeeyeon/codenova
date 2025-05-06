@@ -5,6 +5,8 @@ import silverMedal from "../../assets/images/silver_medal.png"
 import bronzeMedal from "../../assets/images/dong_medal.png"
 import leftBtn from "../../assets/images/left_btn.png"
 import rightBtn from "../../assets/images/right_btn.png"
+import leftBtn2 from "../../assets/images/less-than_black.png"
+import rightBtn2 from "../../assets/images/greater-than_black.png"
 import xBtn from "../../assets/images/x_btn.png"
 import { useEffect, useState } from "react"
 import { useNavigate } from 'react-router-dom'
@@ -15,7 +17,7 @@ const Ranking = () => {
 
     const navigate = useNavigate();
 
-    const languages = ['JAVA', 'PYTHON' , 'SQL' ,'JS', 'GO'];
+    const languages = ['JAVA', 'PYTHON' , 'SQL' ,'JS'];
 
     const [currentLangIndex, setCurrentLangIndex] = useState(0);
     
@@ -85,21 +87,37 @@ const Ranking = () => {
             style={{ backgroundImage: `url(${bgImg})`}}
         >
             <Header/>
+              
             <Board2Container>
+            <div className="absolute top-[0%] -right-[6%] -translate-x-1/2 z-20">
+                <div className="relative group ml-2">
+                    {/* 아이콘에 호버 애니메이션 추가 */}
+                    <span className="cursor-help text-black text-4xl font-bold transition duration-200 ease-in-out group-hover:scale-125 group-hover:text-yellow-400 animate-pulse-color">
+                    ?
+                    </span>
 
+                    {/* 툴팁에 페이드 + 슬라이드 효과 */}
+                    <div className="absolute top-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-black bg-opacity-90 text-white text-sm px-3 py-2 rounded shadow-md whitespace-nowrap z-30 text-center
+                        animate-fade-slide-up">
+                        언어 옆에 화살표를 클릭하시면<br />
+                        다른 언어의 랭킹을 확인하실수 있습니다!<br/>
+                    </div>
+            </div>
+          </div>
+                
 
-                <div className="absolute top-[1%] left-1/2 -translate-x-1/2 font-bold text-4xl drop-shadow-md z-10 flex gap-6 w-[27%] justify-between"
+                <div className="absolute top-[1%] left-1/2 -translate-x-1/2 font-bold text-4xl drop-shadow-md z-10 flex w-[27%] justify-between items-center px-2 "
                  style={{color: '#1C1C1C'}}
                 >
-                    <img src={leftBtn} alt="왼쪽" className={`cursor-pointer scale-75 ${btn_class}`} 
+                    <img src={leftBtn2} alt="왼쪽" className={`cursor-pointer w-[12%] h-[10%] ${btn_class}`} 
                         onClick={handlePrev}/>
                     <div className="flex justify-center">
                         {languages[currentLangIndex]}
                     </div>
-                    <img src={rightBtn} alt="오른쪽" className={`cursor-pointer scale-75 ${btn_class}`} 
+                    <img src={rightBtn2} alt="오른쪽" className={`cursor-pointer w-[12%] h-[10%] ${btn_class}`} 
                         onClick={handleNext}
                     />
-
+                        
                 </div>
 
                 <img src={xBtn} 
@@ -156,7 +174,7 @@ const Ranking = () => {
                         </div>
 
                     </div>
-
+                                            
                     <div className="h-[80%] mx-12 bg-white"
                         style={{
                             width : "1px",
@@ -176,9 +194,9 @@ const Ranking = () => {
                             )
                         })}
                         <div className=" w-full h-auto flex justify-end mt-4 text-xl">
-                            내 등수: {ranking[currentLangIndex]?.myRank?.rank ?? " - "}등
+                            내 등수: {` ${ranking[currentLangIndex]?.myRank?.rank}` ?? " - "}등
                             {ranking[currentLangIndex]?.myRank?.typingSpeed != null
-                                ? Math.floor(ranking[currentLangIndex].myRank.typingSpeed)
+                                ? ` ${Math.floor(ranking[currentLangIndex].myRank.typingSpeed)}`
                                 : " - "
                             }타
                         </div>

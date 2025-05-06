@@ -4,6 +4,8 @@ import okBtn from '../../assets/images/ok_btn2.png'
 import updateBtn from '../../assets/images/update_btn.png'
 import leftBtn from "../../assets/images/left_btn.png"
 import rightBtn from "../../assets/images/right_btn.png"
+import leftBtn2 from "../../assets/images/less-than_white.png"
+import rightBtn2 from "../../assets/images/greater-than_white.png"
 import xBtn from "../../assets/images/x_btn.png"
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -225,18 +227,18 @@ const MyPage= () => {
                     </div>
 
                     <div className=" w-[60%] mt-2 flex justify-center">
-                        <img src={leftBtn} 
+                        <img src={leftBtn2} 
                             alt="왼쪽" 
-                            className={`cursor-pointer scale-75 ${btn_class}`} 
+                            className={`cursor-pointer w-[5%] h-auto   ${btn_class}`} 
                             onClick={handlePrev}/>
                         <div className="flex justify-center w-[40%]">
                             {userScoreList?.[currentLangIndex]?.language || ""}
                         </div>
                         
                         <img 
-                            src={rightBtn} 
+                            src={rightBtn2} 
                             alt="오른쪽" 
-                            className={`cursor-pointer scale-75 ${btn_class}`} 
+                            className={`cursor-pointer w-[5%] h-auto ${btn_class}`} 
                             onClick={handleNext}
                         />
                     </div>
