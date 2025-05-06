@@ -1,30 +1,27 @@
-package kr.codenova.backend.multi.dto.broadcast;
+package kr.codenova.backend.multi.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class GameResultBroadcast {
+public class RoundScoreBroadcast {
     private String roomId;
-    private List<UserResultStatus> results;
+    private int round;
+    private List<UserRoundResult> scores;
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    @Builder
-    public static class UserResultStatus {
+    public static class UserRoundResult {
         private String nickname;
         private int score;
         private int typoCount;
-        private Double time;     // null if retire
-        private boolean retire;
-        private int rank;
+        private Double time; // null if retire
+        private boolean isRetire;
     }
 }
