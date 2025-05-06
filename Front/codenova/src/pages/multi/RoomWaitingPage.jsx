@@ -288,7 +288,7 @@ useEffect(() => {
           };
     });
 
-    setUsers(newUsers); // ✅ 상태 반영
+    setUsers(newUsers); // 상태 반영
 
     // 준비 인원 확인은 여기서 해야 함!
     const readyCount = newUsers.filter(u => !u.empty && u.isReady).length;
@@ -327,6 +327,7 @@ useEffect(() => {
 
   const handleGameStarted = (data) => {
     console.log("🎮 수신된 이벤트: game_started", data);
+    console.log("📦 navigate 직전 users 상태:", users);
     if (String(data.roomId) === String(roomId)) {
       navigate(`/multi/game/${roomId}`);
     }
