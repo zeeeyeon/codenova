@@ -281,11 +281,14 @@ const MeteoLandingPage = () => {
       {/* <Header /> */}
 
       <div className="relative flex justify-center items-center mt-20">
+        <div className="relative w-[66rem]">
+
+        
         <img src={MeteoBoard} className="w-[66rem] rounded-2xl shadow-xl z-0" alt="meteoBoard" />
         <div className="absolute top-[2%] left-1/2 -translate-x-1/2 z-20 text-1C1C1C text-3xl font-bold">
           지구를 지켜라!
           </div>
-          <div className="absolute top-[1%] right-[12rem] -translate-x-1/2 z-20">
+          <div className="absolute top-[1%] right-[0rem] -translate-x-1/2 z-20">
             <div className="relative group ml-2">
               {/* 아이콘에 호버 애니메이션 추가 */}
               <span className="cursor-help text-black text-4xl font-bold transition duration-200 ease-in-out group-hover:scale-125 group-hover:text-yellow-400 animate-pulse-color">
@@ -306,7 +309,7 @@ const MeteoLandingPage = () => {
 
 
         {/* 유저 카드 */}
-        <div className="absolute top-[15%] grid grid-cols-4 gap-9 z-10">
+        <div className="flex absolute top-[15%] right-[5.5rem] grid-cols-4 gap-9 z-10">
           {users.map((user, idx) => (
             <div key={idx} className="relative w-48 h-auto">
               <img src={UserBoard} alt={`user-board-${idx}`} className="w-full h-auto rounded-xl shadow-md" />
@@ -343,7 +346,7 @@ const MeteoLandingPage = () => {
         </div>
 
         {/* 채팅 + 방코드 */}
-        <div className="flex absolute top-[50%] gap-6">
+        <div className="flex absolute top-[50%] right-[5.5rem] gap-6">
 
         <div className="w-[44rem] h-[12.5rem] border-4 rounded-xl bg-white bg-opacity-80 p-3 flex flex-col justify-between text-black text-sm" style={{ borderColor: "#01FFFE" }}>
         {/* 채팅 메시지 영역 */}
@@ -417,10 +420,11 @@ const MeteoLandingPage = () => {
         src={ExitButton}
         alt="exit"
         onClick={handleExitRoom}
-        className="absolute bottom-3 right-[14%] w-[8rem] cursor-pointer z-50
+        className="absolute bottom-3 right-[0rem] w-[8rem] cursor-pointer z-50
         transition-all duration-150 hover:brightness-110 hover:scale-105 active:scale-95"
         />
 
+      </div>
       </div>
     </div>
   );
