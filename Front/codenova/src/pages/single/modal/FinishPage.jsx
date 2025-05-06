@@ -37,7 +37,9 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words, onR
             const response = await postRecord(data);
             const {code, message} = response.status;
             if (code === 200){
-                alert(message || "기록이 저장되었습니다.")
+                if (response.content.isNewRecord) {
+                    alert(message);
+                }
             } else{
                 alert("기록 저장에 실패하였습니다.")
             }
