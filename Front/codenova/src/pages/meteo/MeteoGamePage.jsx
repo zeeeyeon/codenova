@@ -25,6 +25,12 @@ const MeteoGamePage = () => {
   const [userInputTexts, setUserInputTexts] = useState({});
   const currentRoomId = localStorage.getItem("meteoRoomId");
 
+  // input 포커싱
+  const inputRef = useRef(null);
+  useEffect(() => {
+    inputRef.current?.focus();  // 3. 페이지 진입 시 포커스
+  }, []);
+
   // 닉네임 매핑
   const [playerList, setPlayerList] = useState(players?.map(p => p.nickname) || []);
 
@@ -342,6 +348,7 @@ const MeteoGamePage = () => {
       {/* 입력창 */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30">
         <input
+        ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => {
