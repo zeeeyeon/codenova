@@ -15,6 +15,7 @@ import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
 import kr.codenova.backend.multi.dto.response.CreateRoomResponse;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
 import kr.codenova.backend.multi.dto.response.RoomStatusResponse;
+import kr.codenova.backend.multi.exception.AlreadyStartException;
 import kr.codenova.backend.multi.exception.InvalidPasswordException;
 import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
@@ -114,6 +115,11 @@ public class RoomServiceImpl implements RoomService {
         Room room = roomMap.get(request.getRoomId());
         if (room == null) {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
+        }
+
+        // 게임중인 방 확인 로직 추가
+        if (room.getIsStarted()) {
+            throw new AlreadyStartException("이미 게임이 시작된 방입니다.");
         }
 
         // 비밀방 확인 로직 추가
