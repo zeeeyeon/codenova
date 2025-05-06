@@ -39,6 +39,7 @@ const TypingBox = ({ roomId,gameStarted, elapsedTime, onFinish, targetCode }) =>
   const totalLength = targetCode.replace(/\s/g, "").length;  // 전체 코드(공백 제외)
 
 
+
   
   useEffect(() => {
     if (inputRef.current) {
@@ -88,26 +89,42 @@ const TypingBox = ({ roomId,gameStarted, elapsedTime, onFinish, targetCode }) =>
 
 
   // 코드 타자 진행도 소켓 emit
-  useEffect(() => {
-    if (!gameStarted || !targetCode) return;
-  
-    const socket = getSocket();
-    if (!socket || !nickname || !roomId) return;
-  
-    // ✅ 누적 입력 길이 계산
-  const pastLines = lines.slice(0, currentLine).join("\n");
-  const pastLength = pastLines.replace(/\s/g, "").length;
-  const currentTyped = userInput.replace(/\s/g, "").length;
-  const totalTyped = pastLength + currentTyped;
+  const prevProgressRef = useRef(0);
 
-  const progressPercent = Math.min(100, Math.floor((totalTyped / totalLength) * 100));
+useEffect(() => {
+  if (!gameStarted || !targetCode) return;
 
-  socket.emit("progress_update", {
-    roomId,
-    nickname,
-    progressPercent,
-  });
+  const socket = getSocket();
+  if (!socket || !nickname || !roomId) return;
+
+  // 전체 정답 문자열 (공백 제거)
+  const cleanTarget = targetCode.replace(/\s/g, "");
+  const cleanTyped = (lines.slice(0, currentLine).join("\n") + userInput).replace(/\s/g, "");
+
+  // 몇 글자까지 정확히 맞았는지 확인
+  let correctCount = 0;
+  for (let i = 0; i < cleanTyped.length; i++) {
+    if (cleanTyped[i] === cleanTarget[i]) {
+      correctCount++;
+    } else {
+      break;
+    }
+  }
+
+  const progressPercent = Math.floor((correctCount / cleanTarget.length) * 100);
+
+  // 이전보다 높을 때만 emit
+  if (progressPercent > prevProgressRef.current) {
+    prevProgressRef.current = progressPercent;
+
+    socket.emit("progress_update", {
+      roomId,
+      nickname,
+      progressPercent,
+    });
+  }
 }, [userInput, currentLine]);
+
 
 
   return (

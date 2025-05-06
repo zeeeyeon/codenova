@@ -51,7 +51,7 @@ const ProgressBoard = ({ users }) => {
             <div className="w-32 text-right pr-4 text-white text-sm whitespace-nowrap flex items-center justify-end gap-1">
               
               {user.nickname === topUser.nickname && (
-                <span className="text-yellow-400 text-lg">👑</span>
+                <span className="text-yellow-400 text-xl">👑</span>
               )}
               {user.nickname}
             </div>
