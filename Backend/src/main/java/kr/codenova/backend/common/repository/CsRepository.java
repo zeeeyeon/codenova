@@ -13,12 +13,12 @@ public interface CsRepository extends JpaRepository<CS, Integer> {
     List<CS> findRandomByCategory(@Param("category") String category);
     @Query(
             value = "SELECT CASE " +
-                    "         WHEN RANDOM() < 0.5 AND english_word IS NOT NULL AND LENGTH(english_word) <= 12 THEN english_word " +
-                    "         WHEN korean_word IS NOT NULL AND LENGTH(korean_word) <= 12 THEN korean_word " +
+                    "         WHEN RANDOM() < 0.5 AND english_word IS NOT NULL AND LENGTH(english_word) <= 10 THEN english_word " +
+                    "         WHEN korean_word IS NOT NULL AND LENGTH(korean_word) <= 10 THEN korean_word " +
                     "       END AS word " +
                     "FROM cs " +
-                    "WHERE (english_word IS NOT NULL AND LENGTH(english_word) <= 12) " +
-                    "   OR (korean_word IS NOT NULL AND LENGTH(korean_word) <= 12) " +
+                    "WHERE (english_word IS NOT NULL AND LENGTH(english_word) <= 10) " +
+                    "   OR (korean_word IS NOT NULL AND LENGTH(korean_word) <= 10) " +
                     "ORDER BY RANDOM() " +
                     "LIMIT 50",
             nativeQuery = true
