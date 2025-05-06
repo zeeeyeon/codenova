@@ -203,7 +203,11 @@ const Ranking = () => {
                             })}
                             {userType !== "guest" && (
                             <div className=" w-full h-auto flex justify-end mt-4 text-xl">
-                                내 등수: {` ${ranking[currentLangIndex]?.myRank?.rank}` ?? " - "}등
+                                내 등수: {ranking[currentLangIndex]?.myRank?.rank != null
+                                    ? ` ${Math.floor(ranking[currentLangIndex].myRank.rank)}`
+                                    : " - "
+                                }등
+                                
                                 {ranking[currentLangIndex]?.myRank?.typingSpeed != null
                                     ? ` ${Math.floor(ranking[currentLangIndex].myRank.typingSpeed)}`
                                     : " - "
