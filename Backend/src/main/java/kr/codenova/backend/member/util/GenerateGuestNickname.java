@@ -23,6 +23,6 @@ public class GenerateGuestNickname {
         String adjective = adjectives[random.nextInt(adjectives.length)];
         String noun = nouns[random.nextInt(nouns.length)];
 
-        return adjective + " " + noun + (random.nextInt(900) + 100);
+        return adjective  + noun + (random.nextInt(900) + 100);
     }
 }
