@@ -11,6 +11,7 @@ import rocket2 from "../../assets/images/multi_rocket_2.png";
 import rocket3 from "../../assets/images/multi_rocket_3.png";
 import rocket4 from "../../assets/images/multi_rocket_4.png";
 import { getSocket } from "../../sockets/socketClient";
+import RoundScoreModal from "../../components/multi/modal/RoundScoreModal";
 
 
 
@@ -26,6 +27,12 @@ const TypingBattlePage = () => {
   const [targetCode, setTargetCode] = useState("");
   const {state} = useLocation();
   const rocketImages = [rocket1, rocket2, rocket3, rocket4];
+  const [roundEnded, setRoundEnded] = useState(false);
+  const [roundEndingCountdown, setRoundEndingCountdown] = useState(null); // null이면 표시 안함
+  const [showRoundScoreModal, setShowRoundScoreModal] = useState(false);
+  const [roundScoreData, setRoundScoreData] = useState(null);
+  const [firstFinisher, setFirstFinisher] = useState(null);  // 첫번째 완주자
+  const [currentRound, setCurrentRound] = useState(1);
 
 
   const [users, setUsers] = useState(() => {
@@ -145,6 +152,65 @@ const TypingBattlePage = () => {
     socket.on("progress_update", handleProgressUpdate);
     return () => socket.off("progress_update", handleProgressUpdate);
   }, []);
+
+  const handleFinish = () => {
+    setTimeRunning(false); // 타자 타이머 정지
+  
+    if (!roundEnded) {
+      setRoundEnded(true);
+      setRoundEndingCountdown(10); // 🔔 카운트다운 표시 시작
+  
+      const countdownInterval = setInterval(() => {
+        setRoundEndingCountdown((prev) => {
+          if (prev === 1) {
+            clearInterval(countdownInterval); // 끝나면 타이머 제거
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+  
+      // 10초 후 서버에 round_end 알림
+      setTimeout(() => {
+        const socket = getSocket();
+        socket.emit("round_end", { roomId });
+      }, 10000);
+    }
+  };
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+  
+    const handleFinishNotice = (data) => {
+      const { nickname } = data;
+      console.log("🏁 finish_notice 수신:", nickname);
+  
+      setFirstFinisher(nickname); // 표시용
+      handleFinish(); // 기존 라운드 종료 카운트다운 실행
+    };
+  
+    socket.on("finish_notice", handleFinishNotice);
+    return () => socket.off("finish_notice", handleFinishNotice);
+  }, []);
+  
+
+  // 소켓 수신
+useEffect(() => {
+  const socket = getSocket();
+  if (!socket) return;
+
+  const handleRoundScore = (data) => {
+    console.log("📊 round_score 수신:", data);
+    setRoundScoreData(data);
+    setCurrentRound(data.round);
+    setShowRoundScoreModal(true);
+  };
+
+  socket.on("round_score", handleRoundScore);
+  return () => socket.off("round_score", handleRoundScore);
+}, []);
+  
   
 
   
@@ -155,6 +221,17 @@ const TypingBattlePage = () => {
     style={{ backgroundImage: `url(${multiBg})` }}
   >
     <Header />
+
+    {roundEndingCountdown !== null && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 text-white text-xl bg-black bg-opacity-80 px-6 py-3 rounded-xl border border-white text-center leading-relaxed">
+          {firstFinisher && (
+            <div className="font-bold mb-1">🎉 <span className="text-yellow-300">{firstFinisher}</span> 님이 가장 먼저 완주했어요!</div>
+          )}
+          Round {currentRound}종료까지 {roundEndingCountdown}초 남았습니다
+        </div>
+      )}
+
+
     {/* <h1 className="text-2xl text-center">Typing Battle 시작! (Room ID: {roomId})</h1> */}
     {/* 카운트다운 오버레이  */}
         {!gameStarted && (
@@ -181,8 +258,9 @@ const TypingBattlePage = () => {
             roomId={roomId}
             gameStarted = {gameStarted} 
             elapsedTime={elapsedTime} 
-            onFinish={() => setTimeRunning(false)}
+            onFinish={handleFinish}
             targetCode={targetCode}
+            currentRound={currentRound}
             />
         </div>
   
@@ -193,7 +271,16 @@ const TypingBattlePage = () => {
   
       </div>
     </div>
+    {/* 라운드 종료 점수 모달 */}
+      <RoundScoreModal
+        visible={showRoundScoreModal}
+        scores={roundScoreData?.scores || []}
+        round={roundScoreData?.round || 0}
+        onClose={() => setShowRoundScoreModal(false)}
+      />
   </div>
+
+  
   
   );
 };
