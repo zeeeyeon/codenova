@@ -283,32 +283,36 @@ const MeteoGamePage = () => {
     </div>
 
     <div ref={playersRef} className="absolute bottom-[-1rem] left-1 flex z-20">
-      {playerList.map((nickname, idx) => (
-      <div
-        key={nickname}
-        className="flex flex-col items-center"
-        style={{ marginLeft: idx === 0 ? 0 : "-5rem" }}
-      >
-        {/* 1. 캐릭터 (맨 위 고정) */}
-        <Player
-          autoplay
-          loop
-          src={typingLottie}
-          className="w-[12rem] h-[12rem]"
-        />
+    {playerList.map((nickname, idx) => {
+      const myNickname = localStorage.getItem("nickname");
+      const isMe = nickname === myNickname;
 
-        {/* ✅ 2~3. 닉네임 + 입력 텍스트 (살짝 위로 이동) */}
-        <div className="flex flex-col items-center -translate-y-10">
-        <div className="text-white text-sm leading-none text-center break-normal whitespace-pre-wrap max-w-[6rem]">
-          {nickname}
-        </div>
+      return (
+        <div
+          key={nickname}
+          className="flex flex-col items-center"
+          style={{ marginLeft: idx === 0 ? 0 : "-5rem" }}
+        >
+          <Player
+            autoplay
+            loop
+            src={typingLottie}
+            className="w-[12rem] h-[12rem]"
+          />
 
-          <div className="text-pink-300 text-lg mt-1 min-h-[1.5rem] leading-tight">
-            {userInputTexts[nickname] || ""}
+          <div className="flex flex-col items-center -translate-y-10">
+            <div className={`text-sm leading-none text-center break-normal whitespace-pre-wrap max-w-[6rem] ${isMe ? "text-cyan-300" : "text-white"}`}>
+              {isMe ? `${nickname}` : nickname}
+            </div>
+
+            <div className="text-pink-300 text-lg mt-1 min-h-[1.5rem] leading-tight">
+              {userInputTexts[nickname] || ""}
+            </div>
           </div>
         </div>
-      </div>
-      ))}
+      );
+    })}
+  
     </div>
 
 
