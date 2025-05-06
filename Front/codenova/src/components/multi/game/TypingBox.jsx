@@ -1,15 +1,25 @@
 import { useState, useRef, useEffect } from "react";
 import enterIcon from "../../../assets/images/multi_enter_icon.png";
+import { getSocket } from "../../../sockets/socketClient";
+import useAuthStore from "../../../store/authStore";
 
-const TypingBox = ({ gameStarted, elapsedTime, onFinish }) => {
-  const targetCode = `let timer = setInterval(() => {
-        this.counter--;
+const TypingBox = ({ roomId,gameStarted, elapsedTime, onFinish, targetCode }) => {
+  // const targetCode = `let timer = setInterval(() => {
+  //       this.counter--;
         
-        if (this.counter === 0) {
-          clearInterval(timer);
-          this.onTimeUp();
-        }
-      }, 1000);`;
+  //       if (this.counter === 0) {
+  //         clearInterval(timer);
+  //         this.onTimeUp();
+  //       }
+  //     }, 1000);`;
+
+  if (!targetCode) {
+    return (
+      <div className="w-[93%] h-[96%] flex justify-center items-center bg-[#110429] rounded-2xl border-4 border-cyan-400 text-white text-xl animate-pulse">
+        코드 불러오는 중...
+      </div>
+    );
+  }
 
   const inputRef = useRef(null);
 
@@ -25,6 +35,9 @@ const TypingBox = ({ gameStarted, elapsedTime, onFinish }) => {
   const trimmedUserInput = userInput.trimStart();
 
   const isCorrect = trimmedCurrentLine.startsWith(trimmedUserInput); // 현재 입력 맞게 입력되고있는지(줄 앞 공백 무시시)
+  const nickname = useAuthStore((state) => state.user?.nickname);
+  const totalLength = targetCode.replace(/\s/g, "").length;  // 전체 코드(공백 제외)
+
 
   
   useEffect(() => {
@@ -74,6 +87,27 @@ const TypingBox = ({ gameStarted, elapsedTime, onFinish }) => {
   const elapsedTimeFormatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(3, '0')}`;
 
 
+  // 코드 타자 진행도 소켓 emit
+  useEffect(() => {
+    if (!gameStarted || !targetCode) return;
+  
+    const socket = getSocket();
+    if (!socket || !nickname || !roomId) return;
+  
+    // ✅ 누적 입력 길이 계산
+  const pastLines = lines.slice(0, currentLine).join("\n");
+  const pastLength = pastLines.replace(/\s/g, "").length;
+  const currentTyped = userInput.replace(/\s/g, "").length;
+  const totalTyped = pastLength + currentTyped;
+
+  const progressPercent = Math.min(100, Math.floor((totalTyped / totalLength) * 100));
+
+  socket.emit("progress_update", {
+    roomId,
+    nickname,
+    progressPercent,
+  });
+}, [userInput, currentLine]);
 
 
   return (
