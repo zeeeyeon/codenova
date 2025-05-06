@@ -43,8 +43,11 @@ public interface GameService {
     // 6. 게임 진행률 업데이트
     public void updateProgress(ProgressUpdateRequest request);
 
-    // 7. 게임 종료
-    public void finishGame(FinishGameRequest request);
+    // 7. 라운드 종료
+    void endRound(String roomId);
+
+    // 8. 게임 종료
+    void endGame(String roomId);
 
     // 8. 게임 종료 시 유저 결과 저장
     public void saveUserResult(String roomId, String nickname, Double typingSpeed, LocalDateTime finishTime);
