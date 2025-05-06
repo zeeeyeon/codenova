@@ -3,6 +3,7 @@ import MeteoGameBg from "../../assets/images/meteo_game_bg.png";
 import { Player } from "@lottiefiles/react-lottie-player";
 import typingLottie from "../../assets/lottie/typing.json";
 import FallingWord from "./FallingWord";
+import useAuthStore from "../../store/authStore";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getSocket } from "../../sockets/socketClient";
 import EndGameBtn from "../../assets/images/end_game_button.png";
@@ -17,10 +18,12 @@ const MeteoGamePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const gameData = location.state;
+  const nickname = useAuthStore((state) => state.user?.nickname);
   const { roomId, players } = gameData || {};
   const [gameResult, setGameResult] = useState(null); // null이면 모달 안 띄움
   const [lifesLeft, setLifesLeft] = useState(5);
   const [userInputTexts, setUserInputTexts] = useState({});
+  const currentRoomId = localStorage.getItem("meteoRoomId");
 
   // 닉네임 매핑
   const [playerList, setPlayerList] = useState(players?.map(p => p.nickname) || []);
@@ -53,15 +56,35 @@ const MeteoGamePage = () => {
     };
   
     // 뒤로가기, 새로고침 등 감지
-    window.addEventListener("popstate", handleBeforeUnloadOrPop);
     window.addEventListener("beforeunload", handleBeforeUnloadOrPop);
-  
     return () => {
-      window.removeEventListener("popstate", handleBeforeUnloadOrPop);
       window.removeEventListener("beforeunload", handleBeforeUnloadOrPop);
     };
   }, []);
+  useEffect(() => {
+      const handlePopState = (event) => {
+        // 브라우저 alert 사용 (콘솔이 안 보일때도 확인 가능)
   
+        alert("게임을 나가시겠습니까?");
+  
+        const savedNickname = nickname;
+  
+        if (currentRoomId && savedNickname) {
+          exitMeteoRoom({ roomId: roomId, nickname: nickname });
+          console.log("🚪 [뒤로가기] 방 나감 처리 시작");
+        }
+      };
+  
+      // 현재 history 상태 저장
+      window.history.pushState({ page: "meteo" }, "", window.location.pathname);
+  
+      // 이벤트 리스너 등록
+      window.addEventListener("popstate", handlePopState);
+  
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+      };
+    }, [nickname]);
 
   useEffect(() => {
     const calcGround = () => {
