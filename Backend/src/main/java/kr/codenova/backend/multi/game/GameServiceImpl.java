@@ -179,6 +179,9 @@ public class GameServiceImpl implements GameService {
         // 1등 유저라면 1등으로 기록
         if(!room.hasFirstFinisher() && progress >= 100) {
             room.setFirstFinisher(nickname, time);
+            FinishNoticeBroadcast broadcast = new FinishNoticeBroadcast(request.getRoomId(), request.getNickname());
+            getServer().getRoomOperations(request.getRoomId())
+                    .sendEvent("finish_notice", broadcast);
         }
         getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("progress_update", request);
