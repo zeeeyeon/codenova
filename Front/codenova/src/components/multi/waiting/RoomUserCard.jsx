@@ -13,7 +13,7 @@ const RoomUserCard = ({ user }) => {
   const rocketImage = rockets[user.slot - 1];
 
   return (
-    <div className="w-[200px] h-[200px] rounded-2xl  relative flex flex-col items-center justify-center">
+    <div className="w-[220px] h-[220px] rounded-2xl  relative flex flex-col items-center justify-center mt-4">
        {!isEmptySlot && user.isHost && (
     <img 
       src={crownIcon} 
