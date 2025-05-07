@@ -9,16 +9,36 @@ import { Player } from "@lottiefiles/react-lottie-player";
 import battleLottie from "../../assets/lottie/battle.json";
 import defendLottie from "../../assets/lottie/defend.json";
 import { useNavigate } from "react-router-dom"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import RoomCodeModal from "../../components/modal/RoomCodeModal";
 import { createMeteoRoom } from "../../sockets/meteoSocket";
 import useAuthStore from "../../store/authStore";
 import TutoModal from "../../components/common/TutoModal";
+import { getSocket } from "../../sockets/socketClient";
 
 const MainPage = () => {
   const navigate = useNavigate()
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [showTutoModal, setShowTutoModal] = useState(false);
+  const [socketReady, setSocketReady] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const socket = getSocket();
+      setSocketReady(!!socket);
+    }, 300);
+  
+    return () => clearTimeout(timer);
+  }, []);
+  
+
+  const handleMultiClick = () => {
+    if (!socketReady) {
+      // alert("❌ 소켓이 연결되지 않았습니다.");
+      return;
+    }
+    navigate("/multi");
+  };
 
 
   const nickname = useAuthStore((state) => state.user?.nickname)
@@ -69,7 +89,7 @@ const MainPage = () => {
             onClick={() => navigate("/single/select/language")}
             />
             <img src={multiBtn} alt="Multi Mode" className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" 
-            onClick={() => navigate("/multi")}
+            onClick={handleMultiClick}
             />
           </div>
 

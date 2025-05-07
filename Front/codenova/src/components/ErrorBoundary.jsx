@@ -5,12 +5,8 @@ import errorAstronaut from "../assets/lottie/error.json";
 import { Player } from "@lottiefiles/react-lottie-player";
 import { useNavigate } from "react-router-dom";
 
-// ✅ navigate 사용을 위한 wrapper
-function ErrorBoundaryWrapper(props) {
-  const navigate = useNavigate();
-  return <ErrorBoundary {...props} navigate={navigate} />;
-}
-
+// ❌ wrapper 삭제
+// ✅ navigate hook 대신 location 이동만
 class ErrorBoundary extends React.Component {
   state = { error: null };
 
@@ -23,11 +19,12 @@ class ErrorBoundary extends React.Component {
   }
 
   handleGoToMain = () => {
-    this.props.navigate("/main");
+    window.location.href = "/main";  // ✅ useNavigate() 대신 사용
   };
 
   render() {
     if (this.state.error) {
+      window.location.href ="/main"
       return (
         <div className="w-screen h-screen bg-black flex flex-col items-center justify-center text-white text-center">
           <img src={logo} alt="Logo" className="w-[20rem]" />
@@ -53,4 +50,4 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-export default ErrorBoundaryWrapper;
+export default ErrorBoundary;
