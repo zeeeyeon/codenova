@@ -37,6 +37,7 @@ public class MemberController {
     private final MemberService memberService;
     private final MemberRepository memberRepository;
     private final TypingSpeedRepository typingSpeedRepository;
+    private final StringRedisTemplate redisTemplate;
     private static final Logger log = LoggerFactory.getLogger(CustomResponseUtil.class);
 
 
@@ -76,10 +77,14 @@ public class MemberController {
         Member findMember = memberRepository.findByIdColumn(memberDetails.getMember().getId())
                 .orElseThrow(() -> new CustomException(NOT_FOUND_USER));
 
-        log.info(dto.getPhoneNum());
+        String beforeNickname = findMember.getNickname();
         findMember.updateProfile(dto);
-
         memberRepository.save(findMember);
+
+        if (!beforeNickname.equals(findMember.getNickname())) {
+            String memberIdStr = String.valueOf(findMember.getId());
+            redisTemplate.opsForHash().put("user:nickname", memberIdStr, findMember.getNickname());
+        }
         return new ResponseEntity<>(
                 Response.create(ResponseCode.SUCCESS_CHANGE_PROFILE, findMember), SUCCESS_CHANGE_PROFILE.getHttpStatus()
         );
