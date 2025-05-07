@@ -6,6 +6,8 @@ import { signupApi } from "../../api/authApi";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { checkIdApi, checkNicknameApi } from "../../api/authApi";
+import useAuthStore from "../../store/authStore";
+import { useEffect } from "react";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -16,7 +18,13 @@ const SignupPage = () => {
 
   const [idCheck, setIdCheck] = useState(null);
   const [nicknameCheck, setNicknameCheck] = useState(null);
-
+  const token = useAuthStore((state) => state.token);
+  console.log("🔑 [토큰]", token);
+  useEffect(() => {
+    if (token) {
+      navigate("/main");
+    }
+  }, [token, navigate]);
   const handleIdCheck = async () => {
     if (!id) {
       alert("ID를 입력하세요!");

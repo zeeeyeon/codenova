@@ -7,12 +7,17 @@ import guestButton from "../../assets/images/guest_login.png";
 import { guestLoginApi } from "../../api/authApi";
 import useAuthStore from "../../store/authStore";
 import { connectSocket } from "../../sockets/socketClient";
-
+import { useEffect } from "react";
 
 const LandingPage = () => {
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login);
-
+  const token = useAuthStore((state) => state.token);
+  useEffect(() => {
+    if (token) {
+      navigate("/main");
+    }
+  }, [token, navigate]);
   const handleGuestLogin = async () => {
     try {
       const res = await guestLoginApi();
