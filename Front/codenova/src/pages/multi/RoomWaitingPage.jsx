@@ -337,6 +337,33 @@ useEffect(() => {
   return () => socket.off("game_started", handleGameStarted);
 }, [roomId, navigate]);
 
+useEffect(() => {
+  const handlePopState = (event) => {
+    // confirm 대화 상자 사용 (확인/취소 버튼 모두 제공)
+    const isConfirmed = window.confirm("방을 나가시겠습니까?");
+
+    if (isConfirmed) {
+      // 사용자가 '확인'을 클릭한 경우
+      handleLeaveRoom();
+      console.log("🚪 [뒤로가기] 방 나감 처리 시작");
+    } else {
+      // 사용자가 '취소'를 클릭한 경우
+      // 현재 URL 상태를 다시 푸시하여 브라우저 히스토리에 추가
+      window.history.pushState({ page: "multi" }, "", window.location.pathname);
+      console.log("🔙 [뒤로가기] 취소됨, 방에 머무름");
+    }
+  };
+
+  // 현재 history 상태 저장
+  window.history.pushState({ page: "multi" }, "", window.location.pathname);
+
+  // 이벤트 리스너 등록
+  window.addEventListener("popstate", handlePopState);
+
+  return () => {
+    window.removeEventListener("popstate", handlePopState);
+  };
+}, [nickname]);
 
 
   
