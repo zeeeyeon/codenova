@@ -257,6 +257,25 @@ const TypingBox = ({
       return;
     }
 
+    const socket = getSocket();
+
+    // 오타율 소켓
+    if (e.key === "Backspace") {
+      // 오타 판단 로직
+      const expectedChar = trimmedCurrentLine[trimmedUserInput.length - 1];
+      const typedChar = trimmedUserInput[trimmedUserInput.length - 1];
+
+      const isMistake = typedChar && typedChar !== expectedChar;
+
+      if (isMistake && socket && nickname && roomId) {
+        socket.emit("typo_occured", {
+          roomId,
+          nickname
+        });
+        console.log("👿 typo_occurred_emit");
+      }
+    }
+
     if (e.key === "Enter") {
       if (trimmedUserInput === trimmedCurrentLine) {
         if (currentLine === lines.length - 1) {
@@ -308,12 +327,20 @@ const TypingBox = ({
 
     if (progressPercent > prevProgressRef.current) {
       prevProgressRef.current = progressPercent;
-
-      socket.emit("progress_update", {
+  
+      const payload = {
         roomId,
         nickname,
         progressPercent,
-      });
+
+      };
+  
+      // 100%일 때만 time 추가
+      if (progressPercent === 100) {
+        payload.time = elapsedTime 
+      }
+      console.log("🍳progress_update : ", payload);
+      socket.emit("progress_update", payload);
     }
   }, [userInput, currentLine]);
 

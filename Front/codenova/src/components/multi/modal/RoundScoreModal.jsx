@@ -1,7 +1,7 @@
 // components/multi/modal/RoundScoreModal.jsx
 import React from "react";
 
-const RoundScoreModal = ({ visible, scores, round, onClose }) => {
+const RoundScoreModal = ({ visible, scores, round, countdown }) => {
   if (!visible) return null;
 
   return (
@@ -37,12 +37,7 @@ const RoundScoreModal = ({ visible, scores, round, onClose }) => {
         </div>
 
         <div className="mt-6 text-center">
-          <button
-            onClick={onClose}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
-          >
-            닫기
-          </button>
+        <div className="text-gray-700 mb-2">다음 라운드 시작까지 {countdown}초</div>
         </div>
       </div>
     </div>
