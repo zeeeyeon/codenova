@@ -6,6 +6,8 @@ import kr.codenova.backend.common.enums.Language;
 import kr.codenova.backend.common.repository.CsRepository;
 import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
+import kr.codenova.backend.member.entity.Member;
+import kr.codenova.backend.member.repository.MemberRepository;
 import kr.codenova.backend.single.dto.request.SingleCodeResultRequest;
 import kr.codenova.backend.single.dto.response.*;
 import kr.codenova.backend.single.entity.Report;
@@ -16,6 +18,7 @@ import kr.codenova.backend.single.repository.TypingSpeedRepository;
 import kr.codenova.backend.single.service.GptClient;
 import kr.codenova.backend.single.service.SingleService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,6 +27,7 @@ import java.util.List;
 
 import static kr.codenova.backend.global.response.ResponseCode.CODE_NOT_FOUND;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SingleServiceImpl implements SingleService {
@@ -36,6 +40,7 @@ public class SingleServiceImpl implements SingleService {
     private final GptClient gptClient;
     private final ReportAsyncService reportAsyncService;
     private final RedisRankingService redisRankingService;
+    private final MemberRepository memberRepository;
 
 
     @Override
@@ -55,7 +60,13 @@ public class SingleServiceImpl implements SingleService {
     }
 
     @Override
-    public boolean saveTypingSpeed(int memberId, String nickname, SingleCodeResultRequest request) {
+    public boolean saveTypingSpeed(int memberId, SingleCodeResultRequest request) {
+        String nickname = memberRepository.findById(memberId)
+                .map(Member::getNickname)
+                .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND_USER));
+
+        log.warn("nickname={}", nickname);
+
         return typingSpeedRepository.findByMemberIdAndLanguage(memberId, request.language())
                 .map(existing -> {
                     if (existing.isUpdatable(request.speed())) {

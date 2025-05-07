@@ -16,19 +16,33 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-public class GameEndService {
+public class GameEndService implements WordDropScheduler.GameEndListener {
     private final RoomManager roomManager;
+
+    public GameEndService(RoomManager roomManager, WordDropScheduler wordDropScheduler) {
+        this.roomManager = roomManager;
+        // 리스너로 등록
+        wordDropScheduler.addGameEndListener(this);
+    }
     private SocketIOServer server() {
         return SocketIOServerProvider.getServer();
     }
 
-    public GameEndService(RoomManager roomManager) {
-        this.roomManager = roomManager;
+    @Override
+    public void onGameEnd(String roomId, boolean isSuccess) {
+        endGame(roomId, isSuccess);
     }
+
 
     public void endGame(String roomId, boolean isSuccess) {
         GameRoom room = roomManager.findById(roomId).orElseThrow();
-        room.finish();
+        synchronized (room.getGameLock()) {
+            if (room.getStatus() == GameStatus.FINISHED) {
+                // 이미 종료된 게임은 다시 처리하지 않음
+                return;
+            }
+            room.finish();
+        }
         Map<String,Integer> scoreMap = room.getScoreMap();
         List<PlayerResult> results = room.getPlayers().stream()
                 .map(u -> new PlayerResult(u.getNickname(), scoreMap.getOrDefault(u.getSessionId(),0)))
@@ -37,8 +51,8 @@ public class GameEndService {
 
         GameOverResponse resp = new GameOverResponse(isSuccess, results);
         server().getRoomOperations(roomId).sendEvent("gameEnd", resp);
-        // 게임 종료 되고 방 정리
-        roomManager.removeRoom(roomId);
+
+        room.resetRetryState();
     }
 }
 

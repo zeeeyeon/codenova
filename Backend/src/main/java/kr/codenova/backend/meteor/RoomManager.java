@@ -1,12 +1,12 @@
 package kr.codenova.backend.meteor;
 
 import kr.codenova.backend.meteor.entity.room.GameRoom;
+import kr.codenova.backend.meteor.entity.room.GameStatus;
 import kr.codenova.backend.meteor.entity.user.UserInfo;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -76,6 +76,25 @@ public class RoomManager {
             room.addPlayer(hostFactory.apply(roomId));
             addRoom(room);
             return new RandomRoomResult(room, true);
+        }
+    }
+
+    @Scheduled(fixedRate = 60000)
+    public void cleaupRooms() {
+        Date now = new Date();
+        List<String> roomsToRemove = new ArrayList<>();
+        // 방 상태가 FINISHED 상태로 5분 이상 지난 경우 찾기
+        for (GameRoom room : findAllRooms()) {
+            if( room.getStatus() == GameStatus.FINISHED &&
+                room.getFinishedAt() != null &&
+                now.getTime() - room.getFinishedAt().getTime() > 300000
+            ) {
+                roomsToRemove.add(room.getRoomId());
+            }
+        }
+
+        for (String roomId : roomsToRemove) {
+            removeRoom(roomId);
         }
     }
 }

@@ -24,9 +24,9 @@ public class RankingController {
 
     @GetMapping("/{language}")
     public ResponseEntity<?> getRanking(@AuthenticationPrincipal CustomMemberDetails memberDetails, @PathVariable Language language) {
-        String nickname = (memberDetails != null && memberDetails.getMember() != null) ? memberDetails.getMember().getNickname() : null;
-        RankingResponse response = rankingService.getRanking(language, nickname);
+        Integer memberId = (memberDetails != null && memberDetails.getMember() != null) ? memberDetails.getMember().getMemberId() : null;
+
+        RankingResponse response = rankingService.getRanking(language, memberId);
         return new ResponseEntity<>(Response.create(GET_RANKING_SUCCESS, response), GET_RANKING_SUCCESS.getHttpStatus());
     }
-
 }

@@ -4,7 +4,7 @@ import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
-import jakarta.annotation.PostConstruct;
+
 import kr.codenova.backend.meteor.dto.request.*;
 import kr.codenova.backend.meteor.dto.request.CreateRoomRequest;
 import kr.codenova.backend.meteor.dto.response.*;
@@ -39,6 +39,7 @@ public class MeteorEventHandler implements SocketEventHandler {
     private final TaskScheduler taskScheduler;
 
 
+
     private SocketIOServer server() {
         return SocketIOServerProvider.getServer();
     }
@@ -66,6 +67,8 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().addEventListener("sendChat", SendChatRequest.class, (client, data, ack) -> handleSendChat(client, data));
         // 목숨 차감 이벤트
 //        server().addEventListener("lifeLost", RemoveWordRequest.class, (client, data, ack) -> handleRemoveWord(client, data));
+        // 게임 재도전 이벤트
+        server().addEventListener("retryGame", RetryGameRequest.class, (client, data, ack) -> handleRetryGame(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
@@ -136,6 +139,14 @@ public class MeteorEventHandler implements SocketEventHandler {
         if (alreadyIn) {
             client.sendEvent("secretRoomJoin",
                     new ErrorResponse("ALREADY_IN_ROOM", "이미 이 방에 참여 중입니다."));
+            return;
+        }
+
+        boolean nicknameExists = room.getPlayers().stream()
+                .anyMatch(u -> u.getNickname().equals(nickname));
+        if (nicknameExists) {
+            client.sendEvent("secretRoomJoin",
+                    new ErrorResponse("DUPLICATE_NICKNAME", "이미 방에 동일한 닉네임의 사용자가 있습니다."));
             return;
         }
 
@@ -234,26 +245,29 @@ public class MeteorEventHandler implements SocketEventHandler {
         room.initFallingwords(fallingWords);
         room.start();
 
-        // 4️. 3초 뒤에 모든 사용자에게 게임 시작 알림
-        taskScheduler.schedule(() -> {
-            StartGameResponse resp = StartGameResponse.builder()
-                    .roomId(roomId)
-                    .players(room.getPlayers())
-                    .fallingWords(fallingWords)
-                    .initialLives(5)
-                    .initialDropInterval(1500)
-                    .initialFallDuration(8000)
-                    .message("게임이 시작되었습니다.")
-                    .build();
 
-            server().getRoomOperations(roomId)
-                    .sendEvent("gameStart", resp);
+
+        StartGameResponse resp = StartGameResponse.builder()
+                .roomId(roomId)
+                .players(room.getPlayers())
+                .fallingWords(fallingWords)
+                .initialLives(5)
+                .initialDropInterval(1800)
+                .initialFallDuration(8000)
+                .message("게임이 시작되었습니다.")
+                .build();
+
+        server().getRoomOperations(roomId)
+                .sendEvent("gameStart", resp);
+        taskScheduler.schedule(() -> {
             wordDropScheduler.startDrooping(
                     roomId,
                     resp.getInitialDropInterval(),
                     resp.getInitialFallDuration()
             );
-        }, Instant.now().plusSeconds(3));  // ← here
+        }, Instant.now().plusSeconds(4));
+
+
     }
 
     private void handleExitRoom(SocketIOClient client, ExitRoomRequest data) {
@@ -432,31 +446,75 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().getRoomOperations(roomId).sendEvent("chatSend", response);
 
     }
+    private void handleRetryGame(SocketIOClient client, RetryGameRequest data) {
+        String sessionId = client.getSessionId().toString();
+        String roomId = data.getRoomId();
 
-//    private void handleRemoveWord(SocketIOClient client, RemoveWordRequest data) {
-//        String roomId = data.getRoomId();
-//        String word = data.getWord();
-//
-//        GameRoom room = roomManager.findById(roomId)
-//                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
-//        // 1. 낙하중인 리스트에서 단어 삭제
-//        boolean isGameOver = room.handleWordMissAndCheckGameOver(word);
-//        int currentLife = room.getLife();
-//
-//        // 2. 목숨 하나 삭제하고 남은 목숨 반환
-//        RemoveWordResponse response = new RemoveWordResponse(currentLife);
-//        server().getRoomOperations(roomId).sendEvent("lostLife", response);
-//        // 3. 목숨이 0이면 게임 종료
-//        if (isGameOver) {
-//            wordDropScheduler.cancel(roomId);
-//            gameEndService.endGame(roomId, false);
-//        } else{
-//            if(!room.hasActiveWords() && !room.hasMoreFallingWords()) {
-//                wordDropScheduler.cancel(roomId);
-//                gameEndService.endGame(roomId, true);
-//            }
-//        }
-//    }
+        GameRoom room = roomManager.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+
+        // FINISHED 상태인 방에서만 재도전 허용
+        if (room.getStatus() != GameStatus.FINISHED) {
+            client.sendEvent("gameRetry",
+                    new ErrorResponse("INVALID_STATE", "게임이 종료된 상태에서만 재도전이 가능합니다."));
+            return;
+        }
+
+        boolean allReady = room.isReady(sessionId);
+
+        int readyCount = room.retryCount();
+
+        if (allReady) {
+
+            String newRoomId = UUID.randomUUID().toString();
+
+            List<UserInfo> retryPlayers = new ArrayList<>(room.getPlayers());
+
+            GameRoom newRoom = new GameRoom(
+                    newRoomId,
+                    room.isPrivate(),
+                    room.isPrivate() ? generateRoomCode() : null,
+                    room.getMaxPlayers(),
+                    room.getHostSessionId()
+            );
+
+            for (UserInfo player : retryPlayers) {
+                newRoom.addPlayer(player);
+
+                SocketIOClient playerClient = server().getClient(UUID.fromString(player.getSessionId()));
+                if (playerClient != null) {
+                    playerClient.leaveRoom(roomId);
+                    playerClient.joinRoom(newRoomId);
+                }
+            }
+
+            roomManager.addRoom(newRoom);
+
+            roomManager.removeRoom(roomId);
+
+            RetryGameResponse response = RetryGameResponse.builder()
+                    .roomId(newRoomId)
+                    .players(newRoom.getPlayers())
+                    .readyCount(readyCount)
+                    .allReady(true)
+                    .build();
+
+            server().getRoomOperations(newRoomId).sendEvent("gameRetry", response);
+
+
+        }else{
+            RetryGameResponse response = RetryGameResponse.builder()
+                    .roomId(roomId)
+                    .players(room.getPlayers())
+                    .readyCount(readyCount)
+                    .allReady(false)
+                    .build();
+
+            server().getRoomOperations(roomId).sendEvent("gameRetry", response);
+        }
+
+    }
+
 
     public ConnectListener listenConnected() {
         return (client) -> {

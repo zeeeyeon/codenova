@@ -11,11 +11,15 @@ import kr.codenova.backend.multi.dto.broadcast.RoomUpdateBroadcast;
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
 import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
 import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
+import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
 import kr.codenova.backend.multi.dto.response.CreateRoomResponse;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
+import kr.codenova.backend.multi.dto.response.RoomStatusResponse;
+import kr.codenova.backend.multi.exception.AlreadyStartException;
 import kr.codenova.backend.multi.exception.InvalidPasswordException;
 import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
+import kr.codenova.backend.multi.room.Room.UserStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -65,7 +69,7 @@ public class RoomServiceImpl implements RoomService {
         log.info("방 생성 : " + room.toString());
 
         // 유저 준비 상태 초기화
-        room.getUserStatusMap().put(request.getNickname(), new Room.UserStatus(true, false));
+        room.getUserStatusMap().put(request.getNickname(), new UserStatus(true, true));
 
         // 유저 입장 시간 기록 (자동 방장 위임에 필요)
         room.getUserJoinTimes().put(request.getNickname(), System.currentTimeMillis());
@@ -94,11 +98,28 @@ public class RoomServiceImpl implements RoomService {
         return roomMap.get(roomId);
     }
 
+    // 방 현재 상태 조회
+    public void getRoomStatus(RoomStatusRequest request, SocketIOClient client) {
+        Room room = roomMap.get(request.getRoomId());
+        RoomStatusResponse response = new RoomStatusResponse(room);
+        client.sendEvent("room_status", response);
+
+
+        JoinRoomBroadcast broadcast = new JoinRoomBroadcast(room);
+        getServer().getBroadcastOperations().sendEvent("join_room", broadcast);
+
+    }
+
     // 공개방 입장
     public void joinRoom(JoinRoomRequest request, SocketIOClient client, AckRequest ackSender) {
         Room room = roomMap.get(request.getRoomId());
         if (room == null) {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
+        }
+
+        // 게임중인 방 확인 로직 추가
+        if (room.getIsStarted()) {
+            throw new AlreadyStartException("이미 게임이 시작된 방입니다.");
         }
 
         // 비밀방 확인 로직 추가
@@ -114,7 +135,8 @@ public class RoomServiceImpl implements RoomService {
         }
 
         room.setCurrentCount(room.getCurrentCount() + 1);
-        room.getUserStatusMap().put(request.getNickname(), new Room.UserStatus(false, false));
+        room.getUserStatusMap().put(request.getNickname(), new UserStatus(false, false));
+        room.getUserJoinTimes().put(request.getNickname(), System.currentTimeMillis());
         roomMap.put(room.getRoomId(), room);
 
         // ✅ 클라이언트 방 조인
@@ -168,14 +190,18 @@ public class RoomServiceImpl implements RoomService {
         room.setCurrentCount(Math.max(room.getCurrentCount() - 1, 0));
 
         // 방장 권한 위임 처리
-        Room.UserStatus userStatus = room.getUserStatusMap().get(request.getNickname());
+        UserStatus userStatus = room.getUserStatusMap().get(request.getNickname());
 
         boolean isHost = userStatus.isHost();
+        // ✅ 클라이언트 방 나가기
+        client.leaveRoom(request.getRoomId());
         String newHostNickname = null;
 
 
 
         if (isHost && room.getCurrentCount() > 0) {
+            room.getUserStatusMap().remove(request.getNickname());
+
             // 방장이 나가고 다른 유저가 남아있는 경우, 가장 먼저 입장한 유저에게 방장 권한 위임
             Map<String, Long> joinTimes = room.getUserJoinTimes();
 
@@ -187,21 +213,20 @@ public class RoomServiceImpl implements RoomService {
                     .orElse(null);
 
 
+
             if (newHostNickname != null) {
                 // 새 방장 설정
-                Room.UserStatus newHostStatus = room.getUserStatusMap().get(newHostNickname);
+                UserStatus newHostStatus = room.getUserStatusMap().get(newHostNickname);
                 newHostStatus.setHost(true);
+                newHostStatus.setReady(true);
                 log.info("방장 권한 위임: {} -> {}, 방: {}",
                         request.getNickname(), newHostNickname, request.getRoomId());
 
-                // 방장 권한 위임 이벤트 브로드캐스트
-                ChangeHostBroadcast hostChangedBroadcast = new ChangeHostBroadcast(
-                        request.getRoomId(),
-                        newHostNickname
-                );
+                RoomStatusResponse roomStatusResponse = new RoomStatusResponse(room);
+
 
                 getServer().getRoomOperations(request.getRoomId())
-                        .sendEvent("host_changed", hostChangedBroadcast);
+                        .sendEvent("host_changed", roomStatusResponse);
             }
         }
 
@@ -225,9 +250,6 @@ public class RoomServiceImpl implements RoomService {
                         ))
                 );
 
-        // ✅ 클라이언트 방 나가기
-        client.leaveRoom(request.getRoomId());
-
         // ✅ 방 삭제 or 업데이트 브로드캐스트
         if (room.getCurrentCount() == 0) {
             roomMap.remove(request.getRoomId());
@@ -249,7 +271,15 @@ public class RoomServiceImpl implements RoomService {
 
     public List<RoomListResponse> getRoomList() {
         return getAllRooms().stream()
-                .sorted((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt()))
+                .sorted((r1, r2) -> {
+                    // 1️⃣ 게임 중 여부 우선 정렬 (false < true)
+                    int compareByIsStarted = Boolean.compare(r1.getIsStarted(), r2.getIsStarted());
+                    if (compareByIsStarted != 0) {
+                        return compareByIsStarted; // 게임 중인 방은 뒤로
+                    }
+                    // 2️⃣ 생성일 내림차순 정렬
+                    return r2.getCreatedAt().compareTo(r1.getCreatedAt());
+                })
                 .map(room -> new RoomListResponse(
                         room.getRoomId(),
                         room.getRoomTitle(),
@@ -260,4 +290,5 @@ public class RoomServiceImpl implements RoomService {
                         room.getIsStarted()))
                 .toList();
     }
+
 }
