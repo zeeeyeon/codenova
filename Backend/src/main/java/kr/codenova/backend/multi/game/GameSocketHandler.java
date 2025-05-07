@@ -47,7 +47,7 @@ public class GameSocketHandler implements SocketEventHandler {
             }
         });
 
-        // 4. 라운드 종료 (프론트 10초 타이머 이후 호출)
+        // 4. 라운드 종료
         server.addEventListener("round_end", RoundEndRequest.class, (client, request, ackSender) -> {
             try {
                 gameService.endRound(request.getRoomId());
