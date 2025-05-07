@@ -2,7 +2,7 @@ import multibg from "../../assets/images/multi_background.png";
 import logoImage from "../../assets/images/codenova_logo.png";
 import Board from "../../assets/images/board1.jpg";
 import loginBtn from "../../assets/images/login_button.png"; // 🎯 로그인 버튼 이미지
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { loginApi } from "../../api/authApi";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
@@ -13,6 +13,13 @@ const LoginPage = () => {
   const login = useAuthStore((state) => state.login);
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
+  const token = useAuthStore((state) => state.token);
+
+  useEffect(() => {
+    if (token) {
+      navigate("/main");
+    }
+  }, [token, navigate]);
 
   const handleLogin = async () => {
     try {
