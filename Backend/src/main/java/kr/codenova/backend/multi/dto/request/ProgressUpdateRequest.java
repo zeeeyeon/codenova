@@ -11,5 +11,5 @@ public class ProgressUpdateRequest {
     private String roomId;
     private String nickname;
     private int progressPercent;  // 진행률 (0~100)
-    private Integer time; // 도착 시간 (초) - 100%일 때만 유효
+    private Integer time; // 도착 시간 (밀리초) - 100%일 때만 유효
 }

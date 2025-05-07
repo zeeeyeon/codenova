@@ -3,6 +3,7 @@ package kr.codenova.backend.multi.game;
 import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.multi.dto.EndGameRequest;
 import kr.codenova.backend.multi.dto.RoundEndRequest;
+import kr.codenova.backend.multi.dto.RoundStartRequest;
 import kr.codenova.backend.multi.dto.TypoRequest;
 import kr.codenova.backend.multi.dto.request.*;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
@@ -52,6 +53,15 @@ public class GameSocketHandler implements SocketEventHandler {
                 gameService.endRound(request.getRoomId());
             } catch (Exception e) {
                 client.sendEvent("error", new SocketErrorResponse("라운드 종료 처리 오류"));
+            }
+        });
+
+        // 5. 라운드 시작
+        server.addEventListener("round_start", RoundStartRequest.class, (client, request, ackSender) -> {
+            try {
+                gameService.startRound(request.getRoomId());
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("라운드 시작 처리 오류"));
             }
         });
 
