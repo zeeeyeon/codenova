@@ -160,16 +160,19 @@ public class GameServiceImpl implements GameService {
         if (progress >= 100 && time != null && time > 0) {
             double seconds = time / 1000.0;
 
-            // ✅ 1등 유저라면 기록
+            // ✅ 1등 유저라면 기록 + 종료 타이머 시작
             if (!room.hasFirstFinisher()) {
-                room.setFirstFinisher(nickname, time); // 내부적으로 firstFinishTime 설정
+                room.setFirstFinisher(nickname, time);
                 room.getFinishTimeMap().putIfAbsent(nickname, seconds);
 
                 FinishNoticeBroadcast broadcast = new FinishNoticeBroadcast(request.getRoomId(), nickname);
                 getServer().getRoomOperations(request.getRoomId())
                         .sendEvent("finish_notice", broadcast);
+
+                // ✅ 서버 타이머로 종료 제어
+                startCountDownTimer(request.getRoomId());
             } else {
-                // ✅ 이미 1등이 정해졌으면 finishTimeMap에만 저장 (중복 방지)
+                // ✅ 이미 1등이 있으면 도착 시간만 기록
                 room.getFinishTimeMap().putIfAbsent(nickname, seconds);
             }
         }
@@ -179,6 +182,22 @@ public class GameServiceImpl implements GameService {
                 .sendEvent("progress_update", request);
     }
 
+    @Async
+    public void startCountDownTimer(String roomId) {
+        try {
+            for (int i = 10; i >= 1; i--) {
+                CountDownBroadcast countDown = new CountDownBroadcast(roomId, i);
+                getServer().getRoomOperations(roomId)
+                        .sendEvent("count_down", countDown);
+                Thread.sleep(1000); // 1초 간격
+            }
+
+            endRound(roomId); // ⏰ 10초 후 라운드 종료 (단 한 번만)
+        } catch (InterruptedException e) {
+            log.error("카운트다운 중단됨", e);
+            Thread.currentThread().interrupt();
+        }
+    }
 
     // 7. 라운드 종료
     public void endRound(String roomId) {

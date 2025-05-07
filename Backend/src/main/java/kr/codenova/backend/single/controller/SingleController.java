@@ -15,7 +15,6 @@ import kr.codenova.backend.single.dto.response.SingleBattleCodeResponse;
 import kr.codenova.backend.single.dto.response.SingleTypingResultResponse;
 import kr.codenova.backend.single.service.SingleService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +24,6 @@ import java.util.List;
 import static kr.codenova.backend.global.response.ResponseCode.*;
 
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/single")
@@ -48,9 +46,8 @@ public class SingleController {
     @PostMapping("/code/result")
     public ResponseEntity<?> saveCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody SingleCodeResultRequest request) {
         boolean isNewRecord = false;
-        log.warn("id ={}. nickname={}, nickname2={},  speed={}", memberDetails.getMember().getMemberId(), memberDetails.getMember().getNickname(), memberDetails.getNickname(),  request.speed());
 
-        if (memberDetails != null && memberDetails.getMember() != null) isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), request);
+        if (memberDetails != null && memberDetails.getMember() != null) isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), memberDetails.getNickname() , request);
         SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.speed());
         ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SUCCESS;
         return new ResponseEntity<>(Response.create(resultCode, response), resultCode.getHttpStatus());
