@@ -230,7 +230,7 @@ public class GameServiceImpl implements GameService {
     public void addTypo(String roomId, String nickname) {
         Room room = roomService.getRoom(roomId);
         Map<String, Integer> typoCountMap = room.getTypoCountMap();
-        typoCountMap.put(nickname, typoCountMap.getOrDefault(nickname, 0) + 1);
+        typoCountMap.merge(nickname, 1, Integer::sum);
     }
 
     // 2. 현재 방 준비 상태 정보 생성
