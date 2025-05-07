@@ -46,6 +46,9 @@ public interface GameService {
     // 7. 라운드 종료
     void endRound(String roomId);
 
+    // 8. 라운드 시작
+    void startRound(String roomId);
+
     // 8. 게임 종료
     void endGame(String roomId);
 

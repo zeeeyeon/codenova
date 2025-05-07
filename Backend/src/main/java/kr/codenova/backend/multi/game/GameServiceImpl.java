@@ -8,7 +8,6 @@ import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.multi.dto.RoundScoreBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.*;
-import kr.codenova.backend.multi.dto.request.FinishGameRequest;
 import kr.codenova.backend.multi.dto.request.ProgressUpdateRequest;
 import kr.codenova.backend.multi.dto.request.ReadyGameRequest;
 import kr.codenova.backend.multi.dto.request.StartGameRequest;
@@ -42,9 +41,6 @@ public class GameServiceImpl implements GameService {
     private SocketIOServer getServer() {
         return SocketIOServerProvider.getServer();
     }
-
-    // 방 별로 완료한 유저들의 결과 저장
-    private final Map<String, List<UserResultStatus>> finishedUserResults = new ConcurrentHashMap<>();
 
     // ✅ 방의 참가자 수 저장 (필요함)
     private final Map<String, Integer> roomUserCounts = new ConcurrentHashMap<>();
@@ -81,21 +77,6 @@ public class GameServiceImpl implements GameService {
         }
     }
 
-    // 2. 현재 방 준비 상태 정보 생성
-    public ReadyGameBroadcast buildReadyBroadcast(String roomId) {
-        Room room = roomService.getRoom(roomId);
-        if (room == null) {
-            throw new RoomNotFoundException("방을 찾을 수 없습니다.");
-        }
-
-        List<ReadyGameBroadcast.UserReadyStatus> users = new ArrayList<>();
-        for (Map.Entry<String, Room.UserStatus> entry : room.getUserStatusMap().entrySet()) {
-            users.add(new ReadyGameBroadcast.UserReadyStatus(entry.getKey(), entry.getValue()));
-        }
-
-        return new ReadyGameBroadcast(roomId, users);
-    }
-
     // 3. 게임 시작 요청 처리
     public void startGame(StartGameRequest request) {
         Room room = roomService.getRoom(request.getRoomId());
@@ -118,6 +99,7 @@ public class GameServiceImpl implements GameService {
 
         delayedTypingStart(request.getRoomId());
     }
+
 
     // 4. 게임 시작 전 검증 (방장 여부 + 모든 준비 완료)
     public void validateStartGame(String roomId, String nickname) {
@@ -142,31 +124,24 @@ public class GameServiceImpl implements GameService {
     }
 
     // 5. 3초 뒤에 타이핑 시작 알림
-    @Async
     public void delayedTypingStart(String roomId) {
-        try {
-            Thread.sleep(3000); // 3초 대기
 
-            Room room = roomService.getRoom(roomId);
-            if (room == null) {
-                return; // ✅ 3초 대기하는 동안 방이 없어졌으면 아무것도 안 함
-            }
-            log.info("roomId : " + roomId);
-
-            TypingStartBroadcast typingStart = new TypingStartBroadcast(
-                    roomId,
-                    LocalDateTime.now(),
-                    getGameContent(room.getLanguage()) // 게임 본문 가져오기
-            );
-            log.info("typingStart : " + typingStart);
-
-            getServer().getRoomOperations(roomId)
-                    .sendEvent("typing_start", typingStart);
-
-        } catch (InterruptedException e) {
-            // 필요하면 로그 찍기
-            System.err.println("게임 시작 대기 중 오류 발생: " + e.getMessage());
+        Room room = roomService.getRoom(roomId);
+        if (room == null) {
+            return; // ✅ 3초 대기하는 동안 방이 없어졌으면 아무것도 안 함
         }
+        log.info("roomId : " + roomId);
+
+        TypingStartBroadcast typingStart = new TypingStartBroadcast(
+                roomId,
+                LocalDateTime.now(),
+                getGameContent(room.getLanguage()) // 게임 본문 가져오기
+        );
+        log.info("typingStart : " + typingStart);
+
+        getServer().getRoomOperations(roomId)
+                .sendEvent("typing_start", typingStart);
+
     }
 
     // 6. 게임 진행률 업데이트
@@ -174,7 +149,7 @@ public class GameServiceImpl implements GameService {
         Room room = roomService.getRoom(request.getRoomId());
         String nickname = request.getNickname();
         int progress = request.getProgressPercent();
-        Integer time = request.getTime();
+        Integer time = request.getTime(); // 밀리초
 
         // 1등 유저라면 1등으로 기록
         if(!room.hasFirstFinisher() && progress >= 100) {
@@ -201,6 +176,23 @@ public class GameServiceImpl implements GameService {
         resetRoundData(room);
     }
 
+    public void startRound(String roomId) {
+        Room room = roomService.getRoom(roomId);
+        calculateScores(room);
+
+        TypingStartBroadcast broadcast = new TypingStartBroadcast(
+                roomId,
+                LocalDateTime.now(),
+                getGameContent(room.getLanguage()) // 게임 본문 가져오기
+        );
+
+        getServer().getRoomOperations(roomId)
+                .sendEvent("typing_start", broadcast);
+
+        room.setRoundNumber(room.getRoundNumber() + 1);
+        resetRoundData(room);
+    }
+
     // 8. 게임 종료
     public void endGame(String roomId) {
         Room room = roomService.getRoom(roomId);
@@ -216,21 +208,20 @@ public class GameServiceImpl implements GameService {
         typoCountMap.put(nickname, typoCountMap.getOrDefault(nickname, 0) + 1);
     }
 
-    // 11. 방 별 유저 수 저장
-    public void setRoomUserCount(String roomId, int userCount) {
-        roomUserCounts.put(roomId, userCount);
-    }
-
-    // 12. 게임 본문 가져오기
-    public String getGameContent(String language) {
-        Code randomCode = codeRepository.findRandomByLanguage(language).orElseThrow(() -> new CustomException(ResponseCode.CODE_NOT_FOUND));
-        if (randomCode != null) {
-            return randomCode.getContent();
-        } else {
-            return "기본 문장입니다. (DB에 내용이 없습니다)";
+    // 2. 현재 방 준비 상태 정보 생성
+    public ReadyGameBroadcast buildReadyBroadcast(String roomId) {
+        Room room = roomService.getRoom(roomId);
+        if (room == null) {
+            throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
-    }
 
+        List<ReadyGameBroadcast.UserReadyStatus> users = new ArrayList<>();
+        for (Map.Entry<String, Room.UserStatus> entry : room.getUserStatusMap().entrySet()) {
+            users.add(new ReadyGameBroadcast.UserReadyStatus(entry.getKey(), entry.getValue()));
+        }
+
+        return new ReadyGameBroadcast(roomId, users);
+    }
 
     public RoundScoreBroadcast buildRoundScoreBroadcast(Room room) {
         List<UserRoundResult> results = new ArrayList<>();
@@ -310,7 +301,6 @@ public class GameServiceImpl implements GameService {
         room.setRoundScoreMap(roundScoreMap);
     }
 
-
     private void resetRoundData(Room room) {
         room.setFirstFinishTime(null);
         room.setFirstFinisherNickname(null);
@@ -319,9 +309,19 @@ public class GameServiceImpl implements GameService {
         room.getRoundScoreMap().clear();
     }
 
-    // 최종 점수 응답
-    public Map<String, Integer> getFinalScoreBoard(Room room) {
-        return new HashMap<>(room.getScoreMap());
+    // 11. 방 별 유저 수 저장
+    public void setRoomUserCount(String roomId, int userCount) {
+        roomUserCounts.put(roomId, userCount);
+    }
+
+    // 12. 게임 본문 가져오기
+    public String getGameContent(String language) {
+        Code randomCode = codeRepository.findRandomByLanguage(language).orElseThrow(() -> new CustomException(ResponseCode.CODE_NOT_FOUND));
+        if (randomCode != null) {
+            return randomCode.getContent();
+        } else {
+            return "기본 문장입니다. (DB에 내용이 없습니다)";
+        }
     }
 
 }
