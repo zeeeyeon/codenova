@@ -106,7 +106,7 @@ public class RoomServiceImpl implements RoomService {
 
 
         JoinRoomBroadcast broadcast = new JoinRoomBroadcast(room);
-        getServer().getBroadcastOperations().sendEvent("join_room", broadcast);
+//        getServer().getBroadcastOperations().sendEvent("join_room", broadcast);
 
     }
 
