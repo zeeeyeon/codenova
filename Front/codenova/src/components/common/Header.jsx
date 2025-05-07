@@ -17,16 +17,16 @@ const Header = ({onShowTuto}) => {
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout);
   const [userType ,setUserType] = useState(null);
-  const [nickname ,setNickname] = useState(null);
+  // const [nickname ,setNickname] = useState(null);
   const [showTuto, setShowTuto] = useState(false);
 
   useEffect(() => {
     const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
     setUserType(auth?.state?.user?.userType);
-    setNickname(auth?.state?.user?.nickname);
+    // setNickname(auth?.state?.user?.nickname);
   }, [])
 
-
+  const nickname = useAuthStore((state) => state.user?.nickname);
 
   const handleLogout = () => {
     document.cookie = "accessToken=; path=/; max-age=0;";
@@ -54,7 +54,7 @@ const Header = ({onShowTuto}) => {
       {/* 오른쪽 아이콘들 */}
       <div className="flex items-center gap-4">
         <div className=" text-white text-gl mr-4 text-center">
-          {nickname}님
+          {nickname ? `${nickname}님` : ''}
         </div>
         {userType !== "guest" && (
           <img
