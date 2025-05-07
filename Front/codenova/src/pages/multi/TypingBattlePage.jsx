@@ -128,6 +128,15 @@ const TypingBattlePage = () => {
     const handleTypingStart = (data) => {
       console.log("🥘 typing_start 수신:", data);
       setTargetCode(data.script); // 문제 저장
+
+      setUsers((prev) =>
+        Array.isArray(prev)
+          ? prev.map((user) => ({
+              ...user,
+              progress: 0,
+            }))
+          : [] // fallback
+      );
     };
 
     socket.on("typing_start", handleTypingStart);
@@ -197,31 +206,42 @@ const TypingBattlePage = () => {
   
 
   // 소켓 수신
-useEffect(() => {
-  const socket = getSocket();
-  if (!socket) return;
-
-  const handleRoundScore = (data) => {
-    console.log("📊 round_score 수신:", data);
-    setRoundScoreData(data);
-    setCurrentRound(data.round);
-    setShowRoundScoreModal(true);
-    setModalCountdown(5); // 카운트다운 초기화화
-  };
-
-  const interval = setInterval(() => {
-    setModalCountdown((prev) => {
-      if (prev === 1) {
-        clearInterval(interval);
-        setShowRoundScoreModal(false);
-      }
-      return prev - 1;
-    });
-  }, 1000);
-
-  socket.on("round_score", handleRoundScore);
-  return () => socket.off("round_score", handleRoundScore);
-}, []);
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+  
+    const handleRoundScore = (data) => {
+      console.log("📊 round_score 수신:", data);
+      setRoundScoreData(data);
+      setCurrentRound(data.round);
+      setShowRoundScoreModal(true);
+      setModalCountdown(5); // 카운트다운 초기화
+  
+      const interval = setInterval(() => {
+        setModalCountdown((prev) => {
+          if (prev === 1) {
+            clearInterval(interval);
+            setShowRoundScoreModal(false);
+  
+            if (data.round < 3) {
+              console.log("🍆 round_start emit");
+              setCountdown(5);
+              setGameStarted(false);
+              setRoundEnded(false);
+              setFirstFinisher(null);
+              setTargetCode(""); // optional: 이전 코드 초기화
+              socket.emit("round_start", { roomId });
+            }
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    };
+  
+    socket.on("round_score", handleRoundScore);
+    return () => socket.off("round_score", handleRoundScore);
+  }, []);
+  
   
 
   return (
