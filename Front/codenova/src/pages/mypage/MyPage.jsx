@@ -29,6 +29,8 @@ const MyPage= () => {
     const [newNumber, setNewNumber] = useState(null);
     const [userScoreList, setUserScoreList] = useState([]);
 
+    
+
     useEffect(() =>{
         console.log(userScoreList)
     },[userScoreList])
@@ -116,7 +118,15 @@ const MyPage= () => {
             const response = await upDateMyProfile(updatedProfile);
             const {code, message} = response.status;
             if (code === 200){
-                setNickName(response.content.nickname);
+                const updatedNickName = response.content.nickname; 
+                const auth = JSON.parse(localStorage.getItem("auth-storage"));
+                
+                if (auth?.state?.user) {
+                    auth.state.user.nickname = updatedNickName;
+                    localStorage.setItem("auth-storage", JSON.stringify(auth));
+                  }
+
+                setNickName(updatedNickName);
                 setNumber(response.content.phoneNum);
                 setNewNickName('');
                 setNewNumber('');
