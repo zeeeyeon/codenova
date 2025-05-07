@@ -221,6 +221,9 @@ public class GameServiceImpl implements GameService {
         GameResultBroadcast result = buildGameResultBroadcast(room);
         getServer().getRoomOperations(roomId)
                 .sendEvent("game_result", result);
+
+        // 방 완전 초기화
+
     }
 
     // 9. 오타 발생
@@ -272,23 +275,20 @@ public class GameServiceImpl implements GameService {
 
         for (String nickname : room.getUserStatusMap().keySet()) {
             int totalScore = room.getTotalScoreMap().getOrDefault(nickname, 0);
-            int typo = room.getTypoCountMap().getOrDefault(nickname, 0);
-            Double finishTime = room.getFinishTimeMap().get(nickname);
-            boolean isRetire = (finishTime == null || finishTime - room.getFirstFinishTime() > 10.0);
+//            int typo = room.getTypoCountMap().getOrDefault(nickname, 0);
+//            Double finishTime = room.getFinishTimeMap().get(nickname);
+//            boolean isRetire = (finishTime == null || finishTime - room.getFirstFinishTime() > 10.0);
 
             results.add(UserResultStatus.builder()
                     .nickname(nickname)
-                            .score(totalScore)
-                            .typoCount(typo)
-                            .retire(isRetire)
-                            .time(isRetire ? null : finishTime)
+                            .averageScore((double) totalScore/room.getRoundNumber())
                             .build()
             );
 
         }
 
         // ✅ 점수 기준 정렬 및 순위 매기기
-        results.sort((a, b) -> Integer.compare(b.getScore(), a.getScore()));
+        results.sort((a, b) -> Double.compare(b.getAverageScore(), a.getAverageScore()));
         for (int i = 0; i < results.size(); i++) {
             results.get(i).setRank(i + 1);
         }

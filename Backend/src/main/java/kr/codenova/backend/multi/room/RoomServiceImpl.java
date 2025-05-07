@@ -271,7 +271,15 @@ public class RoomServiceImpl implements RoomService {
 
     public List<RoomListResponse> getRoomList() {
         return getAllRooms().stream()
-                .sorted((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt()))
+                .sorted((r1, r2) -> {
+                    // 1️⃣ 게임 중 여부 우선 정렬 (false < true)
+                    int compareByIsStarted = Boolean.compare(r1.getIsStarted(), r2.getIsStarted());
+                    if (compareByIsStarted != 0) {
+                        return compareByIsStarted; // 게임 중인 방은 뒤로
+                    }
+                    // 2️⃣ 생성일 내림차순 정렬
+                    return r2.getCreatedAt().compareTo(r1.getCreatedAt());
+                })
                 .map(room -> new RoomListResponse(
                         room.getRoomId(),
                         room.getRoomTitle(),
@@ -282,4 +290,5 @@ public class RoomServiceImpl implements RoomService {
                         room.getIsStarted()))
                 .toList();
     }
+
 }
