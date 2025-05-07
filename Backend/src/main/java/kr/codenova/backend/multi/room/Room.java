@@ -26,6 +26,9 @@ public class Room {
     private String roomCode;
     private LocalDateTime createdAt;
 
+    @Builder.Default
+    private boolean isRoundEnded = false;
+
     // ✅ 사용자 상태 관리 (nickname → UserStatus)
     @Builder.Default
     private ConcurrentHashMap<String, UserStatus> userStatusMap = new ConcurrentHashMap<>();

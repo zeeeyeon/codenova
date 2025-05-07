@@ -187,6 +187,12 @@ public class GameServiceImpl implements GameService {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
 
+        // ✅ 중복 호출 방지
+        if (room.isRoundEnded()) {
+            return;
+        }
+        room.setRoundEnded(true);
+
         calculateScores(room);
 
         RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
@@ -346,6 +352,8 @@ public class GameServiceImpl implements GameService {
         room.setFinishTimeMap(new ConcurrentHashMap<>());
         room.setTypoCountMap(new ConcurrentHashMap<>());
         room.setRoundScoreMap(new ConcurrentHashMap<>());
+
+        room.setRoundEnded(false);
     }
 
 
