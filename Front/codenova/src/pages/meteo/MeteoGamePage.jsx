@@ -54,9 +54,9 @@ const MeteoGamePage = () => {
     const handleBeforeUnloadOrPop = () => {
       const savedRoomId = localStorage.getItem("meteoRoomId");
       const savedNickname = localStorage.getItem("nickname");
-      console.log("🔥 [뒤로가기 또는 새로고침] 방 나감 처리", savedRoomId, savedNickname);
+      // console.log("🔥 [뒤로가기 또는 새로고침] 방 나감 처리", savedRoomId, savedNickname);
       if (savedRoomId && savedNickname) {
-        console.log("🚪 [뒤로가기 또는 새로고침] 방 나감 처리");
+        // console.log("🚪 [뒤로가기 또는 새로고침] 방 나감 처리");
         exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
   
         localStorage.removeItem("meteoRoomCode");
@@ -80,7 +80,7 @@ const MeteoGamePage = () => {
   
         if (currentRoomId && savedNickname) {
           exitMeteoRoom({ roomId: roomId, nickname: nickname });
-          console.log("🚪 [뒤로가기] 방 나감 처리 시작");
+          // console.log("🚪 [뒤로가기] 방 나감 처리 시작");
         }
       };
   

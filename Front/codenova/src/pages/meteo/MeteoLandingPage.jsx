@@ -59,7 +59,7 @@ const MeteoLandingPage = () => {
         };
       }
     });
-    console.log("✅ [updateUsersFromPlayers] 유저 리스트:", updated);
+    // console.log("✅ [updateUsersFromPlayers] 유저 리스트:", updated);
     setUsers(updated);
 
     const currentCount = playersArray.length;
@@ -89,9 +89,15 @@ const MeteoLandingPage = () => {
       localStorage.setItem("meteoRoomId", roomId);
       localStorage.setItem("meteoPlayers", JSON.stringify(players));
 
-      console.log("✅ [방 생성/입장] localStorage 저장 완료");
+      // console.log("✅ [방 생성/입장] localStorage 저장 완료");
     }
   }, [players, roomCode, roomId]);
+
+  const usersRef = useRef(users);
+  useEffect(() => {
+    usersRef.current = users;
+  }, [users]);
+
 
   // 2) guard + socket 이벤트 관리
   useEffect(() => {
@@ -103,7 +109,7 @@ const MeteoLandingPage = () => {
       localStorage.getItem("meteoPlayers") || "[]"
     );
     if (!savedId || savedPlayers.length === 0 || !nickname || !socket) {
-      console.warn("❗ 방 정보 없음 또는 소켓 없음 → 메인으로 이동");
+      // console.warn("❗ 방 정보 없음 또는 소켓 없음 → 메인으로 이동");
 
       // localStorage 정리
       localStorage.removeItem("meteoRoomCode");
@@ -119,7 +125,22 @@ const MeteoLandingPage = () => {
     const handleSecretRoomJoin = (roomData) => {
       updateUsersFromPlayers(roomData.players);
       localStorage.setItem("meteoPlayers", JSON.stringify(roomData.players));
-      console.log("🛰️ [secretRoomJoin] localStorage 업데이트");
+        // ✅ 2. SYSTEM 메시지 추가
+        const prevCount = usersRef.current.filter((u) => u !== null).length;
+        const newCount = roomData.players.length;
+
+        if (newCount > prevCount) {
+          const joined = roomData.players[newCount - 1];
+          if (joined?.nickname) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                nickname: "SYSTEM",
+                message: `${joined.nickname} 님이 들어왔습니다.`,
+              },
+            ]);
+          }
+        } // console.log("🛰️ [secretRoomJoin] localStorage 업데이트");
     };
     socket.on("secretRoomJoin", handleSecretRoomJoin);
 
@@ -162,7 +183,7 @@ const MeteoLandingPage = () => {
       const savedNickname = nickname;
 
       if (savedRoomId && savedNickname) {
-        console.log("🚪 [뒤로가기/새로고침] 방 나감 처리 시작");
+        // console.log("🚪 [뒤로가기/새로고침] 방 나감 처리 시작");
         exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
 
         localStorage.removeItem("meteoRoomCode");
@@ -210,7 +231,7 @@ const MeteoLandingPage = () => {
     const socket = getSocket();
 
     const handleMatchRandom = (roomData) => {
-      console.log("🛰️ [matchRandom 수신 - LandingPage]", roomData);
+      // console.log("🛰️ [matchRandom 수신 - LandingPage]", roomData);
       updateUsersFromPlayers(roomData.players);
       // ✅ 마지막 들어온 유저 추적해서 system 메시지 출력
       const prevCount = users.filter((u) => u !== null).length;
@@ -244,7 +265,7 @@ const MeteoLandingPage = () => {
 
   useEffect(() => {
     onMeteoGameStart((gameData) => {
-      console.log("🎮 [gameStart 수신] 게임 데이터:", gameData);
+      // console.log("🎮 [gameStart 수신] 게임 데이터:", gameData);
 
       // ✅ 카운트다운 먼저 시작
       setCountdown(3);
@@ -284,13 +305,14 @@ const MeteoLandingPage = () => {
     const savedRoomId = localStorage.getItem("meteoRoomId");
     const savedNickname = nickname;
 
-    console.log("🚀 [방 나가기 버튼] 저장된 roomId:", savedRoomId);
-    console.log("🚀 [방 나가기 버튼] 저장된 nickname:", savedNickname);
+    // console.log("🚀 [방 나가기 버튼] 저장된 roomId:", savedRoomId);
+    // console.log("🚀 [방 나가기 버튼] 저장된 nickname:", savedNickname);
 
     if (savedRoomId && savedNickname) {
       exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
     } else {
-      console.error("❌ [방 나가기] roomId 또는 nickname 없음", {
+      console.error("❌ [방 나가기] roomId 또는 nickname 없음", 
+        {
         savedRoomId,
         savedNickname,
       });
@@ -304,7 +326,7 @@ const MeteoLandingPage = () => {
 
   useEffect(() => {
     const handleChat = (data) => {
-      console.log("[채팅 수신]", data);
+      // console.log("[채팅 수신]", data);
       setMessages((prev) => [...prev, data]);
     };
 

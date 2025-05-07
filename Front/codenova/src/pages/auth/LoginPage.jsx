@@ -17,7 +17,7 @@ const LoginPage = () => {
   const handleLogin = async () => {
     try {
       const response = await loginApi({ id, password })
-      console.log(response)
+      // console.log(response)
       const rawToken = response.headers['authorization'];
       if (!rawToken) {
         alert("토큰이 없습니다!");
@@ -36,7 +36,7 @@ const LoginPage = () => {
       connectSocket();
       navigate("/main")
     } catch (err) {
-      console.error(err)
+      // console.error(err)
       alert("로그인 실패!")
     }
   }
