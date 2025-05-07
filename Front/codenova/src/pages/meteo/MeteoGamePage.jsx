@@ -12,7 +12,8 @@ import { exitMeteoGame, exitMeteoRoom, offUserInput, onCheckText, onCheckTextRes
 import GameResultModal from "../../components/modal/GameResultModal";
 import redHeart from "../../assets/images/red_heart.png";
 import blackHeart from "../../assets/images/black_heart.png";
-
+import gameOverLottie from "../../assets/lottie/game_over.json";
+import victoryLottie from "../../assets/lottie/victory.json";
 
 const MeteoGamePage = () => {
   const navigate = useNavigate();
@@ -24,6 +25,8 @@ const MeteoGamePage = () => {
   const [lifesLeft, setLifesLeft] = useState(5);
   const [userInputTexts, setUserInputTexts] = useState({});
   const currentRoomId = localStorage.getItem("meteoRoomId");
+  const [showGameOver, setShowGameOver] = useState(false);
+  const [showVictory, setShowVictory] = useState(false);
 
   // input 포커싱
   const inputRef = useRef(null);
@@ -248,19 +251,29 @@ const MeteoGamePage = () => {
     // 클린업
     return () => getSocket().off("textCheck", handleTextCheck);
   }, []);
-  
+
+
   useEffect(() => {
     const handleGameEnd = (data) => {
-      // console.log("[onGameEnd] gameEnd 수신", data);
-      setGameResult(data);
+      if (!data.success) {
+        setShowGameOver(true);  // 1) game over 애니메이션 표시
+        setTimeout(() => {
+          setShowGameOver(false); // 2) 애니메이션 숨기고 모달 표시
+          setGameResult(data);
+        }, 3000); // 애니메이션 보여줄 시간(ms)
+      } else {
+        setShowVictory(true);
+        setTimeout(() => {
+          setShowVictory(false);
+          setGameResult(data);
+        }, 3000);
+      }
     };
   
     onGameEnd(handleGameEnd);
-  
-    return () => {
-      getSocket().off("gameEnd", handleGameEnd);
-    };
+    return () => getSocket().off("gameEnd", handleGameEnd);
   }, []);
+  
   
   useEffect(() => {
     const handleLostLife = (data) => {
@@ -430,6 +443,28 @@ const MeteoGamePage = () => {
             window.location.reload(); // 임시로 새로고침
           }}
         />
+      )}
+
+      {showGameOver && (
+        <div className="absolute inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center pointer-events-none">
+          <Player
+            autoplay
+            keepLastFrame
+            src={gameOverLottie}
+            className="w-[30rem] h-[30rem]"
+          />
+        </div>
+      )}
+
+      {showVictory && (
+        <div className="absolute inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center pointer-events-none">
+          <Player
+            autoplay
+            keepLastFrame
+            src={victoryLottie}
+            className="w-[30rem] h-[30rem]"
+          />
+        </div>
       )}
 
 
