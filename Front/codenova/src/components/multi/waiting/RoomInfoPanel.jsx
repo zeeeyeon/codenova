@@ -37,7 +37,7 @@ const RoomInfoPanel = ({
 
   
     return (
-    <div className="w-[200px] h-[220px] bg-[#0D0D2B] bg-opacity-70 rounded-2xl flex flex-col items-center p-4 justify-between mt-5">
+    <div className="w-[200px] h-[220px] bg-[#0D0D2B] bg-opacity-70 rounded-2xl flex flex-col items-center p-4 justify-between mt-7">
       
       {/* 상단 정보 */}
       <div className="w-full text-center text-white mb-4 mt-2">
