@@ -52,14 +52,6 @@ public class GameSocketHandler implements SocketEventHandler {
 
         // 4. 라운드 종료
         server.addEventListener("round_end", RoundEndRequest.class, (client, request, ackSender) -> {
-            try {
-                gameService.endRound(request.getRoomId());
-            } catch (Exception e) {
-                client.sendEvent("error", new SocketErrorResponse("라운드 종료 처리 오류"));
-            }
-        });
-
-        server.addEventListener("round_end", RoundEndRequest.class, (client, request, ackSender) -> {
             Room room = roomService.getRoom(request.getRoomId());
             if (room != null && room.isRoundEnded()) return; // ✅ 이미 끝났으면 무시
 
