@@ -21,10 +21,7 @@ public class GameResultBroadcast {
     @Builder
     public static class UserResultStatus {
         private String nickname;
-        private int score;
-        private int typoCount;
-        private Double time;     // null if retire
-        private boolean retire;
+        private Double averageScore;
         private int rank;
     }
 }
