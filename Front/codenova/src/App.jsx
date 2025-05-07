@@ -36,7 +36,7 @@ function App() {
 
   return (
     <BrowserRouter>
-    <ErrorBoundary>
+    {/* <ErrorBoundary> */}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth/login" element={<LoginPage />} />
@@ -92,7 +92,7 @@ function App() {
           }
         />
       </Routes>
-    </ErrorBoundary>
+    {/* </ErrorBoundary> */}
     </BrowserRouter>
   );
 }
