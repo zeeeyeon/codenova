@@ -178,24 +178,35 @@ const MyPage= () => {
                         <input
                             type="text"
                               value={newNickname}
+                              maxLength={11}
                               onChange={(e) => {
                                 setNewNickName(e.target.value)
                                 setNicknameCheck(false)
                               }}
-                              className="w-[50%] h-[110%] bg-transparent border-2 text-xl text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 "
+                              className="w-[50%] h-[110%] bg-transparent border-2 px-2 text-xl text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 "
                               style={{
                                 borderColor :"#51E2F5",
                               }}
                               placeholder={nickname}
                             />
-                            <button
-                              onClick={handleNicknameCheck}
-                              className="active:scale-95 text-xl"
-                            >
-                              ✅
-                            </button>
-                            {nicknameCheck === true && <span className="text-green-400 text-xl">⭕</span>}
-                            {nicknameCheck === false && <span className="text-red-400 text-xl">❌</span>}
+                            { nicknameCheck === false &&
+                                <div 
+                                onClick={handleNicknameCheck}
+                                className='text-sm f w-[15%] ml-2 cursor-pointer'>
+                                중복체크
+                                </div>
+                                
+                            }
+                            { nicknameCheck === true &&
+                                <div 
+                                onClick={handleNicknameCheck}
+                                className='text-sm f w-[15%] ml-2 cursor-pointer'>
+                                    ✔
+                                </div>
+                                
+                            }
+                            
+                            
                     </div>
 
                     <div className=" w-[60%] flex items-center">
@@ -215,7 +226,7 @@ const MyPage= () => {
                                       setNewNumber(`${input.slice(0, 3)}-${input.slice(3, 7)}-${input.slice(7, 11)}`);
                                     }
                               }}
-                              className="w-[50%] h-[110%] bg-transparent border-2 text-xl text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                              className="w-[50%] h-[110%] bg-transparent border-2 px-2 text-xl text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                               style={{
                                 borderColor :"#51E2F5",
                               }}
