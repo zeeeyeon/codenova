@@ -29,16 +29,16 @@ const MainPage = () => {
       navigate("/auth/login");
       return;
     }
-    console.log("방 생성 요청 emit 보냄");
+    // console.log("방 생성 요청 emit 보냄");
     createMeteoRoom(
       { isPrivate: true, nickname }, // 닉네임 넘겨서 createRoom emit
       (roomData) => {
-        console.log("✅ 방 생성 성공:", roomData);
+        // console.log("✅ 방 생성 성공:", roomData);
         const initalPlayers = [{ sessionId: roomData.sessionId, nickname, isHost: roomData.isHost}];
         navigate("/meteo/landing", { state: { roomCode: roomData.roomCode, roomId: roomData.roomId, players: initalPlayers} });
       },
       (errorMessage) => {
-        console.error("❌ 방 생성 실패:", errorMessage);
+        // console.error("❌ 방 생성 실패:", errorMessage);
         alert(errorMessage);
       }
     );
