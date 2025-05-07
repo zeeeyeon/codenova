@@ -33,6 +33,7 @@ const TypingBattlePage = () => {
   const [roundScoreData, setRoundScoreData] = useState(null);
   const [firstFinisher, setFirstFinisher] = useState(null);  // 첫번째 완주자
   const [currentRound, setCurrentRound] = useState(1);
+  const [modalCountdown, setModalCountdown] = useState(5);
 
 
   const [users, setUsers] = useState(() => {
@@ -205,14 +206,22 @@ useEffect(() => {
     setRoundScoreData(data);
     setCurrentRound(data.round);
     setShowRoundScoreModal(true);
+    setModalCountdown(5); // 카운트다운 초기화화
   };
+
+  const interval = setInterval(() => {
+    setModalCountdown((prev) => {
+      if (prev === 1) {
+        clearInterval(interval);
+        setShowRoundScoreModal(false);
+      }
+      return prev - 1;
+    });
+  }, 1000);
 
   socket.on("round_score", handleRoundScore);
   return () => socket.off("round_score", handleRoundScore);
 }, []);
-  
-  
-
   
 
   return (
@@ -276,6 +285,7 @@ useEffect(() => {
         visible={showRoundScoreModal}
         scores={roundScoreData?.scores || []}
         round={roundScoreData?.round || 0}
+        countdown={modalCountdown}
         onClose={() => setShowRoundScoreModal(false)}
       />
   </div>
