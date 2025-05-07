@@ -27,7 +27,7 @@ public class Room {
     private LocalDateTime createdAt;
 
     @Builder.Default
-    private boolean isRoundEnded = false;
+    private boolean isRoundEnded = false; // ✅ 라운드 중복 종료 방지 플래그
 
     // ✅ 사용자 상태 관리 (nickname → UserStatus)
     @Builder.Default

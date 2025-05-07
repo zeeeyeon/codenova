@@ -187,20 +187,22 @@ public class GameServiceImpl implements GameService {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
 
-        // ✅ 중복 호출 방지
-        if (room.isRoundEnded()) {
-            return;
+        synchronized (room) {
+            // ✅ 중복 호출 방지
+            if (room.isRoundEnded()) {
+                return;
+            }
+            room.setRoundEnded(true);
+
+            calculateScores(room);
+
+            RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
+            getServer().getRoomOperations(roomId)
+                    .sendEvent("round_score", broadcast);
+
+            room.setRoundNumber(room.getRoundNumber() + 1);
+            resetRoundData(room);
         }
-        room.setRoundEnded(true);
-
-        calculateScores(room);
-
-        RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
-        getServer().getRoomOperations(roomId)
-                .sendEvent("round_score", broadcast);
-
-        room.setRoundNumber(room.getRoundNumber() + 1);
-        resetRoundData(room);
     }
 
 
@@ -344,15 +346,13 @@ public class GameServiceImpl implements GameService {
 
 
     private void resetRoundData(Room room) {
-        // ✅ 첫 도착자 정보 초기화
-        room.setFirstFinishTime(null);
-        room.setFirstFinisherNickname(null);
-
         // ✅ 라운드별 Map을 새로운 인스턴스로 교체 (동시성 안전)
         room.setFinishTimeMap(new ConcurrentHashMap<>());
         room.setTypoCountMap(new ConcurrentHashMap<>());
-        room.setRoundScoreMap(new ConcurrentHashMap<>());
-
+        room.setRoundScoreMap(new HashMap<>());
+        // ✅ 첫 도착자 정보 초기화
+        room.setFirstFinishTime(null);
+        room.setFirstFinisherNickname(null);
         room.setRoundEnded(false);
     }
 
