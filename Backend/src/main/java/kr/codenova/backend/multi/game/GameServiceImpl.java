@@ -230,7 +230,7 @@ public class GameServiceImpl implements GameService {
     public void addTypo(String roomId, String nickname) {
         Room room = roomService.getRoom(roomId);
         Map<String, Integer> typoCountMap = room.getTypoCountMap();
-        typoCountMap.put(nickname, typoCountMap.getOrDefault(nickname, 0) + 1);
+        typoCountMap.merge(nickname, 1, Integer::sum);
     }
 
     // 2. 현재 방 준비 상태 정보 생성
@@ -315,13 +315,11 @@ public class GameServiceImpl implements GameService {
             double timeDiff = isRetire ? 15.0 : Math.max(0, finishTime - firstFinishTime);
 
             int score = (int) Math.max(0, 100 - (timeDiff * 2.0) - typo * 1.0);
-            roundScoreMap.put(nickname, score);
-            room.getTotalScoreMap().put(nickname,
-                    room.getTotalScoreMap().getOrDefault(nickname, 0) + score);
+            roundScoreMap.merge(nickname, score, Integer::sum);
+            room.getTotalScoreMap().merge(nickname, score, Integer::sum);
 
-            if (finishTime == null) {
-                room.getFinishTimeMap().put(nickname, firstFinishTime + 15.0);
-            }
+            // ✅ finishTime이 null일 경우만 추가 → putIfAbsent로 안전하게
+            room.getFinishTimeMap().putIfAbsent(nickname, firstFinishTime + 15.0);
         }
 
         room.setRoundScoreMap(roundScoreMap);
@@ -333,10 +331,10 @@ public class GameServiceImpl implements GameService {
         room.setFirstFinishTime(null);
         room.setFirstFinisherNickname(null);
 
-        // ✅ 라운드별 데이터 초기화
-        room.getFinishTimeMap().clear();
-        room.getTypoCountMap().clear();
-        room.getRoundScoreMap().clear();
+        // ✅ 라운드별 Map을 새로운 인스턴스로 교체 (동시성 안전)
+        room.setFinishTimeMap(new ConcurrentHashMap<>());
+        room.setTypoCountMap(new ConcurrentHashMap<>());
+        room.setRoundScoreMap(new ConcurrentHashMap<>());
     }
 
 
