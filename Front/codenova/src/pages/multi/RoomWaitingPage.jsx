@@ -395,6 +395,11 @@ useEffect(() => {
               isReady={isReady}
               allReady={users.filter((u) => !u.empty && u.isReady).length === users.filter((u) => !u.empty).length}
               onStart={handleStartGame}
+              canstart={
+                isHost &&
+                users.filter((u) => !u.empty && u.nickname !== nickname).every((u) => u.isReady) &&
+                users.filter((u) => !u.empty).length >= 2
+              }
             />
           </div>
                 </div>
