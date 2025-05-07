@@ -34,7 +34,7 @@ const SignupPage = () => {
         alert(message || "ID 중복입니다!");
       }
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("서버 에러입니다.");
     }
   };
@@ -56,7 +56,7 @@ const SignupPage = () => {
         alert(message || "닉네임 중복입니다!");
       }
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("서버 에러입니다.");
     }
   };
@@ -81,7 +81,7 @@ const SignupPage = () => {
       alert("회원가입 성공!");
       navigate("/auth/login");
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       alert("회원가입 실패!");
     }
   };

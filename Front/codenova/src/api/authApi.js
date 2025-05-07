@@ -6,7 +6,7 @@ export const signupApi = async ({ id, nickname, password }) => {
 
 export const loginApi = async ({ id, password }) => {
     const response = await api.post("/api/member/login", { id, password });
-    console.log(response)
+    // console.log(response)
     return await api.post("/api/member/login", { id, password });
 };
 
