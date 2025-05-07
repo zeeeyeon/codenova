@@ -20,7 +20,8 @@ const RoomInfoPanel = ({
   isReady,
   isHost,
   allReady,
-  onStart
+  onStart,
+  canstart
 }) => {
     
     const handleCopy = async () => {
@@ -72,22 +73,28 @@ const RoomInfoPanel = ({
   </button>
 
     {isHost ? (
-      // ✅ 방장: Start 버튼
+      <div className="relative group w-[145px] h-[45px]">
       <button
         onClick={onStart}
-        disabled={!allReady}
-        className={`w-[145px] h-[45px] transition ${
-          allReady ? "hover:brightness-110 hover:scale-95" : "opacity-50 cursor-not-allowed"
+        disabled={!canstart}
+        className={`w-full h-full transition ${
+          canstart ? "hover:brightness-110 hover:scale-95" : "opacity-50 cursor-not-allowed"
         }`}
       >
-        <img
-          src={startBtn}
-          alt="Start"
-          className="w-full h-full object-contain"
-        />
+        <img src={startBtn} alt="Start" className="w-full h-full object-contain" />
       </button>
+    
+      {/* 툴팁 (hover 시 표시) */}
+      {!canstart && (
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block z-20">
+          <div className="bg-yellow-400 text-black text-m font-bold px-3 py-2 rounded-md shadow-md relative whitespace-nowrap">
+          최소 2명이 모여야<br /> 시작할 수 있어요!
+            <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2.5 h-2.5 bg-yellow-400 rotate-45"></div>
+          </div>
+        </div>
+      )}
+    </div>
     ) : (
-      // ✅ 일반 유저: Ready/Unready 버튼
       <button onClick={onReady} className="w-[145px] h-[45px] hover:brightness-110 hover:scale-95 transition">
         <img 
           src={isReady ? unReadyBtn : readyBtn} 
