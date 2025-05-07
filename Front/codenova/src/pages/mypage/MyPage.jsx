@@ -13,6 +13,7 @@ import { checkNicknameApi } from '../../api/authApi'
 import { getMyProfile, upDateMyProfile } from '../../api/myPage'
 import Header from '../../components/common/Header'
 import TutoModal from '../../components/common/TutoModal'
+import useAuthStore from '../../store/authStore'
 
 const MyPage= () => {
 
@@ -24,12 +25,12 @@ const MyPage= () => {
     const [id, setId] = useState("")
     const [nicknameCheck, setNicknameCheck] = useState(false);
     const [nickname, setNickName] = useState(null);
-    const [newNickname, setNewNickName] = useState(null);
+    const [newNickname, setNewNickName] = useState("");
     const [number, setNumber] = useState(null);
-    const [newNumber, setNewNumber] = useState(null);
+    const [newNumber, setNewNumber] = useState("");
     const [userScoreList, setUserScoreList] = useState([]);
 
-    
+    const updateNickname = useAuthStore((state) => state.updateNickname);
 
     useEffect(() =>{
         console.log(userScoreList)
@@ -118,15 +119,9 @@ const MyPage= () => {
             const response = await upDateMyProfile(updatedProfile);
             const {code, message} = response.status;
             if (code === 200){
-                const updatedNickName = response.content.nickname; 
-                const auth = JSON.parse(localStorage.getItem("auth-storage"));
-                
-                if (auth?.state?.user) {
-                    auth.state.user.nickname = updatedNickName;
-                    localStorage.setItem("auth-storage", JSON.stringify(auth));
-                  }
-
-                setNickName(updatedNickName);
+                const updatedNickname = response.content.nickname; 
+                updateNickname(updatedNickname);
+                setNickName(updatedNickname);
                 setNumber(response.content.phoneNum);
                 setNewNickName('');
                 setNewNumber('');
