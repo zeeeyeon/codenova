@@ -78,7 +78,7 @@ public class GameServiceImpl implements GameService {
     }
 
     // 2. 게임 시작 요청 처리
-    public void startGame(StartGameRequest request) {
+    public void startGame(StartGameRequest request) throws InterruptedException {
         Room room = roomService.getRoom(request.getRoomId());
         validateStartGame(request.getRoomId(), request.getNickname());
 
@@ -121,7 +121,10 @@ public class GameServiceImpl implements GameService {
         }
     }
     // 5. 3초 뒤에 타이핑 시작 알림
-    public void delayedTypingStart(String roomId) {
+    @Async
+    public void delayedTypingStart(String roomId) throws InterruptedException {
+
+        Thread.sleep(3000);
 
         Room room = roomService.getRoom(roomId);
         if (room == null) {
@@ -187,7 +190,8 @@ public class GameServiceImpl implements GameService {
         calculateScores(room);
 
         RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
-        getServer().getRoomOperations(roomId).sendEvent("round_score", broadcast);
+        getServer().getRoomOperations(roomId)
+                .sendEvent("round_score", broadcast);
 
         room.setRoundNumber(room.getRoundNumber() + 1);
         resetRoundData(room);
@@ -207,7 +211,7 @@ public class GameServiceImpl implements GameService {
         getServer().getRoomOperations(roomId)
                 .sendEvent("typing_start", broadcast);
 
-        room.setRoundNumber(room.getRoundNumber() + 1);
+        room.setRoundNumber(room.getRoundNumber());
         resetRoundData(room);
     }
 
