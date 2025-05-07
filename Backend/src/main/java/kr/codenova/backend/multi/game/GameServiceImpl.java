@@ -77,7 +77,7 @@ public class GameServiceImpl implements GameService {
         }
     }
 
-    // 3. 게임 시작 요청 처리
+    // 2. 게임 시작 요청 처리
     public void startGame(StartGameRequest request) {
         Room room = roomService.getRoom(request.getRoomId());
         validateStartGame(request.getRoomId(), request.getNickname());
@@ -99,9 +99,7 @@ public class GameServiceImpl implements GameService {
 
         delayedTypingStart(request.getRoomId());
     }
-
-
-    // 4. 게임 시작 전 검증 (방장 여부 + 모든 준비 완료)
+    // 게임 시작 전 검증 (방장 여부 + 모든 준비 완료)
     public void validateStartGame(String roomId, String nickname) {
         Room room = roomService.getRoom(roomId);
         if (room == null) {
@@ -122,7 +120,6 @@ public class GameServiceImpl implements GameService {
             }
         }
     }
-
     // 5. 3초 뒤에 타이핑 시작 알림
     public void delayedTypingStart(String roomId) {
 
@@ -144,6 +141,7 @@ public class GameServiceImpl implements GameService {
 
     }
 
+
     // 6. 게임 진행률 업데이트
     public void updateProgress(ProgressUpdateRequest request) {
         Room room = roomService.getRoom(request.getRoomId());
@@ -152,7 +150,7 @@ public class GameServiceImpl implements GameService {
         Integer time = request.getTime(); // 밀리초
 
         // 1등 유저라면 1등으로 기록
-        if(!room.hasFirstFinisher() && progress >= 100) {
+        if(!room.hasFirstFinisher() && progress >= 100 && time != null) {
             room.setFirstFinisher(nickname, time);
             FinishNoticeBroadcast broadcast = new FinishNoticeBroadcast(request.getRoomId(), request.getNickname());
             getServer().getRoomOperations(request.getRoomId())
@@ -165,16 +163,19 @@ public class GameServiceImpl implements GameService {
     // 7. 라운드 종료
     public void endRound(String roomId) {
         Room room = roomService.getRoom(roomId);
+        if (room == null) {
+            throw new RoomNotFoundException("방을 찾을 수 없습니다.");
+        }
+
         calculateScores(room);
 
         RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
-
-        getServer().getRoomOperations(roomId)
-                    .sendEvent("round_score", broadcast);
+        getServer().getRoomOperations(roomId).sendEvent("round_score", broadcast);
 
         room.setRoundNumber(room.getRoundNumber() + 1);
         resetRoundData(room);
     }
+
 
     public void startRound(String roomId) {
         Room room = roomService.getRoom(roomId);
@@ -249,7 +250,7 @@ public class GameServiceImpl implements GameService {
         List<UserResultStatus> results = new ArrayList<>();
 
         for (String nickname : room.getUserStatusMap().keySet()) {
-            int totalScore = room.getScoreMap().getOrDefault(nickname, 0);
+            int totalScore = room.getTotalScoreMap().getOrDefault(nickname, 0);
             int typo = room.getTypoCountMap().getOrDefault(nickname, 0);
             Double finishTime = room.getFinishTimeMap().get(nickname);
             boolean isRetire = (finishTime == null || finishTime - room.getFirstFinishTime() > 10.0);
@@ -276,38 +277,47 @@ public class GameServiceImpl implements GameService {
 
     // 라운드별 점수 계산
     public void calculateScores(Room room) {
-        Map<String, Integer> roundScoreMap = new HashMap<>();
+        Map<String, Integer> roundScoreMap = room.getRoundScoreMap();
+
+        Double firstFinishTime = room.getFirstFinishTime();
+        if (firstFinishTime == null) {
+            // 안전하게 기본값 설정 (예: 모두 탈락했거나 지연된 경우)
+            firstFinishTime = 0.0;
+            room.setFirstFinishTime(firstFinishTime);
+        }
 
         for (String nickname : room.getUserStatusMap().keySet()) {
             Double finishTime = room.getFinishTimeMap().get(nickname);
             int typo = room.getTypoCountMap().getOrDefault(nickname, 0);
 
-            boolean isRetire = (finishTime == null || finishTime - room.getFirstFinishTime() > 10.0);
-            double timeDiff = isRetire ? 15.0 : Math.max(0, finishTime - room.getFirstFinishTime());
+            boolean isRetire = (finishTime == null || finishTime - firstFinishTime > 10.0);
+            double timeDiff = isRetire ? 15.0 : Math.max(0, finishTime - firstFinishTime);
 
-            // 점수 계산
-            int score = (int) Math.max(0, 100 - (timeDiff * 2.0) - typo * 4.0);
-
+            int score = (int) Math.max(0, 100 - (timeDiff * 2.0) - typo * 1.0);
             roundScoreMap.put(nickname, score);
-            room.getScoreMap().put(nickname,
-                    room.getScoreMap().getOrDefault(nickname, 0) + score);
+            room.getTotalScoreMap().put(nickname,
+                    room.getTotalScoreMap().getOrDefault(nickname, 0) + score);
 
-            // 미도착자라도 finishTimeMap에 기록 (정상화)
             if (finishTime == null) {
-                room.getFinishTimeMap().put(nickname, room.getFirstFinishTime() + 15.0);
+                room.getFinishTimeMap().put(nickname, firstFinishTime + 15.0);
             }
         }
 
         room.setRoundScoreMap(roundScoreMap);
     }
 
+
     private void resetRoundData(Room room) {
+        // ✅ 첫 도착자 정보 초기화
         room.setFirstFinishTime(null);
         room.setFirstFinisherNickname(null);
+
+        // ✅ 라운드별 데이터 초기화
         room.getFinishTimeMap().clear();
         room.getTypoCountMap().clear();
         room.getRoundScoreMap().clear();
     }
+
 
     // 11. 방 별 유저 수 저장
     public void setRoomUserCount(String roomId, int userCount) {

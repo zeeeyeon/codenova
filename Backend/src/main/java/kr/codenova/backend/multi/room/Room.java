@@ -51,7 +51,7 @@ public class Room {
     @Builder.Default
     private Map<String, Integer> typoCountMap = new ConcurrentHashMap<>(); // 오타 횟수
     @Builder.Default
-    private Map<String, Integer> scoreMap = new ConcurrentHashMap<>(); // 누적 점수
+    private Map<String, Integer> totalScoreMap = new ConcurrentHashMap<>(); // 누적 점수
     @Builder.Default
     private Map<String, Integer> roundScoreMap = new ConcurrentHashMap<>(); // 현재 라운드 점수
 
