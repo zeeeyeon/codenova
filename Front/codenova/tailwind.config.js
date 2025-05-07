@@ -20,10 +20,16 @@ module.exports = {
           '75%': { color: '#3b82f6' },
           '100%': { color: '#000000' },
         },
+        pingScaleFade: {
+          '0%': { transform: 'scale(0.6)', opacity: '0' },
+          '50%': { transform: 'scale(1.2)', opacity: '1' },
+          '100%': { transform: 'scale(1)', opacity: '0' },
+        },
       },
       animation: {
         shake: 'shake 0.4s ease-in-out',
         'pulse-color': 'pulseColor 2s infinite',
+        'ping-scale-fade': 'pingScaleFade 1s ease-in-out',
       },
     },
   },
