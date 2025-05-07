@@ -61,25 +61,26 @@ public class SingleServiceImpl implements SingleService {
 
     @Override
     public boolean saveTypingSpeed(int memberId, SingleCodeResultRequest request) {
-        String nickname = memberRepository.findById(memberId)
-                .map(Member::getNickname)
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND_USER));
 
-        log.warn("nickname={}", nickname);
+        double newSpeed = request.speed();
+        Language language = request.language();
+
 
         return typingSpeedRepository.findByMemberIdAndLanguage(memberId, request.language())
                 .map(existing -> {
-                    if (existing.isUpdatable(request.speed())) {
-                        existing.updateSpeed(request.speed());
+                    if (existing.isUpdatable(newSpeed)) {
+                        existing.updateSpeed(newSpeed);
                         typingSpeedRepository.save(existing);
-                        redisRankingService.saveTypingSpeed(request.language(), nickname, request.speed());
+                        redisRankingService.saveTypingSpeed(language, member.getMemberId(), member.getNickname(), newSpeed);
                         return true;
                     }
                     return false;
                 })
                 .orElseGet(() -> {
-                    typingSpeedRepository.save(TypingSpeed.create(memberId, request.language(), request.speed()));
-                    redisRankingService.saveTypingSpeed(request.language(), nickname, request.speed());
+                    typingSpeedRepository.save(TypingSpeed.create(memberId, language, newSpeed));
+                    redisRankingService.saveTypingSpeed(language, member.getMemberId(), member.getNickname(), newSpeed);
                     return true;
                 });
     }
