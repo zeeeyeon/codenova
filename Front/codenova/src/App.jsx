@@ -9,6 +9,7 @@ import MeteoRoutes from "./routes/MeteoRoutes";
 import MyPageRoutes from "./routes/MyPageRoutes";
 import useAuthStore from "./store/authStore";
 import RankingRoutes from "./routes/RankingRoutes";
+import DebugRoutes from "./routes/DebugRoutes";
 import { connectSocket, disconnectSocket } from "./sockets/socketClient";
 import { useEffect} from "react";
 import PrivateRoute from "./routes/PrivateRoute";
@@ -73,6 +74,12 @@ function App() {
             <PrivateRoute>
               <MeteoRoutes />
             </PrivateRoute>
+          }
+        />
+        <Route
+          path="/debug/*"
+          element={
+            <DebugRoutes />
           }
         />
         <Route
