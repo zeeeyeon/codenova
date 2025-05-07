@@ -8,6 +8,8 @@ import kr.codenova.backend.multi.dto.TypoRequest;
 import kr.codenova.backend.multi.dto.request.*;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
 import kr.codenova.backend.global.socket.SocketEventHandler;
+import kr.codenova.backend.multi.room.Room;
+import kr.codenova.backend.multi.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class GameSocketHandler implements SocketEventHandler {
 
     private final GameService gameService;
+    private final RoomService roomService;
 
     @Override
     public void registerListeners(SocketIOServer server) {
@@ -49,6 +52,17 @@ public class GameSocketHandler implements SocketEventHandler {
 
         // 4. 라운드 종료
         server.addEventListener("round_end", RoundEndRequest.class, (client, request, ackSender) -> {
+            try {
+                gameService.endRound(request.getRoomId());
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("라운드 종료 처리 오류"));
+            }
+        });
+
+        server.addEventListener("round_end", RoundEndRequest.class, (client, request, ackSender) -> {
+            Room room = roomService.getRoom(request.getRoomId());
+            if (room != null && room.isRoundEnded()) return; // ✅ 이미 끝났으면 무시
+
             try {
                 gameService.endRound(request.getRoomId());
             } catch (Exception e) {
