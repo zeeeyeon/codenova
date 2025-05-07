@@ -179,34 +179,34 @@ const MultiPage = () => {
       className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
       style={{ backgroundImage: `url(${multiBg})` }}
     >
-      <Header />
+      {/* <Header /> */}
 
       {/* 방 만들기 모달 */}
       {isModalOpen && <MakeRoomModal onClose={() => setIsModalOpen(false)} />}
 
       {/* 메인 보드 */}
-      <div className="absolute top-[53%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[66vw] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
+      <div className="absolute top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[72rem] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
         <img
           src={boardBg}
           alt="board"
           className="absolute object-cover rounded-2xl z-0"
         />
 
-        <h1 className="text-4xl font-bold drop-shadow-md ml-3 mt-4 text-[#1c1c1c]">
-          Multi Room
+        <h1 className="text-4xl font-semibold drop-shadow-md ml-3 mt-3 text-[#1c1c1c]">
+          배틀모드
         </h1>
 
         {/* 방 만들기 버튼 */}
         <button
-          className="absolute top-[26%] left-[10%] w-[100px] h-[36px] bg-no-repeat bg-contain hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
+          className="absolute top-[23%] left-[12%] w-[110px] h-[36px] bg-no-repeat bg-contain hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
           onClick={() => setIsModalOpen(true)}
           style={{ backgroundImage: `url(${mintBtn})` }}
         >
-          <span className="text-black font-bold text-m relative -translate-y-1">방 만들기</span>
+          <span className="text-black font-bold text-lg relative -translate-y-1">방 만들기</span>
         </button>
 
         {/* 검색창 */}
-        <div className="absolute top-[7%] left-[28%] w-[260px] relative">
+        <div className="absolute top-[6%] left-[28%] w-[260px] relative">
           <input
             type="text"
             placeholder="방 검색"
@@ -220,7 +220,7 @@ const MultiPage = () => {
         </div>
 
         {/* 방 리스트 */}
-        <div className="mt-[4%] w-[80%] h-[60%] overflow-y-auto flex flex-col items-center gap-4 pt-2 z-10">
+        <div className="mt-[4%] w-[83%] h-[60%] overflow-y-auto flex flex-col items-center gap-4 pt-2 z-10">
           <RoomList rooms={filteredRooms} onEnterClick={handleEnterClick} />
         </div>
       </div>

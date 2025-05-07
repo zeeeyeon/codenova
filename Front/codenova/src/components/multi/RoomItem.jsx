@@ -8,7 +8,7 @@ import nogoRoomBtn from "../../assets/images/multi_nogo_game_btn.png";
 
 const RoomItem = ({ room, onEnterClick }) => {
   return (
-    <div className="w-[248px] h-[160px] bg-[#1B103E] border-4 border-[#51E2F5] rounded-xl px-5 py-3 shadow-md flex flex-col justify-between hover:scale-[1.02] transition">
+    <div className="w-[260px] h-[160px] bg-[#1B103E] border-4 border-[#51E2F5] rounded-xl px-5 py-3 shadow-md flex flex-col justify-between hover:scale-[1.02] transition">
       
       {/* 방 제목 */}
       <div className="flex items-center gap-2 text-lg text-white truncate">
