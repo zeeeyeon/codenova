@@ -21,11 +21,11 @@ function App() {
   useEffect(() => {
     if (isAuthenticated) {
       // 로그인 직후 혹은 복구 직후
-      console.log("🟢 Authenticated → connect socket");
+      // console.log("🟢 Authenticated → connect socket");
       connectSocket();
     } else {
       // 로그아웃 직후
-      console.log("🔴 Not authenticated → disconnect socket");
+      // console.log("🔴 Not authenticated → disconnect socket");
       disconnectSocket();
     }
   }, [isAuthenticated]);
