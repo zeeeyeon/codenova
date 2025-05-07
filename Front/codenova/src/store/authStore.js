@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 const useAuthStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,   // { nickname: string }
       token: null,
 
@@ -12,6 +12,13 @@ const useAuthStore = create(
 
       logout: () => 
         set({ user: null, token: null }),
+    
+      updateNickname: (newNickName) => {
+        const { token, user } = get();
+        if (user) {
+          set({ user: { ...user, nickname: newNickName}, token});
+        }
+      }
     }),
     {
       name: 'auth-storage',
