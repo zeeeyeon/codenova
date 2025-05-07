@@ -40,7 +40,7 @@ public interface GameService {
     @Async
     public void delayedTypingStart(String roomId);
 
-    // 6. 게임 진행률 업데이트
+    // 6. 게임 진행률 갱신
     public void updateProgress(ProgressUpdateRequest request);
 
     // 7. 라운드 종료
