@@ -3,13 +3,14 @@ package kr.codenova.backend.meteor.entity.room;
 import kr.codenova.backend.meteor.entity.user.UserInfo;
 import lombok.Getter;
 import org.springframework.scheduling.annotation.Scheduled;
-
+import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Slf4j
 @Getter
 public class GameRoom {
     private final String roomId;
@@ -62,7 +63,9 @@ public class GameRoom {
                     .anyMatch(p -> p.getNickname().equals(user.getNickname()));
 
             if (isDuplicateNickname) {
-                throw new IllegalStateException("이미 같은 닉네임의 사용자가 존재합니다.");
+                log.warn("중복 사용자 입장 불가");
+                players.remove(user);
+                return;
             }
             players.add(user);
             scoreMap.put(user.getSessionId(), 0);
