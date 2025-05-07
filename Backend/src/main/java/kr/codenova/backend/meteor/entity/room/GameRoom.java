@@ -2,13 +2,15 @@ package kr.codenova.backend.meteor.entity.room;
 
 import kr.codenova.backend.meteor.entity.user.UserInfo;
 import lombok.Getter;
-
+import org.springframework.scheduling.annotation.Scheduled;
+import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Slf4j
 @Getter
 public class GameRoom {
     private final String roomId;
@@ -17,13 +19,17 @@ public class GameRoom {
     private GameStatus status = GameStatus.WAITING;
     private final String roomCode;
     private final int maxPlayers;
+    private Date finishedAt;
     private final List<UserInfo> players = new CopyOnWriteArrayList<>();
     // 현재 사용자들의 점수 관리
     private final Map<String, Integer> scoreMap = new ConcurrentHashMap<>();
     // 현재 화면에 낙하중인 단어 목록
     private final List<String> activeFallingWords = new CopyOnWriteArrayList<>();
-
+    // 낙하시킬 단어 리스트
     private final Queue<String> fallingWords = new ConcurrentLinkedQueue<>();
+
+    // 재도전 인원
+    private final Set<String> readyForRetryPlayers = ConcurrentHashMap.newKeySet();
 
     // 팀 목숨 관리
     private AtomicInteger life = new AtomicInteger();
@@ -52,6 +58,14 @@ public class GameRoom {
         synchronized (playersLock) {
             if (isFull()) {
                 throw new IllegalStateException("방이 가득 찼습니다.");
+            }
+            boolean isDuplicateNickname = players.stream()
+                    .anyMatch(p -> p.getNickname().equals(user.getNickname()));
+
+            if (isDuplicateNickname) {
+                log.warn("중복 사용자 입장 불가");
+                players.remove(user);
+                return;
             }
             players.add(user);
             scoreMap.put(user.getSessionId(), 0);
@@ -96,8 +110,10 @@ public class GameRoom {
     public void finish() {
         synchronized (gameLock) {
             this.status = GameStatus.FINISHED;
+            this.finishedAt = new Date();
         }
     }
+
 
     /**
      * 랜덤방인지 아닌지 체크하고 4명이 아직 안찼고 대기중인 방 탐색
@@ -198,5 +214,30 @@ public class GameRoom {
         return life.get() <= 0;
     }
 
+    // 재도전 준비
+    public synchronized boolean isReady(String sessionId) {
+        synchronized (playersLock) {
+            // 현재 방에 있는 플레이어인지 확인
+            boolean isInRoom = players.stream().anyMatch(u -> u.getSessionId().equals(sessionId));
 
+            if (!isInRoom) {
+                return false;
+            }
+
+            readyForRetryPlayers.add(sessionId);
+
+            return readyForRetryPlayers.size() == players.size();
+
+        }
+    }
+
+    // 재도전 플레이어 수
+    public int retryCount(){
+        return readyForRetryPlayers.size();
+    }
+
+    // 재도전 준비 상태 초기화
+    public void resetRetryState() {
+        readyForRetryPlayers.clear();
+    }
 }

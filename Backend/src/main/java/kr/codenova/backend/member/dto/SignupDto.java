@@ -1,5 +1,6 @@
 package kr.codenova.backend.member.dto;
 
+import jakarta.validation.constraints.Size;
 import kr.codenova.backend.member.entity.Member;
 import lombok.Data;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 @Data
 public class SignupDto {
 
+    @Size(max = 11, message = "닉네임은 최대 11자까지 가능합니다.")
     private String nickname;
     private String id;
     private String password;

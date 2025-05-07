@@ -31,33 +31,33 @@ public interface GameService {
     public ReadyGameBroadcast buildReadyBroadcast(String roomId);
 
     // 3. 게임 시작 요청 처리
-    public void startGame(StartGameRequest request);
+    public void startGame(StartGameRequest request) throws InterruptedException;
 
     // 4. 게임 시작 전 검증 (방장 여부 + 모든 준비 완료)
     public void validateStartGame(String roomId, String nickname);
 
     // 5. 3초 뒤에 타이핑 시작 알림
     @Async
-    public void delayedTypingStart(String roomId);
+    public void delayedTypingStart(String roomId) throws InterruptedException;
 
-    // 6. 게임 진행률 업데이트
+    // 6. 게임 진행률 갱신
     public void updateProgress(ProgressUpdateRequest request);
 
-    // 7. 게임 종료
-    public void finishGame(FinishGameRequest request);
+    // 7. 라운드 종료
+    void endRound(String roomId);
 
-    // 8. 게임 종료 시 유저 결과 저장
-    public void saveUserResult(String roomId, String nickname, Double typingSpeed, LocalDateTime finishTime);
+    // 8. 라운드 시작
+    void startRound(String roomId);
 
-    // 9. 방 참가자 전원이 게임 완료 체크
-    public boolean isAllUsersFinished(String roomId);
+    // 8. 게임 종료
+    void endGame(String roomId);
 
-    // 10. 게임 결과 요약
-    public GameResultBroadcast summarizeGameResult(String roomId);
+    // 9. 오타 발생
+    void addTypo(String roomId, String nickname);
 
-    // 11. 방 별 유저 수 저장
+    // 13. 방 별 유저 수 저장
     public void setRoomUserCount(String roomId, int userCount);
 
-    // 12. 게임 본문 가져오기
+    // 14. 게임 본문 가져오기
     public String getGameContent(String language);
 }

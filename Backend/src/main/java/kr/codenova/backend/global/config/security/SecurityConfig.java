@@ -73,7 +73,9 @@ public class SecurityConfig {
                                     "/api/member/check-id/**",
                                     "/api/member/check-nickname/**",
                                     "/api/member/guest",
-                                    "/api/single/**")
+                                    "/api/single/**",
+                                    "api/single/ranking/**",
+                                    "/actuator/**")
                             .permitAll()
                             .anyRequest().authenticated();
 

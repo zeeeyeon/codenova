@@ -1,9 +1,15 @@
 package kr.codenova.backend.multi.game;
 
 import com.corundumstudio.socketio.SocketIOServer;
+import kr.codenova.backend.multi.dto.EndGameRequest;
+import kr.codenova.backend.multi.dto.RoundEndRequest;
+import kr.codenova.backend.multi.dto.RoundStartRequest;
+import kr.codenova.backend.multi.dto.TypoRequest;
 import kr.codenova.backend.multi.dto.request.*;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
 import kr.codenova.backend.global.socket.SocketEventHandler;
+import kr.codenova.backend.multi.room.Room;
+import kr.codenova.backend.multi.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class GameSocketHandler implements SocketEventHandler {
 
     private final GameService gameService;
+    private final RoomService roomService;
 
     @Override
     public void registerListeners(SocketIOServer server) {
@@ -43,12 +50,42 @@ public class GameSocketHandler implements SocketEventHandler {
             }
         });
 
-        // 4. 게임 종료
-        server.addEventListener("finish_game", FinishGameRequest.class, (client, request, ackSender) -> {
+        // 4. 라운드 종료
+        server.addEventListener("round_end", RoundEndRequest.class, (client, request, ackSender) -> {
+            Room room = roomService.getRoom(request.getRoomId());
+            if (room != null && room.isRoundEnded()) return; // ✅ 이미 끝났으면 무시
+
             try {
-                gameService.finishGame(request); // ✅ Service에 위임
+                gameService.endRound(request.getRoomId());
             } catch (Exception e) {
-                client.sendEvent("error", new SocketErrorResponse("게임 종료 처리 중 오류 발생"));
+                client.sendEvent("error", new SocketErrorResponse("라운드 종료 처리 오류"));
+            }
+        });
+
+        // 5. 라운드 시작
+        server.addEventListener("round_start", RoundStartRequest.class, (client, request, ackSender) -> {
+            try {
+                gameService.startRound(request.getRoomId());
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("라운드 시작 처리 오류"));
+            }
+        });
+
+        // 5. 게임 종료
+        server.addEventListener("end_game", EndGameRequest.class, (client, request, ackSender) -> {
+            try {
+                gameService.endGame(request.getRoomId());
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("게임 종료 처리 오류"));
+            }
+        });
+
+        // 6. 오타 발생 시
+        server.addEventListener("typo_occurred", TypoRequest.class, (client, request, ackSender) -> {
+            try {
+                gameService.addTypo(request.getRoomId(), request.getNickname());
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("오타 처리 오류"));
             }
         });
     }
