@@ -37,6 +37,7 @@ const MeteoLandingPage = () => {
   const scrollRef = useRef(null);
   const currentRoomId = localStorage.getItem("meteoRoomId");
   const [countdown, setCountdown] = useState(null);
+  const [showReadyAlert, setShowReadyAlert] = useState(false);
 
   const handleCopy = async () => {
     try {
@@ -60,6 +61,21 @@ const MeteoLandingPage = () => {
     });
     console.log("✅ [updateUsersFromPlayers] 유저 리스트:", updated);
     setUsers(updated);
+
+    const currentCount = playersArray.length;
+
+    if (currentCount === 4) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          nickname: "SYSTEM",
+          message: "모든 플레이어가 준비되었습니다. 방장님은 게임을 시작할 수 있어요!",
+        },
+      ]);
+  
+      setShowReadyAlert(true);
+      setTimeout(() => setShowReadyAlert(false), 4000);
+    }
   };
 
   // 1) 방 정보 저장 전용 useEffect
@@ -320,17 +336,24 @@ const MeteoLandingPage = () => {
 
   return (
     <div
-      className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
-      style={{ backgroundImage: `url(${MeteoBg})` }}
+    className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
+    style={{ backgroundImage: `url(${MeteoBg})` }}
     >
+    {showReadyAlert && (
+      <div className="absolute top-6 left-1/3 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-full text-lg shadow-xl animate-bounce">
+        방장님은 시작 버튼을 눌러 게임을 시작해주세요!
+      </div>
+    )}
+      
       {/* <Header /> */}
       {countdown !== null && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className="text-white text-[10rem] font-bold drop-shadow-lg animate-scale-fade">
+        <div className="absolute inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center pointer-events-none transition-opacity duration-300">
+          <div className="text-white text-[10rem] font-extrabold drop-shadow-2xl animate-ping-scale-fade">
             {countdown}
           </div>
         </div>
       )}
+
 
       <div className="relative flex justify-center items-center mt-20">
         <div className="relative w-[66rem]">
@@ -407,19 +430,37 @@ const MeteoLandingPage = () => {
           {/* 채팅 + 방코드 */}
           <div className="flex absolute top-[50%] right-[5.5rem] gap-6">
             <div
-              className="w-[44rem] h-[12.5rem] border-4 rounded-xl bg-white bg-opacity-80 p-3 flex flex-col justify-between text-black text-sm"
+              className="w-[44rem] h-[12.5rem] border-4 rounded-xl bg-#1f0e38 bg-opacity-70 p-3 flex flex-col justify-between text-white text-sm"
               style={{ borderColor: "#01FFFE" }}
             >
-              {/* 채팅 메시지 영역 */}
-              <div className="flex-1 overflow-y-auto scroll-smooth pr-1">
-                {messages.map((msg, idx) => (
-                  <div key={idx}>
-                    <strong className="text-blue-700">{msg.nickname}</strong>:{" "}
+          {/* 채팅 메시지 영역 */}
+          <div className="flex-1 overflow-y-auto scroll-smooth pr-1">
+            {messages.map((msg, idx) => {
+              if (msg.nickname === "SYSTEM") {
+                const isJoin = msg.message.includes("들어왔습니다");
+                const isExit = msg.message.includes("나갔습니다");
+
+                return (
+                  <div
+                    key={idx}
+                    className={`text-center  py-1 ${
+                      isJoin ? "text-green-500" : isExit ? "text-red-500" : "text-gray-400"
+                    }`}
+                  >
                     {msg.message}
                   </div>
-                ))}
-                <div ref={scrollRef} />
-              </div>
+                );
+              }
+
+              return (
+                <div key={idx}>
+                  <strong className="text-white">{msg.nickname}</strong>: {msg.message}
+                </div>
+              );
+            })}
+            <div ref={scrollRef} />
+          </div>
+
 
               {/* 채팅 입력창 */}
               <div className="mt-2 flex gap-2">
@@ -447,6 +488,7 @@ const MeteoLandingPage = () => {
               >
                 <p className="text-xl mb-1">방코드</p>
                 <p className="text-3xl">{roomCode || "-"}</p>
+                {roomCode ? (
                 <button
                   onClick={handleCopy}
                   className="w-7 h-7 hover:scale-110 transition"
@@ -457,6 +499,7 @@ const MeteoLandingPage = () => {
                     className="w-full h-full object-contain"
                   />
                 </button>
+              ) : null}
               </div>
               <div
                 className="w-[10rem] h-[3.5rem] border-4 rounded-xl flex items-center justify-center"
@@ -468,9 +511,12 @@ const MeteoLandingPage = () => {
                     <img
                       src={StartButton}
                       alt="start"
-                      className="w-full h-full cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
-                      onClick={() => handleStartGame()}
+                      className={`w-full h-full cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95] ${
+                        users.filter((user) => user !== null).length === 4 ? 'animate-pulse' : ''
+                      }`}
+                      onClick={handleStartGame}
                     />
+
                   ) : (
                     // ✅ 방장이지만 아직 4명 안 찼으면 흐릿한 Start 버튼
                     <img
