@@ -49,7 +49,12 @@ public class Member {
     }
 
     public void updateProfile(ProfileUpdateDto dto) {
-        this.nickname = Objects.equals(dto.getNickname(), "") ? this.nickname : dto.getNickname();
-        this.phoneNum = Objects.equals(dto.getPhoneNum(), "") ? this.phoneNum : dto.getPhoneNum();
+        if (dto.getNickname() != null && !dto.getNickname().isBlank()) {
+            this.nickname = dto.getNickname();
+        }
+        if (dto.getPhoneNum() != null && !dto.getPhoneNum().isBlank()) {
+            this.phoneNum = dto.getPhoneNum();
+        }
     }
+
 }
