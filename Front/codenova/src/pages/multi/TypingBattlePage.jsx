@@ -12,7 +12,7 @@ import rocket3 from "../../assets/images/multi_rocket_3.png";
 import rocket4 from "../../assets/images/multi_rocket_4.png";
 import { getSocket } from "../../sockets/socketClient";
 import RoundScoreModal from "../../components/multi/modal/RoundScoreModal";
-
+import FinalResultModal from "../../components/multi/modal/FinalResultModal";
 
 
 
@@ -34,6 +34,8 @@ const TypingBattlePage = () => {
   const [firstFinisher, setFirstFinisher] = useState(null);  // 첫번째 완주자
   const [currentRound, setCurrentRound] = useState(1);
   const [modalCountdown, setModalCountdown] = useState(5);
+  const [finalResults, setFinalResults] = useState([]);
+  const [showFinalModal, setShowFinalModal] = useState(false);
 
 
   const [users, setUsers] = useState(() => {
@@ -50,16 +52,6 @@ const TypingBattlePage = () => {
   useEffect(() => {
     console.log("🔥 TypingBattlePage 초기 users 상태:", state?.users);
   }, []);
-
-    // 임시데이터
-    // const dummyUsers = [
-    //     { nickname: "과일왕자이과람", rocketImage: rocket1, progress: 10 },
-    //     { nickname: "애옹이볼쫘압", rocketImage: rocket2, progress: 35 },
-    //     { nickname: "유단비공쮸", rocketImage: rocket3, progress: 55 },
-    //     { nickname: "갈비나라지연공주", rocketImage: rocket4, progress: 80 },
-    //   ];
-      
-
 
   // 카운트다운
   useEffect(() => {
@@ -254,7 +246,7 @@ const TypingBattlePage = () => {
     const handleRoundScore = (data) => {
       console.log("📊 round_score 수신:", data);
       setRoundScoreData(data);
-      setCurrentRound(data.round);
+      setCurrentRound(data.round+1);
       setShowRoundScoreModal(true);
       setModalCountdown(5); // 카운트다운 초기화
   
@@ -272,6 +264,9 @@ const TypingBattlePage = () => {
               setFirstFinisher(null);
               setTargetCode(""); // optional: 이전 코드 초기화
               socket.emit("round_start", { roomId });
+            } else {
+              console.log("마지막 라운드, 게임 종료 요청!")
+              socket.emit("end_game", {roomId});
             }
           }
           return prev - 1;
@@ -279,9 +274,22 @@ const TypingBattlePage = () => {
       }, 1000);
     };
     
-    socket.off("round_score", handleRoundScore); // 중복 방지!
     socket.on("round_score", handleRoundScore);
     return () => socket.off("round_score", handleRoundScore);
+  }, []);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+    
+    const handleGameResult = (data) => {
+      console.log("💩 최종 게임 결과 안내 : ",data);
+      setFinalResults(data.results); // 서버에서 avgSpeed 등 포함된 리스트로 보낸다고 가정
+      setShowFinalModal(true);
+
+    };
+    socket.on("game_result", handleGameResult);
+    return () => socket.off("game_result", handleGameResult);
   }, []);
   
   
@@ -350,6 +358,12 @@ const TypingBattlePage = () => {
         countdown={modalCountdown}
         onClose={() => setShowRoundScoreModal(false)}
       />
+
+    <FinalResultModal
+      visible={showFinalModal}
+      results={finalResults}
+      onClose={() => setShowFinalModal(false)}
+    />
   </div>
 
   
