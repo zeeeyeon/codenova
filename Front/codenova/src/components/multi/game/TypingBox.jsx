@@ -268,11 +268,11 @@ const TypingBox = ({
       const isMistake = typedChar && typedChar !== expectedChar;
 
       if (isMistake && socket && nickname && roomId) {
-        socket.emit("typo_occured", {
+        socket.emit("typo_occurred", {
           roomId,
           nickname
         });
-        console.log("👿 typo_occurred_emit");
+        console.log("👿 typo_occurred_emit", roomId, nickname);
       }
     }
 
