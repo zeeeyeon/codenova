@@ -45,7 +45,7 @@ public class Room {
 
     private int roundNumber; // 현재 라운드
     private String firstFinisherNickname; // 첫 도착 유저 닉네임
-    private Integer firstFinishTime; // 첫 도착 유저 시간
+    private Double firstFinishTime; // 첫 도착 유저 시간
     @Builder.Default
     private Map<String, Double> finishTimeMap = new ConcurrentHashMap<>(); // 도착 시간
     @Builder.Default
@@ -62,7 +62,7 @@ public class Room {
 
     public void setFirstFinisher(String nickname, Integer time) {
         this.firstFinisherNickname = nickname;
-        this.firstFinishTime = time;
+        this.firstFinishTime = (double) (time / 1000);
     }
 }
 

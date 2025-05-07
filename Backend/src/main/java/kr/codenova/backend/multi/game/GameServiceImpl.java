@@ -201,6 +201,23 @@ public class GameServiceImpl implements GameService {
         resetRoundData(room);
     }
 
+    public void startRound(String roomId) {
+        Room room = roomService.getRoom(roomId);
+        calculateScores(room);
+
+        TypingStartBroadcast broadcast = new TypingStartBroadcast(
+                roomId,
+                LocalDateTime.now(),
+                getGameContent(room.getLanguage()) // 게임 본문 가져오기
+        );
+
+        getServer().getRoomOperations(roomId)
+                .sendEvent("typing_start", broadcast);
+
+        room.setRoundNumber(room.getRoundNumber() + 1);
+        resetRoundData(room);
+    }
+
     // 8. 게임 종료
     public void endGame(String roomId) {
         Room room = roomService.getRoom(roomId);
