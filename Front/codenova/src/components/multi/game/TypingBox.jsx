@@ -212,6 +212,7 @@ import { useState, useRef, useEffect } from "react";
 import enterIcon from "../../../assets/images/multi_enter_icon.png";
 import { getSocket } from "../../../sockets/socketClient";
 import useAuthStore from "../../../store/authStore";
+import '../../../styles/single/SinglePage.css';
 
 const TypingBox = ({ 
   roomId, 
@@ -241,6 +242,8 @@ const TypingBox = ({
   const trimmedUserInput = userInput.trimStart();
   const isCorrect = trimmedCurrentLine.startsWith(trimmedUserInput);
   const nickname = useAuthStore((state) => state.user?.nickname);
+  const currentLineRef = useRef(null);
+
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -292,11 +295,14 @@ const TypingBox = ({
   };
 
   useEffect(() => {
-    if (codeContainerRef.current && currentLine > 0) {
-      const lineHeight = 28;
-      codeContainerRef.current.scrollTop += lineHeight;
+    if (currentLineRef.current) {
+      currentLineRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
     }
   }, [currentLine]);
+  
 
   const minutes = Math.floor(elapsedTime / 60000);
   const seconds = Math.floor((elapsedTime % 60000) / 1000);
@@ -344,61 +350,85 @@ const TypingBox = ({
     }
   }, [userInput, currentLine]);
 
+
+
   return (
-    <div className="w-[93%] h-[96%] p-4 bg-[#110429] rounded-2xl border-4 border-cyan-400 relative flex flex-col">
+    <div className="w-[93%] h-[97%] p-2 bg-[#110429] rounded-2xl border-4 border-cyan-400 relative flex flex-col">
       <div className="absolute top-[-14px] left-6 bg-cyan-400 text-black px-3 py-1 rounded-lg text-m z-20">
         Round {currentRound}
       </div>
 
-      <div className="flex-1 flex flex-col justify-between overflow-hidden p-4">
-        <div ref={codeContainerRef} className="flex-1 min-h-[125px] overflow-y-auto custom-scrollbar">
-          <div className="absolute top-4 right-12 bg-black bg-opacity-80 text-white px-3 py-2 rounded-full border border-white text-lg">
+      <div className="flex-1 flex flex-col justify-between overflow-hidden p-1">
+        <div ref={codeContainerRef} className="flex-1 min-h-[130px] overflow-y-auto custom-scrollbar">
+          <div className="absolute -top-6 right-8 bg-black text-white px-3 py-2 rounded-full border border-white text-lg">
             ⏱ {elapsedTimeFormatted}
           </div>
 
-          <pre className="whitespace-pre-wrap font-code text-lg leading-relaxed break-words">
-            {lines.map((line, idx) => {
-              const isCurrent = idx === currentLine;
-              const indent = line.length - line.trimStart().length;
-              const indentSpaces = line.slice(0, indent);
-              const content = line.trimStart();
+          <pre className="overflow-auto w-full h-[90%] p-4 text-xl custom-scrollbar mb-2">
+            <code>
+              {lines.map((line, idx) => {
+                const normalizedInput = userInput.split('');
+                const isCurrent = idx === currentLine;
+                const indent = line.length - line.trimStart().length;
+                const indentSpaces = line.slice(0, indent);
+                const content = line.trimStart();
 
-              return (
-                <div key={idx} className="flex items-center">
-                  <span className="text-white">
-                    {indentSpaces.split("").map((_, i) => (
-                      <span key={i}>&nbsp;</span>
-                    ))}
-                  </span>
-
-                  {isCurrent ? (
-                    content.split("").map((char, i) => {
-                      const inputChar = trimmedUserInput[i];
-                      const isCursor = i === trimmedUserInput.length;
-                      let color = "";
-
-                      if (inputChar == null) color = "text-white";
-                      else color = inputChar === char ? "text-green-400" : "text-red-400";
-
-                      return (
-                        <span key={i} className={`${color} relative`}>
-                          {char === " " ? "\u00A0" : char}
-                          {isCursor && (
-                            <span className="absolute left-0 top-0 w-[2px] h-[1.2em] bg-cyan-400 animate-blink"></span>
-                          )}
-                        </span>
-                      );
-                    })
-                  ) : (
-                    <span className={idx < currentLine ? "text-green-400" : "text-gray-400"}>
-                      {line}
+                return (
+                  <div key={idx} className="codeLine max-h-[28px]"
+                  ref={isCurrent ? currentLineRef : null}
+                  >
+                    {/* 들여쓰기 공백 렌더 */}
+                    <span>
+                      {indentSpaces.split('').map((_, i) => (
+                        <span key={i}>&nbsp;</span>
+                      ))}
                     </span>
-                  )}
-                  <img src={enterIcon} alt="enter" className="w-5 h-5 ml-2" />
-                </div>
-              );
-            })}
+
+                    {isCurrent ? (
+                        <>
+                          {content.split('').map((char, i) => {
+                            const inputChar = normalizedInput[i];
+                            const isCursor = i === normalizedInput.length;
+                            let className = '';
+
+                            if (inputChar == null) className = 'pending currentLine';
+                            else if (inputChar === char) className = 'typed currentLine';
+                            else className = 'wrong currentLine';
+
+                            return (
+                              <span key={i} className="cursor-container">
+                                {isCursor && <span className="cursor" />}
+                                <span className={className}>{char === ' ' ? '\u00A0' : char}</span>
+                              </span>
+                            );
+                          })}
+                          <img src={enterIcon} alt="enter" className="inline-block w-5 h-5 ml-2" />
+                        </>
+                      ) : idx < currentLine ? (
+                        <>
+                          <span>
+                            {line.split('').map((char, i) => (
+                              <span key={i} className="typed">{char}</span>
+                            ))}
+                          </span>
+                          <img src={enterIcon} alt="enter" className="inline-block w-5 h-5 ml-2" />
+                        </>
+                      ) : (
+                        <>
+                          <span>
+                            {line.split('').map((char, i) => (
+                              <span key={i} className="pending">{char}</span>
+                            ))}
+                          </span>
+                          <img src={enterIcon} alt="enter" className="inline-block w-5 h-5 ml-2" />
+                        </>
+                      )}
+                    </div>
+                );
+              })}
+            </code>
           </pre>
+
 
         </div>
 
@@ -412,7 +442,7 @@ const TypingBox = ({
           placeholder="Start Typing Code Here."
           onFocus={(e) => (e.target.placeholder = "")}
           onBlur={(e) => (e.target.placeholder = "Start Typing Code Here.")}
-          className={`w-full mt-1 px-4 py-2 rounded-md text-black focus:outline-none 
+          className={`input w-full mt-1 px-4 py-2 rounded-md text-black focus:outline-none 
             ${isCorrect ? "border-4 border-green-400" : "border-4 border-red-400"}
             ${shake ? "animate-shake" : ""}`}
         />
