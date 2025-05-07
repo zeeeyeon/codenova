@@ -4,14 +4,13 @@ import multiBg from "../../assets/images/multi_background.png";
 import boardBg from "../../assets/images/board1.jpg";
 import mintBtn from "../../assets/images/mint_large_btn.png";
 import searchBtn from "../../assets/images/search_btn.png";
-import Header from "../../components/common/Header";
 import RoomList from "../../components/multi/RoomList";
 import MakeRoomModal from "../../components/multi/modal/MakeRoomModal";
 import EnterRoomModal from "../../components/multi/modal/EnterRoomModal"; 
 import { requestRoomList, onRoomList, offRoomList, onRoomUpdate, offRoomUpdate, joinRoom } from "../../sockets/MultiSocket";
 import { getSocket } from "../../sockets/socketClient";
 import useAuthStore from "../../store/authStore";
-
+import goOutBtn from "../../assets/images/go_out.png"
 
 const MultiPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);   // 방 만들기 모달
@@ -223,6 +222,13 @@ const MultiPage = () => {
         <div className="mt-[4%] w-[83%] h-[60%] overflow-y-auto flex flex-col items-center gap-4 pt-2 z-10">
           <RoomList rooms={filteredRooms} onEnterClick={handleEnterClick} />
         </div>
+
+      <button
+        onClick={() => navigate("/main")}
+        className="absolute bottom-24 right-0 w-[9rem] h-[3rem] bg-contain bg-no-repeat bg-center hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
+        style={{ backgroundImage: `url(${goOutBtn})` }}
+      >
+      </button>
       </div>
 
       {/* 방 입장 모달 */}
@@ -238,6 +244,7 @@ const MultiPage = () => {
           correctRoomCode={selectedRoom.roomCode}
         />
       )}
+
     </div>
   );
 };
