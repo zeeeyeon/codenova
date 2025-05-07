@@ -64,7 +64,17 @@ const SignupPage = () => {
     if (password !== confirmPassword) {
       alert("비밀번호가 일치하지 않습니다!");
       return;
+
+    }if (idCheck !== true) {
+      alert("ID 중복 확인을 완료해주세요!");
+      return;
     }
+    
+    if (nicknameCheck !== true) {
+      alert("닉네임 중복 확인을 완료해주세요!");
+      return;
+    }
+    
 
     try {
       await signupApi({ id, nickname, password });
@@ -108,20 +118,20 @@ const SignupPage = () => {
                   setId(value);
                   setIdCheck(null);
                 } else {
-                  alert("영문자와 숫자만 입력할 수 있습니다.");
+                  // alert("영문자와 숫자만 입력할 수 있습니다.");
                 }
               }}
-              className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
-              placeholder="Enter your ID"
+              className="flex-1 px-5 py-3 text-sm bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
+              placeholder="영문자와 숫자만 입력할 수 있습니다"
             />
             <button
               onClick={handleIdCheck}
-              className=" active:scale-95 text-xl"
+              className="active:scale-95 text-sm max-w-[2rem] text-white"
+              style={{ fontSize: '13px' }}
             >
-              ✅
+              {idCheck === true ? '✔' : '중복체크'}
             </button>
-            {idCheck === true && <span className="text-green-400 text-xl ">⭕</span>}
-            {idCheck === false && <span className="text-red-400 text-xl">❌</span>}
+
           </div>
 
           {/* Nickname */}
@@ -137,17 +147,17 @@ const SignupPage = () => {
                   setNicknameCheck(null);
                 }
               }}
-              className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
+              className="flex-1 text-sm px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="11자 내로 닉네임을 입력하세요"
             />
             <button
               onClick={handleNicknameCheck}
-              className="active:scale-95 text-xl"
+              className="active:scale-95 text-sm max-w-[2rem] text-white"
+              style={{ fontSize: '13px' }}
             >
-              ✅
+              {nicknameCheck === true ? '✔' : '중복체크'}
             </button>
-            {nicknameCheck === true && <span className="text-green-400 text-xl">⭕</span>}
-            {nicknameCheck === false && <span className="text-red-400 text-xl">❌</span>}
+
           </div>
 
           {/* Password */}
