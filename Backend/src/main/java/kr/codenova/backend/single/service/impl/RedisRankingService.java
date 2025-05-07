@@ -21,43 +21,53 @@ public class RedisRankingService {
     private final StringRedisTemplate redisTemplate;
     private final MemberRepository memberRepository;
 
-    public void saveTypingSpeed(Language language, String nickname, double speed) {
+    public void saveTypingSpeed(Language language, Integer memberId, String nickname, double speed) {
         String key = getRankingKey(language);
-        redisTemplate.opsForZSet().add(key, nickname, speed);
+        String memberId = String.valueOf(memberId);
+
+        redisTemplate.opsForZSet().add(key, memberId, speed);
+        redisTemplate.opsForHash().put("user:nickname", memberId, nickname);
+
     }
 
     public RankingResponse getRanking(Language language, Integer memberId) {
         List<RankingResponse.RankingEntry> top10 = getTop10(language);
-        String nickname = getNicknameFromMemberId(memberId);
-        RankingResponse.MyRank myRank = (nickname != null) ? getMyRank(language, nickname) : null;
+        RankingResponse.MyRank myRank = (memberId != null) ? getMyRank(language, memberId) : null;
         return new RankingResponse(top10, myRank);
     }
 
-    private String getNicknameFromMemberId(Integer memberId) {
-        if (memberId == null || memberId <= 0) return null;
-        return memberRepository.findById(memberId)
-                .map(Member::getNickname)
-                .orElse(null);
-    }
+
 
     private List<RankingResponse.RankingEntry> getTop10(Language language) {
         String key = getRankingKey(language);
         Set<ZSetOperations.TypedTuple<String>> top10 = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, 9);
         if (top10 == null) return List.of();
+
         return top10.stream()
-                .map(entry -> new RankingResponse.RankingEntry(entry.getValue(), entry.getScore()))
+                .map(entry -> {
+                    String memberId = entry.getValue();
+                    String nickname = (String) redisTemplate.opsForHash().get("user:nickname", memberId);
+                    return new RankingResponse.RankingEntry(
+                            nickname != null ? nickname : "(알 수 없음)", entry.getScore()
+                    );
+                })
                 .toList();
     }
 
-    private RankingResponse.MyRank getMyRank(Language language, String nickname) {
+    private RankingResponse.MyRank getMyRank(Language language, Integer memberId) {
         String key = getRankingKey(language);
-        Long rank = redisTemplate.opsForZSet().reverseRank(key, nickname);
-        Double score = redisTemplate.opsForZSet().score(key, nickname);
+        String memberId = String.valueOf(memberId);
+
+        Long rank = redisTemplate.opsForZSet().reverseRank(key, memberId);
+        Double score = redisTemplate.opsForZSet().score(key, memberId);
+
         if (rank == null || score == null) return null;
         return new RankingResponse.MyRank(rank.intValue() + 1, score);
     }
 
-    private String getRankingKey(Language language) {
-        return "ranking:" + language.name().toLowerCase();
+    public RankingResponse getRanking(Language language, Integer memberId) {
+        List<RankingResponse.RankingEntry> top10 = getTop10(language);
+        RankingResponse.MyRank myRank = (memberId != null) ? getMyRank(language, memberId) : null;
+        return new RankingResponse(top10, myRank);
     }
 }
