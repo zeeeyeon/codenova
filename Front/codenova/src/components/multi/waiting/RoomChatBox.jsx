@@ -17,7 +17,7 @@ const RoomChatBox = ({messages = [], onSendMessage }) => {
   }, [messages]);
 
   return (
-    <div className="w-[73%] h-[220px] bg-[#0D0D2B] bg-opacity-70 rounded-2xl flex flex-col p-4 mt-5">
+    <div className="w-[73%] h-[220px] bg-[#0D0D2B] bg-opacity-70 rounded-2xl flex flex-col p-4 mt-7">
       <div
         ref={messageListRef}
         className="h-[140px] overflow-y-auto mb-2 custom-scrollbar text-white text-sm space-y-1 px-1"

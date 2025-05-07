@@ -373,7 +373,7 @@ useEffect(() => {
             className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
             style={{ backgroundImage: `url(${multiBg})` }}
         >
-            <Header />
+            {/* <Header /> */}
 
             {showReadyAlert && (
               <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50">
@@ -383,7 +383,7 @@ useEffect(() => {
               </div>
             )}
 
-        <div className="absolute top-[53%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[66vw] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
+        <div className="absolute top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[72rem] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
                 <img
                   src={boardBg}
                   alt="board"
@@ -396,7 +396,7 @@ useEffect(() => {
               alt={roomInfo.isPublic ? "공개방" : "비공개방"}
               className="w-6 h-6"
             />
-            <h2 className="text-2xl">{roomInfo.roomTitle}</h2>
+            <h2 className="text-3xl font-bold">{roomInfo.roomTitle}</h2>
           </div>
           {/* 사용자 리스트 */}
           <div className="w-full flex justify-center mt-10">
