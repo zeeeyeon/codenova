@@ -83,7 +83,7 @@ public class MemberController {
         memberRepository.save(findMember);
 
         if (!beforeNickname.equals(findMember.getNickname())) {
-            String memberIdStr = String.valueOf(findMember.getId());
+            String memberIdStr = String.valueOf(findMember.getMemberId());
             redisTemplate.opsForHash().put("user:nickname", memberIdStr, findMember.getNickname());
         }
         return new ResponseEntity<>(
