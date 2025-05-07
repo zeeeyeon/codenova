@@ -145,20 +145,37 @@ public class GameServiceImpl implements GameService {
     // 6. 게임 진행률 업데이트
     public void updateProgress(ProgressUpdateRequest request) {
         Room room = roomService.getRoom(request.getRoomId());
+        if (room == null) {
+            throw new RoomNotFoundException("방을 찾을 수 없습니다.");
+        }
+
         String nickname = request.getNickname();
         int progress = request.getProgressPercent();
-        Integer time = request.getTime(); // 밀리초
+        Integer time = request.getTime(); // 밀리초 기준
 
-        // 1등 유저라면 1등으로 기록
-        if(!room.hasFirstFinisher() && progress >= 100 && time != null) {
-            room.setFirstFinisher(nickname, time);
-            FinishNoticeBroadcast broadcast = new FinishNoticeBroadcast(request.getRoomId(), request.getNickname());
-            getServer().getRoomOperations(request.getRoomId())
-                    .sendEvent("finish_notice", broadcast);
+        // ✅ 유효한 시간인지 검사 (null 또는 0 이하 방지)
+        if (progress >= 100 && time != null && time > 0) {
+            double seconds = time / 1000.0;
+
+            // ✅ 1등 유저라면 기록
+            if (!room.hasFirstFinisher()) {
+                room.setFirstFinisher(nickname, time); // 내부적으로 firstFinishTime 설정
+                room.getFinishTimeMap().put(nickname, seconds);
+
+                FinishNoticeBroadcast broadcast = new FinishNoticeBroadcast(request.getRoomId(), nickname);
+                getServer().getRoomOperations(request.getRoomId())
+                        .sendEvent("finish_notice", broadcast);
+            } else {
+                // ✅ 이미 1등이 정해졌으면 finishTimeMap에만 저장 (중복 방지)
+                room.getFinishTimeMap().putIfAbsent(nickname, seconds);
+            }
         }
+
+        // ✅ 현재 진행 상황 브로드캐스트
         getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("progress_update", request);
     }
+
 
     // 7. 라운드 종료
     public void endRound(String roomId) {
