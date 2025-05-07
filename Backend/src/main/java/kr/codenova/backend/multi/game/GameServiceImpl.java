@@ -163,7 +163,7 @@ public class GameServiceImpl implements GameService {
             // ✅ 1등 유저라면 기록
             if (!room.hasFirstFinisher()) {
                 room.setFirstFinisher(nickname, time); // 내부적으로 firstFinishTime 설정
-                room.getFinishTimeMap().put(nickname, seconds);
+                room.getFinishTimeMap().putIfAbsent(nickname, seconds);
 
                 FinishNoticeBroadcast broadcast = new FinishNoticeBroadcast(request.getRoomId(), nickname);
                 getServer().getRoomOperations(request.getRoomId())
@@ -229,8 +229,19 @@ public class GameServiceImpl implements GameService {
     // 9. 오타 발생
     public void addTypo(String roomId, String nickname) {
         Room room = roomService.getRoom(roomId);
+        if (room == null) {
+            log.warn("[addTypo] 방이 존재하지 않음: " + roomId);
+            return;
+        }
+
         Map<String, Integer> typoCountMap = room.getTypoCountMap();
+        if (typoCountMap == null) {
+            log.warn("[addTypo] typoCountMap이 null입니다. 초기화 누락 가능성");
+            return;
+        }
+
         typoCountMap.merge(nickname, 1, Integer::sum);
+        log.info("[addTypo] {}의 오타 횟수: {}", nickname, typoCountMap.get(nickname));
     }
 
     // 2. 현재 방 준비 상태 정보 생성
@@ -315,7 +326,7 @@ public class GameServiceImpl implements GameService {
             double timeDiff = isRetire ? 15.0 : Math.max(0, finishTime - firstFinishTime);
 
             int score = (int) Math.max(0, 100 - (timeDiff * 2.0) - typo * 1.0);
-            roundScoreMap.merge(nickname, score, Integer::sum);
+            roundScoreMap.put(nickname, score);
             room.getTotalScoreMap().merge(nickname, score, Integer::sum);
 
             // ✅ finishTime이 null일 경우만 추가 → putIfAbsent로 안전하게
