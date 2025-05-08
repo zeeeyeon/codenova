@@ -11,7 +11,7 @@ let socket = null;
 let isConnecting = false;
 
 // const SERVER_URL = "http://localhost:9092";
-const SERVER_URL = "wss://codenova.kr";
+const SERVER_URL = import.meta.env.VITE_REACT_APP_SOCKET_URL;
 
 export const connectSocket = (forceReconnect = false) => {
   if (socket && socket.connected && !forceReconnect) {
