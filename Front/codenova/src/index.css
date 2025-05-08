@@ -9,6 +9,13 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'D2Coding';  /* 원하는 글꼴 이름 */
+  src: url('./assets/fonts/D2Coding.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 * {
   font-family: 'NeoDGM', sans-serif;  /* 전역적으로 'NeoDGM' 폰트를 사용 */
   margin: 0;
