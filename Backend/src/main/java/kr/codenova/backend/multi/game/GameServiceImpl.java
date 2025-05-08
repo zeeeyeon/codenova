@@ -217,15 +217,14 @@ public class GameServiceImpl implements GameService {
 
             calculateScores(room);
 
-            RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
-            getServer().getRoomOperations(roomId)
-                    .sendEvent("round_score", broadcast);
-
             // ✅ 라운드 수에 따라 자동 종료 또는 다음 라운드
             int MAX_ROUND = 3;
             if (room.getRoundNumber() >= MAX_ROUND) {
                 endGame(roomId); // 🎯 자동 게임 종료
             } else {
+                RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
+                getServer().getRoomOperations(roomId)
+                        .sendEvent("round_score", broadcast);
                 room.setRoundNumber(room.getRoundNumber() + 1);
                 resetRoundData(room);
             }
@@ -379,16 +378,17 @@ public class GameServiceImpl implements GameService {
             int typo = room.getTypoCountMap().getOrDefault(nickname, 0);
 
             boolean isRetire = (finishTime == null || finishTime - firstFinishTime > 10.0);
-            double timeDiff = isRetire ? 15.0 : Math.max(0, finishTime - firstFinishTime);
+            double timeDiff = isRetire ? 25.0 : Math.max(0, finishTime - firstFinishTime);
 
             int score = (int) Math.max(0, 100 - (timeDiff * 2.0) - typo * 1.0);
             roundScoreMap.put(nickname, score);
             room.getTotalScoreMap().merge(nickname, score, Integer::sum);
 
             // ✅ finishTime이 null일 경우만 추가 → putIfAbsent로 안전하게
-            room.getFinishTimeMap().putIfAbsent(nickname, firstFinishTime + 15.0);
+            room.getFinishTimeMap().putIfAbsent(nickname, firstFinishTime + 25.0);
         }
 
+        room.setRoundScoreMap(roundScoreMap);
         room.setRoundScoreMap(roundScoreMap);
     }
 
