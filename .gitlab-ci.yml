@@ -88,4 +88,3 @@ deploy-dev-backend:
           -e SPRING_CONFIG_LOCATION=file:/app/config/application.yml \
           $ECR_BACKEND_REPO:latest
       EOF
-
