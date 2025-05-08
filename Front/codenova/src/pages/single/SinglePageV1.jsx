@@ -96,18 +96,18 @@ const SinglePage = () => {
                         setCScode(data);
                     })
                     .catch(e => {
-                        console.error("api 요청 실패:" , e)
+                        // console.error("api 요청 실패:" , e)
                     })
             } else {
                 setIsCs(false);
                 singleLangCode(lang)
                 // getLangCode(97)
                     .then(data => {
-                        console.log("api 결과", data);            
+                        // console.log("api 결과", data);            
                         setRawCode(data);         
                     })
                     .catch(e => {
-                        console.error("api 요청 실패:" , e)
+                        // console.error("api 요청 실패:" , e)
                     })
                 
             }
@@ -116,7 +116,7 @@ const SinglePage = () => {
     },[lang])
 
     useEffect(() => { //줄 단위로 나누기
-        console.log(rawCode);
+        // console.log(rawCode);
         // setLines(rawCode.split('\n')); 
         setLines(rawCode.split('\n').filter(line => line.trim() !== '')); // 양쪽에 빈 공백이 있음
 
@@ -125,7 +125,7 @@ const SinglePage = () => {
     useEffect(() => {
         if (!Array.isArray(CScode)) return;
 
-        console.log(CScode);
+        // console.log(CScode);
         // const allLines = CScode.map((item) => `${item.keyword} - ${item.content}`);
         //     setLines(allLines); // 하나의 배열로 상태 저장
         const allLines = CScode.map((item) => `${item.keyword} - ${item.content}`);
@@ -173,7 +173,7 @@ const SinglePage = () => {
                 setCurrentInput('');
                 
             } else { // 틀렸으면
-                console.log('현재 줄을 정확히 입력하지 않음')
+                // console.log('현재 줄을 정확히 입력하지 않음')
                 setShake(true);
                 setTimeout(() => setShake(false), 500);
             }

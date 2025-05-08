@@ -24,7 +24,7 @@ const RoomCodeModal = ({ onClose }) => {
     joinMeteoRoom(
       { roomCode: roomCodeInput, nickname },
       (roomData) => {
-        console.log("✅ 방 입장 성공:", roomData);
+        // console.log("✅ 방 입장 성공:", roomData);
   
         // ✅ 성공했을 때만 로컬스토리지 저장
         localStorage.setItem("meteoRoomCode", roomCodeInput);
@@ -37,7 +37,7 @@ const RoomCodeModal = ({ onClose }) => {
         onClose(); // 모달 닫기
       },
       (errorMessage) => {
-        console.error("❌ 방 입장 실패:", errorMessage);
+        // console.error("❌ 방 입장 실패:", errorMessage);
         alert("❌ 방 코드가 틀렸습니다.");
   
         // ✅ 실패하면 input 초기화 (선택사항)
@@ -57,7 +57,7 @@ const RoomCodeModal = ({ onClose }) => {
   
     // 2. 응답 수신 후 처리
     onRandomMatchResponse((roomData) => {
-      console.log("🎲 랜덤매칭 완료:", roomData);
+      // console.log("🎲 랜덤매칭 완료:", roomData);
   
       // ✅ 랜덤 매칭 성공 시 저장
       localStorage.setItem("meteoRoomCode", ""); // 랜덤은 코드 없음

@@ -38,7 +38,7 @@ const MeteoGamePage = () => {
     audio.loop = false;                    // 2. 반복 재생 설정
     audio.volume = 0.3;                   // 3. 볼륨을 30%로 설정
     audio.play().catch((e) => {           // 4. 자동 재생 시도 + 차단 시 경고 출력
-      console.warn("⚠️ 자동 재생 차단됨:", e);
+      // console.warn("⚠️ 자동 재생 차단됨:", e);
     });
 
     return () => {
