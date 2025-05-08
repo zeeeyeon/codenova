@@ -13,7 +13,7 @@ import rocket4 from "../../assets/images/multi_rocket_4.png";
 import { getSocket } from "../../sockets/socketClient";
 import RoundScoreModal from "../../components/multi/modal/RoundScoreModal";
 import FinalResultModal from "../../components/multi/modal/FinalResultModal";
-
+import useAuthStore from "../../store/authStore";
 
 
 const TypingBattlePage = () => {
@@ -38,6 +38,7 @@ const TypingBattlePage = () => {
   const [showFinalModal, setShowFinalModal] = useState(false);
 
   const [roomInfo, setRoomInfo] = useState(null);
+  const nickname = useAuthStore((state) => state.user?.nickname);
 
 
   const [users, setUsers] = useState(() => {
@@ -260,13 +261,21 @@ const TypingBattlePage = () => {
   
             if (data.round < 3) {
               console.log("🍆 round_start emit");
+              const host = users.find((u) => u.isHost);
+              if (host?.nickname === nickname) {
+                // 내가 방장이면 round_start emit
+                socket.emit("round_start", {
+                  roomId,
+                  nickname,
+                });
+              }
               setCountdown(5);
               setGameStarted(false);
               setRoundEnded(false);
               setFirstFinisher(null);
-              setTargetCode(""); // optional: 이전 코드 초기화
-              socket.emit("round_start", { roomId });
+              setTargetCode("");
             }
+
           }
           return prev - 1;
         });
