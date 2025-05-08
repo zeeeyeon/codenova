@@ -31,13 +31,14 @@ public class SocketConfig {
      */
     @Bean
     public SocketIOServer socketIOServer() {
+        System.out.println("Socket Port : " + port);
         com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
         config.setHostname(this.hostname);
         config.setPort(this.port);
         config.setOrigin("*");
         config.setAuthorizationListener(handshakeData -> true);  // ✅ 무조건 허용
         config.setTransports(Transport.WEBSOCKET); // Only WebSocket
-
+s
         config.setBossThreads(1);
         config.setWorkerThreads(8);
 
