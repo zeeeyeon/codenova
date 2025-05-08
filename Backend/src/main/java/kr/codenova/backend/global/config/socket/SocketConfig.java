@@ -33,7 +33,6 @@ public class SocketConfig {
      */
     @Bean
     public SocketIOServer socketIOServer() {
-//        System.out.println("Socket Port : " + port);port
         log.info("Socket Port : " + port);
         com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
         config.setHostname(this.hostname);
