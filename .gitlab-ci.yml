@@ -83,7 +83,9 @@ deploy-dev-backend:
 
         docker run -d --name backend-dev -p 8181:8080 -p 9191:9092 \
           --network codenova-dev-network \
+          --add-host=host.docker.internal:host-gateway \
           -v ~/config-dev/application.yml:/app/config/application.yml \
           -e SPRING_CONFIG_LOCATION=file:/app/config/application.yml \
           $ECR_BACKEND_REPO:latest
       EOF
+
