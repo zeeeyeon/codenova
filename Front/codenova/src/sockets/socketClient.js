@@ -11,8 +11,9 @@ let socket = null;
 let isConnecting = false;
 
 // const SERVER_URL = "http://localhost:9092";
-const SERVER_URL = "wss://codenova.kr";
-
+const SERVER_URL = import.meta.env.VITE_REACT_APP_SOCKET_URL;
+console.log("소켓 URL",SERVER_URL);
+// const SERVER_URL = import.meta.env.VITE_REL_REACT_APP_SOCKET_URL;
 export const connectSocket = (forceReconnect = false) => {
   if (socket && socket.connected && !forceReconnect) {
     // console.log("[Socket] 이미 연결되어 있습니다.");
@@ -34,7 +35,7 @@ export const connectSocket = (forceReconnect = false) => {
   });
 
   socket.on('connect', () => {
-    // console.log(`[Socket Connected] ID: ${socket.id}`);
+    console.log(`[Socket Connected] ID: ${socket.id}`);
     isConnecting = false;
   });
 
@@ -49,7 +50,7 @@ export const connectSocket = (forceReconnect = false) => {
   socket.on('connect_error', (err) => {
     console.error(`[Socket Connect Error] ${err.message}`);
     if (!socket.connected) {
-      // console.warn("[Socket] 연결 에러 발생. 강제 재연결 시도함.");
+      console.warn("[Socket] 연결 에러 발생. 강제 재연결 시도함.");
       connectSocket(true);
     }
   });
