@@ -13,6 +13,7 @@ import kr.codenova.backend.multi.dto.request.ReadyGameRequest;
 import kr.codenova.backend.multi.dto.request.StartGameRequest;
 import kr.codenova.backend.multi.dto.response.RoomStatusResponse;
 import kr.codenova.backend.multi.exception.InvalidGameStartException;
+import kr.codenova.backend.multi.exception.IsNotHostException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import kr.codenova.backend.multi.exception.UserNotFoundException;
 import kr.codenova.backend.multi.room.Room;
@@ -130,7 +131,7 @@ public class GameServiceImpl implements GameService {
 
         Room room = roomService.getRoom(roomId);
         if (room == null) {
-            return; // ✅ 3초 대기하는 동안 방이 없어졌으면 아무것도 안 함
+            throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
         log.info("roomId : " + roomId);
 
@@ -267,8 +268,15 @@ public class GameServiceImpl implements GameService {
     }
 
 
-    public void startRound(String roomId) {
+    public void startRound(String roomId, String nickname) throws IsNotHostException {
         Room room = roomService.getRoom(roomId);
+        if (room == null) {
+            throw new RoomNotFoundException("방을 찾을 수 없습니다.");
+        }
+        if(!room.getUserStatusMap().get(nickname).isHost()) {
+            throw new IsNotHostException("방장이 아닌 사용자는 요청할 수 없습니다.");
+        }
+
         calculateScores(room);
 
         TypingStartBroadcast broadcast = new TypingStartBroadcast(
@@ -288,8 +296,7 @@ public class GameServiceImpl implements GameService {
     public void addTypo(String roomId, String nickname) {
         Room room = roomService.getRoom(roomId);
         if (room == null) {
-            log.warn("[addTypo] 방이 존재하지 않음: " + roomId);
-            return;
+            throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
 
         Map<String, Integer> typoCountMap = room.getTypoCountMap();

@@ -5,4 +5,5 @@ import lombok.Data;
 @Data
 public class RoundStartRequest {
     private String roomId;
+    private String nickname;
 }
