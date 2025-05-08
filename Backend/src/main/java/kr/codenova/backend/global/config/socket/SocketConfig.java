@@ -41,7 +41,7 @@ public class SocketConfig {
         config.setOrigin("*");
         config.setAuthorizationListener(handshakeData -> true);  // ✅ 무조건 허용
         config.setTransports(Transport.WEBSOCKET); // Only WebSocket
-s
+
         config.setBossThreads(1);
         config.setWorkerThreads(8);
 
