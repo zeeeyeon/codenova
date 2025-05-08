@@ -59,15 +59,6 @@ public class GameSocketHandler implements SocketEventHandler {
             }
         });
 
-        // 5. 게임 종료
-        server.addEventListener("end_game", EndGameRequest.class, (client, request, ackSender) -> {
-            try {
-                gameService.endGame(request.getRoomId());
-            } catch (Exception e) {
-                client.sendEvent("error", new SocketErrorResponse("게임 종료 처리 오류"));
-            }
-        });
-
         // 6. 오타 발생 시
         server.addEventListener("typo_occurred", TypoRequest.class, (client, request, ackSender) -> {
             try {
