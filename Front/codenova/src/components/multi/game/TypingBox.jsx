@@ -276,7 +276,7 @@ const TypingBox = ({
           roomId,
           nickname
         });
-        console.log("👿 typo_occurred_emit", roomId, nickname);
+        // console.log("👿 typo_occurred_emit", roomId, nickname);
       }
     }
 
@@ -358,7 +358,7 @@ const TypingBox = ({
       if (progressPercent === 100) {
         payload.time = elapsedTime 
       }
-      console.log("🍳progress_update : ", payload);
+      // console.log("🍳progress_update : ", payload);
       socket.emit("progress_update", payload);
     }
   }, [userInput, currentLine]);
@@ -400,9 +400,9 @@ const TypingBox = ({
       <div className="flex-1 flex flex-col justify-between overflow-hidden p-2">
         {/* <div className="flex-1 min-h-[130px] overflow-y-auto overflow-x-auto custom-scrollbar"> */}
         <div  ref={codeContainerRef} className="flex-1 min-h-[130px] overflow-y-auto overflow-x-auto custom-scrollbar">
-          <div className="absolute -top-6 right-8 bg-black text-white px-3 py-2 rounded-full border border-white text-lg">
+          {/* <div className="absolute -top-6 right-8 bg-black text-white px-3 py-2 rounded-full border border-white text-lg">
             ⏱ {elapsedTimeFormatted}
-          </div>
+          </div> */}
 
           <pre ref={preContainerRef} className="overflow-auto w-full h-[90%] p-4 text-xl custom-scrollbar mb-2">
             <code>

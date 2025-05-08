@@ -33,7 +33,7 @@ const RoomInfoPanel = ({
         }
     }
 
-    console.log("📦 Panel props:", { isPublic, roomCode });
+    // console.log("📦 Panel props:", { isPublic, roomCode });
 
   
     return (
