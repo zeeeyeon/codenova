@@ -37,6 +37,8 @@ const TypingBattlePage = () => {
   const [finalResults, setFinalResults] = useState([]);
   const [showFinalModal, setShowFinalModal] = useState(false);
 
+  const [roomInfo, setRoomInfo] = useState(null);
+
 
   const [users, setUsers] = useState(() => {
     const initialUsers = state?.users?.filter(u => !u.empty) || [];
@@ -264,9 +266,6 @@ const TypingBattlePage = () => {
               setFirstFinisher(null);
               setTargetCode(""); // optional: 이전 코드 초기화
               socket.emit("round_start", { roomId });
-            } else {
-              console.log("마지막 라운드, 게임 종료 요청!")
-              socket.emit("end_game", {roomId});
             }
           }
           return prev - 1;
@@ -291,6 +290,40 @@ const TypingBattlePage = () => {
     socket.on("game_result", handleGameResult);
     return () => socket.off("game_result", handleGameResult);
   }, []);
+
+  // 게임 종료시 받는 방 상태 정보보
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+  
+    const handleRoomStatus = (data) => {
+      console.log("🧑‍🚀 room_status 수신:", data);
+      setRoomInfo(data); // 이걸 FinalResultModal로 넘겨줘야 함
+  
+      const updatedUsers = Array.from({ length: data.maxCount }, (_, i) => {
+        const user = data.users[i];
+        return user
+          ? {
+              slot: i + 1,
+              nickname: user.nickname,
+              isHost: user.isHost,
+              isReady: user.isReady,
+              rocketImage: rocketImages[i],
+              progress: 0,
+              empty: false,
+            }
+          : {
+              slot: i + 1,
+              empty: true,
+            };
+      });
+  
+      setUsers(updatedUsers.filter((u) => !u.empty));
+    };
+  
+    socket.on("room_status", handleRoomStatus);
+    return () => socket.off("room_status", handleRoomStatus);
+  }, [roomId]);
   
   
 
@@ -305,7 +338,11 @@ const TypingBattlePage = () => {
           {firstFinisher && (
             <div className="font-bold mb-1">🎉 <span className="text-yellow-300">{firstFinisher}</span> 님이 가장 먼저 완주했어요!</div>
           )}
-          Round {currentRound}종료까지 {roundEndingCountdown}초 남았습니다
+           {currentRound === 3 ? (
+            <>🔥 마지막 라운드 종료까지 {roundEndingCountdown}초 남았습니다</>
+          ) : (
+            <>Round {currentRound} 종료까지 {roundEndingCountdown}초 남았습니다</>
+          )}
         </div>
       )}
 
@@ -362,6 +399,8 @@ const TypingBattlePage = () => {
       visible={showFinalModal}
       results={finalResults}
       onClose={() => setShowFinalModal(false)}
+      roomInfo={roomInfo}
+
     />
   </div>
 

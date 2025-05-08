@@ -43,14 +43,17 @@ const RoomWaitingPage = () => {
     };
 
       // 초기값 사용하기 위함.
-      const [roomInfo, setRoomInfo] = useState(() => ({
-        roomTitle: state?.roomTitle || "",
-        isPublic: state?.isPublic ?? true,
-        language: state?.language || "Unknown",
-        currentPeople: state?.currentPeople || 1,
-        standardPeople: state?.standardPeople || 4,
-        roomCode: state?.roomCode || "",
-      }));
+      const [roomInfo, setRoomInfo] = useState(() => {
+        const initialInfo = state?.roomInfo ?? state; // ✅ 두 경우 모두 대응
+        return {
+          roomTitle: initialInfo?.roomTitle || "",
+          isPublic: initialInfo?.isPublic ?? true,
+          language: initialInfo?.language || "Unknown",
+          currentPeople: initialInfo?.currentPeople || 1,
+          standardPeople: initialInfo?.standardPeople || 4,
+          roomCode: initialInfo?.roomCode || "",
+        };
+      });
     
     // 방 정보 최신화용 
     useEffect(() => {

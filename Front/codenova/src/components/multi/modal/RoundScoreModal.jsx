@@ -1,4 +1,3 @@
-// components/multi/modal/RoundScoreModal.jsx
 import React from "react";
 
 const RoundScoreModal = ({ visible, scores, round, countdown }) => {
@@ -16,8 +15,7 @@ const RoundScoreModal = ({ visible, scores, round, countdown }) => {
                 <th className="px-4 py-2">닉네임</th>
                 <th className="px-4 py-2">점수</th>
                 <th className="px-4 py-2">오타 수</th>
-                <th className="px-4 py-2">소요 시간</th>
-                <th className="px-4 py-2">기권</th>
+                {/* <th className="px-4 py-2">소요 시간</th> */}
               </tr>
             </thead>
             <tbody>
@@ -26,10 +24,9 @@ const RoundScoreModal = ({ visible, scores, round, countdown }) => {
                   <td className="px-4 py-2">{user.nickname}</td>
                   <td className="px-4 py-2">{user.score}</td>
                   <td className="px-4 py-2">{user.typoCount}</td>
-                  <td className="px-4 py-2">
+                  {/* <td className="px-4 py-2">
                     {Number.isFinite(user.time) ? `${user.time.toFixed(2)}s` : "-"}
-                    </td>
-                  <td className="px-4 py-2">{user.isRetire ? "O" : "-"}</td>
+                    </td> */}
                 </tr>
               ))}
             </tbody>
