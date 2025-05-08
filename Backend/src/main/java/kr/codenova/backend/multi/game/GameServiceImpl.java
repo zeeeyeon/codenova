@@ -389,7 +389,6 @@ public class GameServiceImpl implements GameService {
         }
 
         room.setRoundScoreMap(roundScoreMap);
-        room.setRoundScoreMap(roundScoreMap);
     }
 
 
