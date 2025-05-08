@@ -299,7 +299,6 @@ const TypingBattlePage = () => {
     className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
     style={{ backgroundImage: `url(${multiBg})` }}
   >
-    <Header />
 
     {roundEndingCountdown !== null && (
         <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 text-white text-xl bg-black bg-opacity-80 px-6 py-3 rounded-xl border border-white text-center leading-relaxed">
@@ -320,19 +319,19 @@ const TypingBattlePage = () => {
             </div>
             </div>
         )}
-    <div className="absolute top-[53%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[66vw] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
+    <div className="absolute top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[72rem] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
       <img src={boardBg} alt="board" className="absolute object-cover rounded-2xl z-0" />
   
       {/* 컨텐츠 */}
-      <div className="relative z-10 w-full h-full flex flex-col justify-between px-20 py-6 top-[-16%]">
+      <div className="relative z-10 w-full h-full flex flex-col px-20 py-6 top-16">
         
         {/* 로고 */}
-        <div className="flex justify-center mb-4">
-          <img src={logo} alt="logo" className="w-[240px]" />
-        </div>
+        {/* <div className="flex justify-center mb-4">
+          <img src={logo} alt="logo" className="w-[15rem]" />
+        </div> */}
   
         {/* 타이핑 박스 */}
-        <div className="h-[40%] flex items-center justify-center ">
+        <div className="h-[45%] flex items-center justify-center ">
         <TypingBox
             roomId={roomId}
             gameStarted = {gameStarted} 
@@ -344,7 +343,7 @@ const TypingBattlePage = () => {
         </div>
   
         {/* 진행 보드 */}
-        <div className="h-[50%] flex items-center justify-start">
+        <div className="h-[26%] flex items-center justify-start">
           <ProgressBoard users={users}/>
         </div>
   

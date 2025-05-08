@@ -45,7 +45,7 @@ const ProgressBoard = ({ users }) => {
     );
 
     return (
-      <div className={`flex flex-col items-start ${justifyClass} w-[95%] h-full mt-1`}>
+      <div className={`flex flex-col items-start ${justifyClass} w-[95%] h-full`}>
         {users.map((user, idx) => (
           <div key={idx} className="flex items-center w-full flex-1 relative">
             <div className="w-32 text-right pr-4 text-white text-sm whitespace-nowrap flex items-center justify-end gap-1">
