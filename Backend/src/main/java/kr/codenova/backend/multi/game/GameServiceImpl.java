@@ -78,7 +78,7 @@ public class GameServiceImpl implements GameService {
         }
     }
 
-    // 2. 게임 시작 요청 처리
+    // 2. 게임 시작 시 totalScoreMap 초기화 수정 - startGame 메서드
     public void startGame(StartGameRequest request) throws InterruptedException {
         Room room = roomService.getRoom(request.getRoomId());
         validateStartGame(request.getRoomId(), request.getNickname());
@@ -94,13 +94,21 @@ public class GameServiceImpl implements GameService {
         room.setIsStarted(true);
         room.setRoundNumber(1);
         resetRoundData(room);
+
+        // 게임 시작 시 totalScoreMap 확실하게 초기화
         room.setTotalScoreMap(new ConcurrentHashMap<>());
+
+        // 모든 플레이어의 초기 점수를 0으로 설정
+        for (String nickname : room.getUserStatusMap().keySet()) {
+            room.getTotalScoreMap().put(nickname, 0);
+        }
 
         getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("game_started", countdown);
 
         delayedTypingStart(request.getRoomId());
     }
+
     // 게임 시작 전 검증 (방장 여부 + 모든 준비 완료)
     public void validateStartGame(String roomId, String nickname) {
         Room room = roomService.getRoom(roomId);
@@ -217,23 +225,28 @@ public class GameServiceImpl implements GameService {
 
             calculateScores(room);
 
+            // ✅ 라운드 결과는 무조건 전송
+            RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
+            getServer().getRoomOperations(roomId)
+                    .sendEvent("round_score", broadcast);
+
             // ✅ 라운드 수에 따라 자동 종료 또는 다음 라운드
             int MAX_ROUND = 3;
             if (room.getRoundNumber() >= MAX_ROUND) {
                 endGame(roomId); // 🎯 자동 게임 종료
             } else {
-                RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
-                getServer().getRoomOperations(roomId)
-                        .sendEvent("round_score", broadcast);
                 room.setRoundNumber(room.getRoundNumber() + 1);
                 resetRoundData(room);
             }
         }
     }
 
-    // 8. 게임 종료
     public void endGame(String roomId) {
         Room room = roomService.getRoom(roomId);
+
+        // 게임 결과 생성 전에 총합 점수가 올바르게 계산되었는지 로그로 확인
+        log.info("게임 종료 - 총합 점수 맵: {}", room.getTotalScoreMap());
+
         GameResultBroadcast result = buildGameResultBroadcast(room);
         getServer().getRoomOperations(roomId)
                 .sendEvent("game_result", result);
@@ -250,6 +263,8 @@ public class GameServiceImpl implements GameService {
             room.setFinishTimeMap(new ConcurrentHashMap<>());
             room.setTypoCountMap(new ConcurrentHashMap<>());
             room.setRoundScoreMap(new ConcurrentHashMap<>());
+            // 게임 종료 후 총합 점수도 초기화
+            room.setTotalScoreMap(new ConcurrentHashMap<>());
 
             // ✅ 준비 상태 초기화 (방장은 true 유지)
             room.getUserStatusMap().forEach((nickname, status) -> {
@@ -339,21 +354,27 @@ public class GameServiceImpl implements GameService {
         return new RoundScoreBroadcast(room.getRoomId(), room.getRoundNumber(), results);
     }
 
+    // 3. buildGameResultBroadcast 메서드 수정 - 총합 점수 표시
     public GameResultBroadcast buildGameResultBroadcast(Room room) {
         List<UserResultStatus> results = new ArrayList<>();
 
         for (String nickname : room.getUserStatusMap().keySet()) {
+            // 총합 점수를 가져옴 (없으면 0)
             int totalScore = room.getTotalScoreMap().getOrDefault(nickname, 0);
-            double average = room.getRoundNumber() > 0 ? (double) totalScore / room.getRoundNumber() : 0.0;
-            average = Math.round(average * 100.0) / 100.0;
 
+            // UserResultStatus 객체 생성 시 averageScore 대신 totalScore 필드를 사용
+            // 만약 UserResultStatus 클래스가 averageScore 필드만 가지고 있다면,
+            // 그 필드에 totalScore 값을 임시로 사용
             results.add(UserResultStatus.builder()
                     .nickname(nickname)
-                    .averageScore(average)
+                    .averageScore(totalScore) // totalScore로 변경하거나 기존 averageScore 필드에 totalScore 값 사용
                     .build());
         }
 
+        // 총점 기준으로 정렬 (높은 점수가 상위에 오도록)
         results.sort((a, b) -> Double.compare(b.getAverageScore(), a.getAverageScore()));
+
+        // 순위 설정
         for (int i = 0; i < results.size(); i++) {
             results.get(i).setRank(i + 1);
         }
@@ -363,6 +384,7 @@ public class GameServiceImpl implements GameService {
 
 
     // 라운드별 점수 계산
+    // 1. calculateScores 메서드 수정 - 점수 계산 및 누적 로직 수정
     public void calculateScores(Room room) {
         Map<String, Integer> roundScoreMap = room.getRoundScoreMap();
 
@@ -382,6 +404,11 @@ public class GameServiceImpl implements GameService {
 
             int score = (int) Math.max(0, 100 - (timeDiff * 2.0) - typo * 1.0);
             roundScoreMap.put(nickname, score);
+
+            // 총합 점수 맵에 현재 라운드 점수 추가 (없으면 생성)
+            if (room.getTotalScoreMap() == null) {
+                room.setTotalScoreMap(new ConcurrentHashMap<>());
+            }
             room.getTotalScoreMap().merge(nickname, score, Integer::sum);
 
             // ✅ finishTime이 null일 경우만 추가 → putIfAbsent로 안전하게
@@ -389,7 +416,8 @@ public class GameServiceImpl implements GameService {
         }
 
         room.setRoundScoreMap(roundScoreMap);
-        room.setRoundScoreMap(roundScoreMap);
+        // 중복 설정 제거 (중복 코드 제거)
+        // room.setRoundScoreMap(roundScoreMap);
     }
 
 
