@@ -41,7 +41,6 @@ public class MemberController {
     private final StringRedisTemplate redisTemplate;
     private static final Logger log = LoggerFactory.getLogger(CustomResponseUtil.class);
 
-
     // 일반 사용자 회원가입
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@RequestBody @Valid SignupDto signupDto) {
