@@ -25,19 +25,19 @@ const MultiPage = () => {
     room.title.toLowerCase().includes(searchKeyword.toLowerCase())
   );
  
-  useEffect(() => {
-    const socket = getSocket();
-    if (socket) {
-      socket.onAny((event, ...args) => {
-        console.log("📡 수신된 이벤트:", event, args);
-      });
-    }
-  }, []);
+  // useEffect(() => {
+  //   const socket = getSocket();
+  //   if (socket) {
+  //     socket.onAny((event, ...args) => {
+  //       console.log("📡 수신된 이벤트:", event, args);
+  //     });
+  //   }
+  // }, []);
   
 
   useEffect(() => {
     const handleRoomList = (rooms) => {
-      console.log("[room_list 수신 :", rooms);
+      // console.log("[room_list 수신 :", rooms);
       const parsed = rooms.map((room) => ({
         id: room.roomId,
         title: room.title,
@@ -52,7 +52,7 @@ const MultiPage = () => {
     };
   
     const handleRoomUpdate = (updatedRoom) => {
-      console.log("🟡 room_update 수신:", updatedRoom);
+      // console.log("🟡 room_update 수신:", updatedRoom);
       const parsed = {
         id: updatedRoom.roomId,
         title: updatedRoom.title,
@@ -64,7 +64,7 @@ const MultiPage = () => {
         status: updatedRoom.isStarted ? "playing" : "waiting",
       };
 
-      console.log("💡 parsed currentPeople:", parsed.currentPeople);
+      // console.log("💡 parsed currentPeople:", parsed.currentPeople);
       
       setRoomList((prevRooms) => {
         const exists = prevRooms.some((room) => room.id === parsed.id);
@@ -77,7 +77,7 @@ const MultiPage = () => {
     const requestRoomsSafely = () => {
       const s = getSocket();
       if (s && s.connected) {
-        console.log("🟢 socket 연결됨 → 방 목록 요청");
+        // console.log("🟢 socket 연결됨 → 방 목록 요청");
         requestRoomList((rooms) => {
           const parsed = rooms.map((room) => ({
             id: room.roomId,
@@ -126,7 +126,7 @@ const MultiPage = () => {
     const socket = getSocket();
 
     const handleJoinResponse = (res) => {
-      console.log("✅ 입장 응답:", res); // res === "joined"
+      // console.log("✅ 입장 응답:", res); // res === "joined"
     
       if (res === "joined") {
         navigate(`/multi/room/${selectedRoom.id}`, {
@@ -161,7 +161,7 @@ const MultiPage = () => {
     if (!socket) return;
   
     const handleRoomRemoved = (removedRoomId) => {
-      console.log("🗑️ room_removed 수신:", removedRoomId);
+      // console.log("🗑️ room_removed 수신:", removedRoomId);
       setRoomList((prev) => prev.filter((room) => room.id !== removedRoomId));
     };
   

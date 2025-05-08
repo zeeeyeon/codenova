@@ -51,9 +51,9 @@ const TypingBattlePage = () => {
     }));
   });
 
-  useEffect(() => {
-    console.log("🔥 TypingBattlePage 초기 users 상태:", state?.users);
-  }, []);
+  // useEffect(() => {
+  //   console.log("🔥 TypingBattlePage 초기 users 상태:", state?.users);
+  // }, []);
 
   // 카운트다운
   useEffect(() => {
@@ -86,7 +86,7 @@ const TypingBattlePage = () => {
     socket.emit("room_status", { roomId });
   
     const handleRoomStatus = (data) => {
-      console.log("🧑‍🚀 TypingBattlePage room_status 수신:", data);
+      // console.log("🧑‍🚀 TypingBattlePage room_status 수신:", data);
   
       const updatedUsers = Array.from({ length: data.maxCount }, (_, i) => {
         const user = data.users[i];
@@ -120,7 +120,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
 
     const handleTypingStart = (data) => {
-      console.log("🥘 typing_start 수신:", data);
+      // console.log("🥘 typing_start 수신:", data);
       setTargetCode(data.script); // 문제 저장
 
       setUsers((prev) =>
@@ -142,7 +142,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
   
     const handleProgressUpdate = (data) => {
-      console.log("🚀 progress_update 수신:", data);
+      // console.log("🚀 progress_update 수신:", data);
   
       setUsers((prev) =>
         prev.map((user) =>
@@ -227,7 +227,7 @@ const TypingBattlePage = () => {
   
     const handleFinishNotice = (data) => {
       const { nickname } = data;
-      console.log("🏁 finish_notice 수신:", nickname);
+      // console.log("🏁 finish_notice 수신:", nickname);
   
       setFirstFinisher(nickname); // 표시용
       if (!roundEnded) {
@@ -246,7 +246,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
   
     const handleRoundScore = (data) => {
-      console.log("📊 round_score 수신:", data);
+      // console.log("📊 round_score 수신:", data);
       setRoundScoreData(data);
       setCurrentRound(data.round+1);
       setShowRoundScoreModal(true);
@@ -282,7 +282,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
     
     const handleGameResult = (data) => {
-      console.log("💩 최종 게임 결과 안내 : ",data);
+      // console.log("💩 최종 게임 결과 안내 : ",data);
       setFinalResults(data.results); // 서버에서 avgSpeed 등 포함된 리스트로 보낸다고 가정
       setShowFinalModal(true);
 
@@ -297,7 +297,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
   
     const handleRoomStatus = (data) => {
-      console.log("🧑‍🚀 room_status 수신:", data);
+      // console.log("🧑‍🚀 room_status 수신:", data);
       setRoomInfo(data); // 이걸 FinalResultModal로 넘겨줘야 함
   
       const updatedUsers = Array.from({ length: data.maxCount }, (_, i) => {
