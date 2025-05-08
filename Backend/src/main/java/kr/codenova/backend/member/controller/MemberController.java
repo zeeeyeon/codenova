@@ -110,6 +110,7 @@ public class MemberController {
                 code.getHttpStatus()
         );
     }
+
     @PostMapping("/guest")
     public ResponseEntity<?> guestLogin(HttpServletResponse response) {
         String guestId = UUID.randomUUID().toString();
