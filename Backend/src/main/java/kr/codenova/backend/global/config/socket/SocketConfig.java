@@ -8,11 +8,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import kr.codenova.backend.global.socket.SocketEventHandler;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class SocketConfig {
@@ -31,7 +33,8 @@ public class SocketConfig {
      */
     @Bean
     public SocketIOServer socketIOServer() {
-        System.out.println("Socket Port : " + port);
+//        System.out.println("Socket Port : " + port);port
+        log.info("Socket Port : " + port);
         com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
         config.setHostname(this.hostname);
         config.setPort(this.port);
