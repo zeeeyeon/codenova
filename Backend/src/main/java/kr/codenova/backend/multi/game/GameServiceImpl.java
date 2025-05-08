@@ -224,24 +224,6 @@ public class GameServiceImpl implements GameService {
         }
     }
 
-
-    public void startRound(String roomId) {
-        Room room = roomService.getRoom(roomId);
-        calculateScores(room);
-
-        TypingStartBroadcast broadcast = new TypingStartBroadcast(
-                roomId,
-                LocalDateTime.now(),
-                getGameContent(room.getLanguage()) // 게임 본문 가져오기
-        );
-
-        getServer().getRoomOperations(roomId)
-                .sendEvent("typing_start", broadcast);
-
-        room.setRoundNumber(room.getRoundNumber());
-        resetRoundData(room);
-    }
-
     // 8. 게임 종료
     public void endGame(String roomId) {
         Room room = roomService.getRoom(roomId);
@@ -274,6 +256,23 @@ public class GameServiceImpl implements GameService {
         }
     }
 
+
+    public void startRound(String roomId) {
+        Room room = roomService.getRoom(roomId);
+        calculateScores(room);
+
+        TypingStartBroadcast broadcast = new TypingStartBroadcast(
+                roomId,
+                LocalDateTime.now(),
+                getGameContent(room.getLanguage()) // 게임 본문 가져오기
+        );
+
+        getServer().getRoomOperations(roomId)
+                .sendEvent("typing_start", broadcast);
+
+        room.setRoundNumber(room.getRoundNumber());
+        resetRoundData(room);
+    }
 
     // 9. 오타 발생
     public void addTypo(String roomId, String nickname) {
@@ -335,19 +334,15 @@ public class GameServiceImpl implements GameService {
 
         for (String nickname : room.getUserStatusMap().keySet()) {
             int totalScore = room.getTotalScoreMap().getOrDefault(nickname, 0);
-//            int typo = room.getTypoCountMap().getOrDefault(nickname, 0);
-//            Double finishTime = room.getFinishTimeMap().get(nickname);
-//            boolean isRetire = (finishTime == null || finishTime - room.getFirstFinishTime() > 10.0);
+            double average = room.getRoundNumber() > 0 ? (double) totalScore / room.getRoundNumber() : 0.0;
+            average = Math.round(average * 100.0) / 100.0;
 
             results.add(UserResultStatus.builder()
                     .nickname(nickname)
-                            .averageScore((double) totalScore/room.getRoundNumber())
-                            .build()
-            );
-
+                    .averageScore(average)
+                    .build());
         }
 
-        // ✅ 점수 기준 정렬 및 순위 매기기
         results.sort((a, b) -> Double.compare(b.getAverageScore(), a.getAverageScore()));
         for (int i = 0; i < results.size(); i++) {
             results.get(i).setRank(i + 1);
@@ -355,6 +350,7 @@ public class GameServiceImpl implements GameService {
 
         return new GameResultBroadcast(room.getRoomId(), results);
     }
+
 
     // 라운드별 점수 계산
     public void calculateScores(Room room) {
