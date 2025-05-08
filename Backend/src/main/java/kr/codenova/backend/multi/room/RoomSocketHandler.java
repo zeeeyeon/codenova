@@ -11,10 +11,12 @@ import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import kr.codenova.backend.global.socket.SocketEventHandler;
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RoomSocketHandler implements SocketEventHandler {
@@ -28,6 +30,7 @@ public class RoomSocketHandler implements SocketEventHandler {
         // 방 목록 조회
         server.addEventListener("room_list", Void.class, (client, request, ackSender) -> {
             try {
+                log.info("room_list request received client");
                 ackSender.sendAckData(roomService.getRoomList());
             } catch (Exception e) {
                 client.sendEvent("error", new SocketErrorResponse("방 목록 조회 실패"));
