@@ -249,9 +249,31 @@ public class GameServiceImpl implements GameService {
         getServer().getRoomOperations(roomId)
                 .sendEvent("game_result", result);
 
-        // 방 완전 초기화
+        // ✅ 방 완전 초기화 (참가 인원은 유지, 방장은 준비 상태 유지)
+        synchronized (room) {
+            room.setIsStarted(false);
+            room.setRoundNumber(0);
+            room.setRoundEnded(false);
+            room.setFirstFinisherNickname(null);
+            room.setFirstFinishTime(null);
 
+            // 라운드 관련 정보 초기화
+            room.setFinishTimeMap(new ConcurrentHashMap<>());
+            room.setTypoCountMap(new ConcurrentHashMap<>());
+            room.setRoundScoreMap(new ConcurrentHashMap<>());
+            room.setTotalScoreMap(new ConcurrentHashMap<>());
+
+            // ✅ 준비 상태 초기화 (방장은 true 유지)
+            room.getUserStatusMap().forEach((nickname, status) -> {
+                if (status.isHost()) {
+                    status.setReady(true);
+                } else {
+                    status.setReady(false);
+                }
+            });
+        }
     }
+
 
     // 9. 오타 발생
     public void addTypo(String roomId, String nickname) {
