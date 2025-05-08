@@ -276,7 +276,7 @@ const TypingBox = ({
           roomId,
           nickname
         });
-        // console.log("👿 typo_occurred_emit", roomId, nickname);
+        console.log("👿 typo_occurred_emit", roomId, nickname);
       }
     }
 
