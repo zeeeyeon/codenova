@@ -14,6 +14,7 @@ import kr.codenova.backend.multi.dto.request.ProgressUpdateRequest;
 import kr.codenova.backend.multi.dto.request.ReadyGameRequest;
 import kr.codenova.backend.multi.dto.request.StartGameRequest;
 import kr.codenova.backend.multi.exception.InvalidGameStartException;
+import kr.codenova.backend.multi.exception.IsNotHostException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import kr.codenova.backend.multi.room.Room;
 import org.springframework.scheduling.annotation.Async;
@@ -47,7 +48,7 @@ public interface GameService {
     void endRound(String roomId);
 
     // 8. 라운드 시작
-    void startRound(String roomId);
+    void startRound(String roomId, String nickname) throws IsNotHostException;
 
     // 8. 게임 종료
     void endGame(String roomId);

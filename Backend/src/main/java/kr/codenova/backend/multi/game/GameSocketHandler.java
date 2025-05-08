@@ -8,6 +8,7 @@ import kr.codenova.backend.multi.dto.TypoRequest;
 import kr.codenova.backend.multi.dto.request.*;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
 import kr.codenova.backend.global.socket.SocketEventHandler;
+import kr.codenova.backend.multi.exception.IsNotHostException;
 import kr.codenova.backend.multi.room.Room;
 import kr.codenova.backend.multi.room.RoomService;
 import lombok.RequiredArgsConstructor;
@@ -53,9 +54,11 @@ public class GameSocketHandler implements SocketEventHandler {
         // 5. 라운드 시작
         server.addEventListener("round_start", RoundStartRequest.class, (client, request, ackSender) -> {
             try {
-                gameService.startRound(request.getRoomId());
+                gameService.startRound(request.getRoomId(), request.getNickname());
             } catch (Exception e) {
                 client.sendEvent("error", new SocketErrorResponse("라운드 시작 처리 오류"));
+            } catch (IsNotHostException e) {
+                throw new RuntimeException(e);
             }
         });
 
