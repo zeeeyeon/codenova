@@ -11,6 +11,7 @@ import kr.codenova.backend.multi.dto.broadcast.*;
 import kr.codenova.backend.multi.dto.request.ProgressUpdateRequest;
 import kr.codenova.backend.multi.dto.request.ReadyGameRequest;
 import kr.codenova.backend.multi.dto.request.StartGameRequest;
+import kr.codenova.backend.multi.dto.response.RoomStatusResponse;
 import kr.codenova.backend.multi.exception.InvalidGameStartException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import kr.codenova.backend.multi.exception.UserNotFoundException;
@@ -93,6 +94,7 @@ public class GameServiceImpl implements GameService {
         room.setIsStarted(true);
         room.setRoundNumber(1);
         resetRoundData(room);
+        room.setTotalScoreMap(new ConcurrentHashMap<>());
 
         getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("game_started", countdown);
@@ -243,7 +245,6 @@ public class GameServiceImpl implements GameService {
             room.setFinishTimeMap(new ConcurrentHashMap<>());
             room.setTypoCountMap(new ConcurrentHashMap<>());
             room.setRoundScoreMap(new ConcurrentHashMap<>());
-            room.setTotalScoreMap(new ConcurrentHashMap<>());
 
             // ✅ 준비 상태 초기화 (방장은 true 유지)
             room.getUserStatusMap().forEach((nickname, status) -> {
@@ -254,6 +255,10 @@ public class GameServiceImpl implements GameService {
                 }
             });
         }
+
+        RoomStatusResponse broadcast = new RoomStatusResponse(room);
+        getServer().getRoomOperations(roomId)
+                .sendEvent("room_status", broadcast);
     }
 
 
