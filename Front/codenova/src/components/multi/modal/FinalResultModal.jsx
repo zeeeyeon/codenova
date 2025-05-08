@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const FinalResultModal = ({ visible, results = [], onClose, roomInfo }) => {
 
-    console.log("➡️ 이동 시도 roomInfo:", roomInfo);
+    // console.log("➡️ 이동 시도 roomInfo:", roomInfo);
     const navigate = useNavigate();
   if (!visible) return null;
 
