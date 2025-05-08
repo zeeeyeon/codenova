@@ -297,11 +297,22 @@ const TypingBox = ({
   };
 
   useEffect(() => {
-    if (currentLineRef.current) {
-      currentLineRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-      });
+    // if (currentLineRef.current) {
+    //   currentLineRef.current.scrollIntoView({
+    //     behavior: 'smooth',
+    //     block: 'nearest',
+    //   });
+    // }
+    if (preContainerRef.current) {
+      const lineElements = preContainerRef.current.querySelectorAll('.codeLine');
+  
+      if (lineElements[currentLine]) {
+        const lineHeight = lineElements[currentLine].getBoundingClientRect().height || 28;
+        const offset = lineHeight * currentLine;
+  
+        preContainerRef.current.scrollTop = offset;  // 줄 위치에 맞춰 스크롤
+        preContainerRef.current.scrollLeft = 0;       // 가로 스크롤 초기화
+      }
     }
   }, [currentLine]);
   
