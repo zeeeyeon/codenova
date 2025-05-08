@@ -243,6 +243,7 @@ const TypingBox = ({
   const isCorrect = trimmedCurrentLine.startsWith(trimmedUserInput);
   const nickname = useAuthStore((state) => state.user?.nickname);
   const currentLineRef = useRef(null);
+  const preContainerRef = useRef(null);
 
 
   useEffect(() => {
@@ -285,6 +286,7 @@ const TypingBox = ({
           onFinish?.();
         }
         setCurrentLine((prev) => prev + 1);
+        codeContainerRef.current.scrollLeft = 0; // 전줄에서 오른쪽 스클롤 한게 있으면 돌려야함
         setUserInput("");
       } else {
         setShake(true);
@@ -350,7 +352,33 @@ const TypingBox = ({
     }
   }, [userInput, currentLine]);
 
+  useEffect(() =>{
+        
+    const container = preContainerRef.current;
+    const cursorEl = currentLineRef.current?.querySelector('.cursor');   
+    if ( container && cursorEl) {
 
+        const containerRect = container.getBoundingClientRect();
+        const cursorRect = cursorEl.getBoundingClientRect();
+
+        const padding = 50; // 커서가 오른쪽으로 50px 남았을 때 스크롤 하기
+
+         // 커서가 너무 오른쪽에 가까워졌는지 확인
+        
+         if (cursorRect.right > containerRect.right - padding) {
+            // 오른쪽으로 약간 스크롤
+            container.scrollLeft += 400;
+        }
+
+        // 커서가 왼쪽 밖으로 밀린 경우 (역방향 처리도 가능)
+        if (cursorRect.left < containerRect.left + 20) {
+            container.scrollLeft -= 400;
+        }
+    }
+    console.log(userInput);
+  }, [userInput])
+
+  
 
   return (
     <div className="w-[93%] h-[97%] p-2 bg-[#110429] rounded-2xl border-4 border-cyan-400 relative flex flex-col">
@@ -358,13 +386,14 @@ const TypingBox = ({
         Round {currentRound}
       </div>
 
-      <div className="flex-1 flex flex-col justify-between overflow-hidden p-1">
-        <div ref={codeContainerRef} className="flex-1 min-h-[130px] overflow-y-auto custom-scrollbar">
+      <div className="flex-1 flex flex-col justify-between overflow-hidden p-2">
+        {/* <div className="flex-1 min-h-[130px] overflow-y-auto overflow-x-auto custom-scrollbar"> */}
+        <div  ref={codeContainerRef} className="flex-1 min-h-[130px] overflow-y-auto overflow-x-auto custom-scrollbar">
           <div className="absolute -top-6 right-8 bg-black text-white px-3 py-2 rounded-full border border-white text-lg">
             ⏱ {elapsedTimeFormatted}
           </div>
 
-          <pre className="overflow-auto w-full h-[90%] p-4 text-xl custom-scrollbar mb-2">
+          <pre ref={preContainerRef} className="overflow-auto w-full h-[90%] p-4 text-xl custom-scrollbar mb-2">
             <code>
               {lines.map((line, idx) => {
                 const normalizedInput = userInput.split('');
@@ -442,7 +471,7 @@ const TypingBox = ({
           placeholder="Start Typing Code Here."
           onFocus={(e) => (e.target.placeholder = "")}
           onBlur={(e) => (e.target.placeholder = "Start Typing Code Here.")}
-          className={`input w-full mt-1 px-4 py-2 rounded-md text-black focus:outline-none 
+          className={`input w-full px-4 py-2 rounded-md text-black focus:outline-none 
             ${isCorrect ? "border-4 border-green-400" : "border-4 border-red-400"}
             ${shake ? "animate-shake" : ""}`}
         />

@@ -14,6 +14,7 @@ import redHeart from "../../assets/images/red_heart.png";
 import blackHeart from "../../assets/images/black_heart.png";
 import gameOverLottie from "../../assets/lottie/game_over.json";
 import victoryLottie from "../../assets/lottie/victory.json";
+import bgm from "../../assets/sound/meteoBGM.mp3";
 
 const MeteoGamePage = () => {
   const navigate = useNavigate();
@@ -32,7 +33,19 @@ const MeteoGamePage = () => {
   const inputRef = useRef(null);
   useEffect(() => {
     inputRef.current?.focus();  // 3. 페이지 진입 시 포커스
-  }, []);
+
+    const audio = new Audio(bgm);         // 1. 오디오 객체 생성
+    audio.loop = false;                    // 2. 반복 재생 설정
+    audio.volume = 0.3;                   // 3. 볼륨을 30%로 설정
+    audio.play().catch((e) => {           // 4. 자동 재생 시도 + 차단 시 경고 출력
+      console.warn("⚠️ 자동 재생 차단됨:", e);
+    });
+
+    return () => {
+      audio.pause();                      // 5. 페이지 벗어날 때 음악 멈춤
+      audio.currentTime = 0;             // 6. 재생 위치를 처음으로 초기화
+    }
+    }, []);
 
   // 닉네임 매핑
   const [playerList, setPlayerList] = useState(players?.map(p => p.nickname) || []);
