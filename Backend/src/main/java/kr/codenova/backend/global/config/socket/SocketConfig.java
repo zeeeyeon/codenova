@@ -32,8 +32,8 @@ public class SocketConfig {
     @Bean
     public SocketIOServer socketIOServer() {
         com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
-        config.setHostname("0.0.0.0");
-        config.setPort(9092);
+        config.setHostname(this.hostname);
+        config.setPort(this.port);
         config.setOrigin("*");
         config.setAuthorizationListener(handshakeData -> true);  // ✅ 무조건 허용
         config.setTransports(Transport.WEBSOCKET); // Only WebSocket
