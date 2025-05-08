@@ -123,7 +123,7 @@ const SinglePage = () => {
                         setCScode(data);
                     })
                     .catch(e => {
-                        console.error("api 요청 실패:" , e)
+                        // console.error("api 요청 실패:" , e)
                     })
             } else {
                 setIsCs(false);
@@ -138,7 +138,7 @@ const SinglePage = () => {
                         setlinesCharCount(charCount)
                     })
                     .catch(e => {
-                        console.error("api 요청 실패:" , e)
+                        // console.error("api 요청 실패:" , e)
                     })
                 
             }
@@ -149,7 +149,7 @@ const SinglePage = () => {
     useEffect(() => {
         if (!Array.isArray(CScode)) return;
 
-        console.log(CScode);
+        // console.log(CScode);
         // const allLines = CScode.map((item) => `${item.keyword} - ${item.content}`);
         //     setLines(allLines); // 하나의 배열로 상태 저장
         const allLines = CScode.map((item) => `${item.keyword} - ${item.content}`);
@@ -191,13 +191,12 @@ const SinglePage = () => {
             const normalizedInput = currentInput.split('');
 
             if (compareInputWithLineEnter(normalizedInput, currentLine)) { //다 맞게 쳤으면
-                console.log(1)
                 setCurrentLineIndex((prev) => prev + 1); // 다음줄로 넘김
                 setCurrentInput('');    // 입력창 리셋
                 setCurrentCharIndex(0); // 현재 입력 위치 리셋셋
                 
             } else { // 틀렸으면
-                console.log('현재 줄을 정확히 입력하지 않음')
+                // console.log('현재 줄을 정확히 입력하지 않음')
                 setShake(true);
                 setTimeout(() => setShake(false), 500);
             }
@@ -310,9 +309,9 @@ const SinglePage = () => {
     //     console.log(totalTypedChars);
     // }, [totalTypedChars])
 
-    useEffect(()=>{
-        console.log(lines);
-    }, [lines])
+    // useEffect(()=>{
+    //     console.log(lines);
+    // }, [lines])
 
     return (
         <div className="w-screen h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center"

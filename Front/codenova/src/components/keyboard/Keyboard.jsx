@@ -166,7 +166,7 @@ const Keyboard = () => {
         const audio = new Audio(clickSound)
         audio.volume = 0.5;
         audio.play().catch(e => {
-            console.log('오디오 재생 실패', e)
+            // console.log('오디오 재생 실패', e)
         })
     }
 
