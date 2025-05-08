@@ -101,12 +101,15 @@ public class RoomServiceImpl implements RoomService {
     // 방 현재 상태 조회
     public void getRoomStatus(RoomStatusRequest request, SocketIOClient client) {
         Room room = roomMap.get(request.getRoomId());
+        if (room == null) {
+            throw new RoomNotFoundException("방을 찾을 수 없습니다.");
+        }
         RoomStatusResponse response = new RoomStatusResponse(room);
         client.sendEvent("room_status", response);
 
 
         JoinRoomBroadcast broadcast = new JoinRoomBroadcast(room);
-//        getServer().getBroadcastOperations().sendEvent("join_room", broadcast);
+        getServer().getRoomOperations(room.getRoomId()).sendEvent("join_room", broadcast);
 
     }
 
@@ -182,8 +185,7 @@ public class RoomServiceImpl implements RoomService {
     public void leaveRoom(LeaveRoomRequest request, SocketIOClient client) {
         Room room = roomMap.get(request.getRoomId());
         if (room == null) {
-            log.warn("존재하지 않는 방입니다: {}", request.getRoomId());
-            return;
+            throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
 
         // ✅ 현재 인원 감소
