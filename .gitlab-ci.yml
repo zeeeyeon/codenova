@@ -81,7 +81,7 @@ deploy-dev-backend:
         mkdir -p ~/config-dev
         echo "$APPLICATION_DEV_YML" > ~/config-dev/application.yml
 
-        docker run -d --name backend-dev -p 8181:8080 -p 9191:9092 \
+        docker run -d --name backend-dev -p 8181:8080 -p 9191:9191 \
           --network codenova-dev-network \
           --add-host=host.docker.internal:host-gateway \
           -v ~/config-dev/application.yml:/app/config/application.yml \
