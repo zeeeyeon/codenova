@@ -21,7 +21,7 @@ public class GameResultBroadcast {
     @Builder
     public static class UserResultStatus {
         private String nickname;
-        private Double averageScore;
+        private Integer averageScore;
         private int rank;
     }
 }
