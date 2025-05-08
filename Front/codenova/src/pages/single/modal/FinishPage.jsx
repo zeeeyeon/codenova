@@ -57,7 +57,8 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words, onR
         if (userType !== "guest"){
             await saveRecord()
         }
-        onRestart(); // 부모에서 상태 초기화
+        // onRestart(); // 부모에서 상태 초기화
+        window.location.reload(); // 🔁 새로고침
     }
 
 
