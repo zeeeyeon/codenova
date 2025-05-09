@@ -14,6 +14,7 @@ let isConnecting = false;
 const SERVER_URL = import.meta.env.VITE_REACT_APP_SOCKET_URL;
 console.log("소켓 URL",SERVER_URL);
 // const SERVER_URL = import.meta.env.VITE_REL_REACT_APP_SOCKET_URL;
+
 export const connectSocket = (forceReconnect = false) => {
   if (socket && socket.connected && !forceReconnect) {
     // console.log("[Socket] 이미 연결되어 있습니다.");
