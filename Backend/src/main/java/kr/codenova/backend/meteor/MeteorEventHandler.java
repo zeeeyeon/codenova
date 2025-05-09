@@ -512,7 +512,9 @@ public class MeteorEventHandler implements SocketEventHandler {
 
         // 이 사용자를 대기 상태로 표시
         currentUser.setIsWaiting(true);
-
+        if (currentUser.getIsHost()) {
+            currentUser.setIsReady(true);
+        }
         // 대기 상태인 사용자들만 필터링
         List<UserInfo> waitingPlayers = room.getPlayers().stream()
                 .filter(player -> Boolean.TRUE.equals(player.getIsWaiting()))
