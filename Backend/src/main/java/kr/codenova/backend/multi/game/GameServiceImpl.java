@@ -356,16 +356,14 @@ public class GameServiceImpl implements GameService {
 
         for (String nickname : room.getUserStatusMap().keySet()) {
             int totalScore = room.getTotalScoreMap().getOrDefault(nickname, 0);
-            double average = room.getRoundNumber() > 0 ? (double) totalScore / room.getRoundNumber() : 0.0;
-            average = Math.round(average * 100.0) / 100.0;
 
             results.add(UserResultStatus.builder()
                     .nickname(nickname)
-                    .averageScore(average)
+                    .totalScore(totalScore)
                     .build());
         }
 
-        results.sort((a, b) -> Double.compare(b.getAverageScore(), a.getAverageScore()));
+        results.sort((a, b) -> Double.compare(b.getTotalScore(), a.getTotalScore()));
         for (int i = 0; i < results.size(); i++) {
             results.get(i).setRank(i + 1);
         }
