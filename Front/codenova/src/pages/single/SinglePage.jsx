@@ -6,7 +6,7 @@ import Keyboard from '../../components/keyboard/Keyboard'
 
 import { getAccessToken } from "../../utils/tokenUtils";
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, use } from 'react'
 
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
@@ -20,7 +20,7 @@ import ProgressBox from '../../components/single/ProgressBox'
 import { calculateCPM, getProgress, processCode, compareInputWithLineEnter, compareInputWithLine, calculateCurrentLineTypedChars } from '../../utils/typingUtils';
 import FinishPage from '../single/modal/FinishPage';
 
-import { singleCsCode, singleLangCode, getLangCode } from '../../api/singleApi'
+import { singleLangCode, getLangCode, verifiedRecord, postRecord } from '../../api/singleApi'
 
 // 등록
 hljs.registerLanguage('java', java);
@@ -37,6 +37,8 @@ const SinglePage = () => {
     const category = query.get('category') // "DATABASE", "NETWORK", "OS", "DATA_STRUCTURE", "COMPUTER_STRUCTURE"
     const { lang } = useParams();
 
+    const [userType ,setUserType] = useState(null);
+
 
     // 코드 입력 관련 상태관리
     // const [highlightedCode, setHighlightedCode] = useState(""); // 하이라이트된 HTML 코드 안써도 될듯 이거
@@ -48,7 +50,7 @@ const SinglePage = () => {
     const [currentInput, setCurrentInput] = useState(""); //사용자가 입력한 문자열
     const [currentCharIndex, setCurrentCharIndex] = useState(0);
     const [wrongChar, setWrongChar] = useState(false); // 현재까지 입력한 input중에 틀림 존재 여부 상태 관리
-    const [shake, setShake] = useState(false);  // 오타 입력창 흔들기 모션션
+    const [shake, setShake] = useState(false);  // 오타 입력창 흔들기 모션
 
     // 포커스 관련 상태관리
     const inputAreaRef = useRef(null);
@@ -72,10 +74,15 @@ const SinglePage = () => {
     // 자동으로 내려가게
     const codeContainerRef = useRef(null);
 
-    const [CScode, setCScode] = useState([]);
-    const [isCs , setIsCs] = useState(false);
+    const [logCount, setLogCount] = useState(0);
+    const keyLogsRef = useRef([]);
+    const hasVerifiedRef = useRef(false); //중복호출 막을려고고
+
 
     useEffect(() => {
+        const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
+        setUserType(auth?.state?.user?.userType);
+
         if (inputAreaRef.current) {
             inputAreaRef.current.focus();
         }
@@ -90,71 +97,23 @@ const SinglePage = () => {
         }
     }, [navigate]);
 
-    // 일단 다시시작하면 그코드 다시 시작
-    const resetGame = () => {
-        //setLines([]);                // 코드 줄 초기화
-        //setlinesCharCount([]);       // 줄별 글자 수 초기화
-        //setSpace([]);                // 공백 개수 초기화
-        setCurrentLineIndex(0);      // 현재 줄 인덱스 초기화
-        setCurrentInput("");         // 현재 입력 초기화
-        setCurrentCharIndex(0);      // 현재 문자 인덱스 초기화
-        setWrongChar(false);         // 오타 여부 초기화
-        setShake(false);             // 흔들기 효과 초기화
-
-        setStartTime(null);          // 시작 시간 초기화
-        setElapsedTime(0);           // 경과 시간 초기화
-        setIsStarted(false);         // 게임 시작 상태 초기화
-
-        setProgress(0);              // 달성률 초기화
-        setTotalTypedChars(0);       // 전체 타자 수 초기화
-        setCpm(0);                   // 타자 속도 초기화
-
-        setIsFinished(false);        // 완료 상태 초기화
-
-        inputAreaRef.current?.focus();
-    }
-
     useEffect(() => {
         if (lang) {
-            if (lang === 'cs') {
-                setIsCs(true);
-                singleCsCode(category)
-                    .then(data => {
-                        setCScode(data);
-                    })
-                    .catch(e => {
-                        // console.error("api 요청 실패:" , e)
-                    })
-            } else {
-                setIsCs(false);
-                singleLangCode(lang)
-                // getLangCode(476) //476 : h만 있음
-                    .then(data => {
-                        // console.log("api 결과", data);            
-                        const { lines , space, charCount } = processCode(data.content);
-                        setCodeId(data.codeId);
-                        setLines(lines);
-                        setSpace(space);
-                        setlinesCharCount(charCount)
-                    })
-                    .catch(e => {
-                        // console.error("api 요청 실패:" , e)
-                    })
-                
-            }
-
+            singleLangCode(lang)
+            // getLangCode(476) //476 : h만 있음
+                .then(data => {
+                    // console.log("api 결과", data);            
+                    const { lines , space, charCount } = processCode(data.content);
+                    setCodeId(data.codeId);
+                    setLines(lines);
+                    setSpace(space);
+                    setlinesCharCount(charCount)
+                })
+                .catch(e => {
+                    // console.error("api 요청 실패:" , e)
+                })
         }
     },[lang])
-
-    useEffect(() => {
-        if (!Array.isArray(CScode)) return;
-
-        // console.log(CScode);
-        // const allLines = CScode.map((item) => `${item.keyword} - ${item.content}`);
-        //     setLines(allLines); // 하나의 배열로 상태 저장
-        const allLines = CScode.map((item) => `${item.keyword} - ${item.content}`);
-            setLines(allLines); // 하나의 배열로 상태 저장
-    }, [CScode])
 
     const getLanguageClass = (lang) => {
         if (!lang) {
@@ -172,6 +131,15 @@ const SinglePage = () => {
     }
 
     const handleKeyDown = (e) => {
+
+        const newLog = {
+            key: e.key,
+            time: Date.now(),
+        };
+        keyLogsRef.current.push(newLog)
+        console.log("입력된 키", newLog.key)
+
+        setLogCount((prev) => prev + 1);
 
         if (!isStarted) {
             setStartTime(Date.now())
@@ -232,10 +200,58 @@ const SinglePage = () => {
         setCpm(calculateCPM(totalTypedChars, elapsedTime / 1000 ))
     }, [elapsedTime])
 
+
+    const verifiedResult = async () => {    
+
+        if (hasVerifiedRef.current) return ; // 이미 검증했으면 중단하기기
+        hasVerifiedRef.current = true;
+
+        const data = {
+            codeId : codeId,
+            keyLogs : keyLogsRef.current 
+        }
+        try {
+            const response = await verifiedRecord(data);
+            const {code, message} = response.status;
+            if (code === 200){
+                setCpm(response.content.speed)
+                setElapsedTime(response.content.elapsedTime)
+                await postResult(response.content.verifiedToken)
+            } else{
+                alert("🤬 메크로 썼니??")
+            }
+        } 
+        catch (e) {
+            alert("서버 오류로 인해 기록을 저장할 수 없습니다.");
+        }
+    }
+
+    // 검증완료했으면 저장 로직 수행
+    const postResult = async (token) => {
+        try {
+            const response = await postRecord(token);
+            const {code, message} = response.status;
+
+            if (code === 200) {
+                if (response.content.isNewRecord) {
+                    alert(message);
+
+                }
+            }
+        } catch (e) {
+            console.error("postResult error:", e);
+        }
+    }
+
+
     useEffect(() => {
         setProgress(getProgress(currentLineIndex, lines.length))
 
         if( lines.length > 0 && currentLineIndex === lines.length) {
+            
+            if (userType == "member") {
+                verifiedResult();
+            }
             setIsFinished(true);
         }
 
@@ -305,13 +321,10 @@ const SinglePage = () => {
         setWrongChar(hasWrongChar);
     }
 
-    // useEffect(()=> {
-    //     console.log(totalTypedChars);
-    // }, [totalTypedChars])
+    useEffect(() => {
+        console.log(keyLogsRef.current)
+    },[logCount])
 
-    // useEffect(()=>{
-    //     console.log(lines);
-    // }, [lines])
 
     return (
         <div className="w-screen h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center"
@@ -459,11 +472,9 @@ const SinglePage = () => {
                 <div className="absolute inset-0 flex items-center justify-center z-50">
                     <FinishPage
                         codeId = {codeId}
-                        lang = {lang}
-                        cpm = {cpm}
-                        elapsedTime = {elapsedTime}
-                        isCS = {lang === 'cs'}
-                        onRestart={resetGame}
+                        lang={lang}
+                        cpm={cpm}
+                        elapsedTime={elapsedTime}
                     />
                 </div>
             )}
