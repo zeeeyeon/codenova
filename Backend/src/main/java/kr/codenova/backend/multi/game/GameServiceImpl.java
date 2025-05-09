@@ -7,6 +7,7 @@ import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
 import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.multi.dto.RoundScoreBroadcast;
+import kr.codenova.backend.multi.dto.RoundStartRequest;
 import kr.codenova.backend.multi.dto.broadcast.*;
 import kr.codenova.backend.multi.dto.request.ProgressUpdateRequest;
 import kr.codenova.backend.multi.dto.request.ReadyGameRequest;
@@ -268,24 +269,26 @@ public class GameServiceImpl implements GameService {
     }
 
 
-    public void startRound(String roomId, String nickname) throws IsNotHostException {
-        Room room = roomService.getRoom(roomId);
+    public void startRound(RoundStartRequest request) throws IsNotHostException {
+
+        Room room = roomService.getRoom(request.getRoomId());
         if (room == null) {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
-        if(!room.getUserStatusMap().get(nickname).isHost()) {
-            throw new IsNotHostException("방장이 아닌 사용자는 요청할 수 없습니다.");
+
+        if (!room.getUserStatusMap().get(request.getNickname()).isHost()) {
+            throw new InvalidGameStartException("방장만 게임을 시작할 수 있습니다.");
         }
 
         calculateScores(room);
 
         TypingStartBroadcast broadcast = new TypingStartBroadcast(
-                roomId,
+                request.getRoomId(),
                 LocalDateTime.now(),
                 getGameContent(room.getLanguage()) // 게임 본문 가져오기
         );
 
-        getServer().getRoomOperations(roomId)
+        getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("typing_start", broadcast);
 
         room.setRoundNumber(room.getRoundNumber());
@@ -370,32 +373,49 @@ public class GameServiceImpl implements GameService {
 
 
     // 라운드별 점수 계산
+
+    /**
+     * @param room
+     * room의 라운드별 점수를 저장할 Map
+     * 해당 라운드의 첫 완주 시간이 null인 경우, 0으로 지정
+     *
+     */
     public void calculateScores(Room room) {
-        Map<String, Integer> roundScoreMap = room.getRoundScoreMap();
-
+        // firstFinishTime이 null인 경우 (첫 완주자가 없는 경우)
         Double firstFinishTime = room.getFirstFinishTime();
+
         if (firstFinishTime == null) {
-            // 안전하게 기본값 설정 (예: 모두 탈락했거나 지연된 경우)
-            firstFinishTime = 0.0;
-            room.setFirstFinishTime(firstFinishTime);
+            // 모든 사용자에게 0점 부여
+            for (String nickname : room.getUserStatusMap().keySet()) {
+                room.addRoundScore(nickname, 0);
+                room.addToTotalScore(nickname, 0);
+                // 모든 사용자를 retire 처리
+                if (room.getFinishTime(nickname) == null) {
+                    room.setUserFinishTime(nickname, Double.MAX_VALUE);
+                }
+            }
+        } else {
+            // 게임 시작한 사용자들의 완주시간과 오타횟수를 순차적으로 조회한다.
+            for (String nickname : room.getUserStatusMap().keySet()) {
+                Double finishTime = room.getFinishTime(nickname);
+                int typo = room.getTypoCount(nickname);
+
+                // finishTime이 null이면 0점 부여
+                if (finishTime == null) {
+                    room.addRoundScore(nickname, 0);
+                    room.addToTotalScore(nickname, 0);
+                    room.setUserFinishTime(nickname, Double.MAX_VALUE); // retire 처리
+                } else {
+                    // 완주한 사용자의 경우 시간 차이와 오타에 따라 점수 계산
+                    boolean isRetire = (finishTime - firstFinishTime > 10.0);
+                    double timeDiff = isRetire ? 25.0 : Math.max(0, finishTime - firstFinishTime);
+
+                    int score = (int) Math.max(0, 100 - (timeDiff * 2.0) - typo * 1.0);
+                    room.addRoundScore(nickname, score);
+                    room.addToTotalScore(nickname, score);
+                }
+            }
         }
-
-        for (String nickname : room.getUserStatusMap().keySet()) {
-            Double finishTime = room.getFinishTimeMap().get(nickname);
-            int typo = room.getTypoCountMap().getOrDefault(nickname, 0);
-
-            boolean isRetire = (finishTime == null || finishTime - firstFinishTime > 10.0);
-            double timeDiff = isRetire ? 25.0 : Math.max(0, finishTime - firstFinishTime);
-
-            int score = (int) Math.max(0, 100 - (timeDiff * 2.0) - typo * 1.0);
-            roundScoreMap.put(nickname, score);
-            room.getTotalScoreMap().merge(nickname, score, Integer::sum);
-
-            // ✅ finishTime이 null일 경우만 추가 → putIfAbsent로 안전하게
-            room.getFinishTimeMap().putIfAbsent(nickname, firstFinishTime + 25.0);
-        }
-
-        room.setRoundScoreMap(roundScoreMap);
     }
 
 

@@ -5,6 +5,7 @@ import kr.codenova.backend.common.entity.Code;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
 import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
+import kr.codenova.backend.multi.dto.RoundStartRequest;
 import kr.codenova.backend.multi.dto.broadcast.GameCountdownBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.GameResultBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.ReadyGameBroadcast;
@@ -48,7 +49,7 @@ public interface GameService {
     void endRound(String roomId);
 
     // 8. 라운드 시작
-    void startRound(String roomId, String nickname) throws IsNotHostException;
+    void startRound(RoundStartRequest request) throws IsNotHostException;
 
     // 8. 게임 종료
     void endGame(String roomId);

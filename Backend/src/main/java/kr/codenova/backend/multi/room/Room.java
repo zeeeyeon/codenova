@@ -67,5 +67,25 @@ public class Room {
         this.firstFinisherNickname = nickname;
         this.firstFinishTime = (double) (time / 1000);
     }
+
+    public void addRoundScore(String nickname, int score) {
+        roundScoreMap.put(nickname, score);
+    }
+
+    public void addToTotalScore(String nickname, int score) {
+        totalScoreMap.merge(nickname, score, Integer::sum);
+    }
+
+    public Double getFinishTime(String nickname) {
+        return finishTimeMap.get(nickname);
+    }
+
+    public int getTypoCount(String nickname) {
+        return typoCountMap.getOrDefault(nickname, 0);
+    }
+
+    public void setUserFinishTime(String nickname, Double time) {
+        finishTimeMap.putIfAbsent(nickname, time);
+    }
 }
 

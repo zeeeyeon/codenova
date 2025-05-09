@@ -54,7 +54,7 @@ public class GameSocketHandler implements SocketEventHandler {
         // 5. 라운드 시작
         server.addEventListener("round_start", RoundStartRequest.class, (client, request, ackSender) -> {
             try {
-                gameService.startRound(request.getRoomId(), request.getNickname());
+                gameService.startRound(request);
             } catch (Exception e) {
                 client.sendEvent("error", new SocketErrorResponse("라운드 시작 처리 오류"));
             } catch (IsNotHostException e) {
