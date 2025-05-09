@@ -68,7 +68,7 @@ public class GameRoom {
                 players.remove(user);
                 return;
             }
-
+            user.setIsWaiting(false);
 
             players.add(user);
             scoreMap.put(user.getSessionId(), 0);
@@ -261,14 +261,5 @@ public class GameRoom {
                     .allMatch(player -> player.getIsReady() != null && player.getIsReady());
 
         }
-    }
-    // 플레이어 준비 상태 확인
-    public boolean isPlayerReady(String sessionId) {
-        return readyPlayers.contains(sessionId);
-    }
-
-    // 준비한 사람 인원 수 확인
-    public int getReadyCount() {
-        return readyPlayers.size();
     }
 }
