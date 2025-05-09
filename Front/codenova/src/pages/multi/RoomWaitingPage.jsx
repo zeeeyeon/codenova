@@ -162,7 +162,7 @@ const RoomWaitingPage = () => {
     if (!socket || !roomInfo?.standardPeople) return;
   
     const handleJoinRoom = (data) => {
-      // console.log("🟢 join_room 수신:", data);
+      console.log("🟢 join_room 수신:", data);
       
       // data.status 기준으로 유저 슬롯 구성
       const updatedSlots = Array.from({ length: 4 }, (_, i) => {
@@ -197,7 +197,7 @@ const RoomWaitingPage = () => {
   if (!socket) return;
 
   const handleJoinNotice = (data) => {
-    // console.log("📢 join_notice 수신:", data);
+    console.log("📢 join_notice 수신:", data);
     setChatMessages((prev) => [...prev, { type: "notice", text: data.message }]);
   };
 
@@ -212,7 +212,7 @@ useEffect(() => {
   if (!socket) return;
 
   const handleLeaveNotice = (data) => {
-    // console.log("📤 leave_notice 수신:", data);
+    console.log("📤 leave_notice 수신:", data);
     setChatMessages((prev) => [...prev, { type: "notice", text: data.message }]);
   };
 
@@ -232,7 +232,7 @@ const handleSendMessage = (messageText) => {
     message: messageText.text,
   };
 
-  // console.log("📫emit send_chat : ", messageData);
+  console.log("📫emit send_chat : ", messageData);
   socket.emit("send_chat", messageData);
 };
 

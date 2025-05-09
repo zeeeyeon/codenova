@@ -45,7 +45,7 @@ export const exitMeteoRoom = ({ roomId, nickname }) => {
 // 방 나가기 응답 수신
 export const onRoomExit = (callback) => {
   getSocket().on("roomExit", (data) => {
-    // console.log("[onRoomExit] roomExit 수신", data);
+    console.log("[onRoomExit] roomExit 수신", data);
     callback(data);
   });
 };
@@ -103,7 +103,7 @@ export const exitMeteoGame = ({roomId, nickname}) => {
 // 방 나갔을 때 브로드캐스트 수신 
 export const onExitMeteoGame = (callback) => {
   getSocket().on("gameLeave", (data) => {
-    // console.log("[onExitMeteoGame] gameLeave 수신", data);
+    console.log("[onExitMeteoGame] gameLeave 수신", data);
     callback(data);
   });
 };
@@ -140,13 +140,13 @@ export const onRemoveHeartResponse = (callback) => {
 // 랜덤매칭
 export const onRandomMatch = (nickname) => {
   getSocket().emit("randomMatch", { nickname });
-  // console.log("[onRandomMatch] randomMatch emit 보냄", { nickname });
+  console.log("[onRandomMatch] randomMatch emit 보냄", { nickname });
 };
 
 // 🔹 랜덤매칭 응답 수신
 export const onRandomMatchResponse = (callback) => {
   getSocket().on("matchRandom", (data) => {
-    // console.log("[onRandomMatchResponse] matchRandom 수신:", data);
+    console.log("[onRandomMatchResponse] matchRandom 수신:", data);
     callback(data);
   });
 };
@@ -194,8 +194,26 @@ export const offUserInput = () => {
 // 게임 도중 나갈 때 브로드캐스트
 export const onGameLeave = (callback) => {
   getSocket().on("playerDisconnected", (data) => {
-    // console.log("[onGameLeave] gameLeave 수신", data);
+    console.log("[onGameLeave] gameLeave 수신", data);
     callback(data);
   });
 };
+
+// 게임 ready 
+export const GameReady = ({ roomId, nickname }) => {
+  getSocket().emit("gameReady", { roomId, nickname });
+};
+
+// 게임 ready 수신
+export const onGameReady = (callback) => {
+  getSocket().on("readyGame", (data) => {
+    console.log("[onGameReady] ready 수신", data);
+  //   {
+  //     "nickname" : "가람"
+  //     "readyCount" : 3
+  //  }
+    callback(data);
+  });
+};
+
 
