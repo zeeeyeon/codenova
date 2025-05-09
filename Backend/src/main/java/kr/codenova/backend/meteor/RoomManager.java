@@ -79,22 +79,22 @@ public class RoomManager {
         }
     }
 
-    @Scheduled(fixedRate = 60000)
-    public void cleaupRooms() {
-        Date now = new Date();
-        List<String> roomsToRemove = new ArrayList<>();
-        // 방 상태가 FINISHED 상태로 5분 이상 지난 경우 찾기
-        for (GameRoom room : findAllRooms()) {
-            if( room.getStatus() == GameStatus.FINISHED &&
-                room.getFinishedAt() != null &&
-                now.getTime() - room.getFinishedAt().getTime() > 300000
-            ) {
-                roomsToRemove.add(room.getRoomId());
-            }
-        }
-
-        for (String roomId : roomsToRemove) {
-            removeRoom(roomId);
-        }
-    }
+//    @Scheduled(fixedRate = 60000)
+//    public void cleaupRooms() {
+//        Date now = new Date();
+//        List<String> roomsToRemove = new ArrayList<>();
+//        // 방 상태가 FINISHED 상태로 5분 이상 지난 경우 찾기
+//        for (GameRoom room : findAllRooms()) {
+//            if( room.getStatus() == GameStatus.FINISHED &&
+//                room.getFinishedAt() != null &&
+//                now.getTime() - room.getFinishedAt().getTime() > 300000
+//            ) {
+//                roomsToRemove.add(room.getRoomId());
+//            }
+//        }
+//
+//        for (String roomId : roomsToRemove) {
+//            removeRoom(roomId);
+//        }
+//    }
 }
