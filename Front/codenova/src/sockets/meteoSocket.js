@@ -5,25 +5,25 @@ export const createMeteoRoom = ({ isPrivate, nickname }, onSuccess, onError) => 
   getSocket().emit("createRoom", { isPrivate, nickname });
 
   getSocket().once("roomCreate", (roomData) => {
-    // console.log("[createMeteoRoom] roomCreated 수신", roomData);
+    console.log("[createMeteoRoom] roomCreated 수신", roomData);
     onSuccess(roomData);
   });
 
   getSocket().once("error", (error) => {
-    // console.error("[createMeteoRoom] error 수신", error);
+    console.error("[createMeteoRoom] error 수신", error);
     onError(error.message);
   });
 };
 
 // 방 참가
 export const joinMeteoRoom = ({ roomCode, nickname }, onSuccess, onError) => {
-  // console.log("[joinMeteoRoom] joinSecretRoom emit:", { roomCode, nickname });
+  console.log("[joinMeteoRoom] joinSecretRoom emit:", { roomCode, nickname });
   getSocket().emit("joinSecretRoom", { roomCode, nickname });
 
   getSocket().once("secretRoomJoin", (roomData) => {
-    // console.log("[joinMeteoRoom] secretRoomJoin 수신:", roomData);
+    console.log("[joinMeteoRoom] secretRoomJoin 수신:", roomData);
     onSuccess(roomData);
-    // console.log("🔥 [joinMeteoRoom] secretRoomJoin 수신:", roomData);
+    console.log("🔥 [joinMeteoRoom] secretRoomJoin 수신:", roomData);
   });
 
   getSocket().once("codeError", (error) => {
@@ -35,10 +35,10 @@ export const joinMeteoRoom = ({ roomCode, nickname }, onSuccess, onError) => {
 // 방 나가기
 export const exitMeteoRoom = ({ roomId, nickname }) => {
   if (!roomId || !nickname) {
-    // console.error("❌ [exitMeteoRoom] roomId 또는 nickname이 없습니다.", { roomId, nickname });
+    console.error("❌ [exitMeteoRoom] roomId 또는 nickname이 없습니다.", { roomId, nickname });
     return;
   }
-  // console.log("[exitMeteoRoom] exitRoom emit 보냄", { roomId, nickname });
+  console.log("[exitMeteoRoom] exitRoom emit 보냄", { roomId, nickname });
   getSocket().emit("exitRoom", { roomId, nickname });
 };
 
@@ -94,7 +94,7 @@ export const offWordFalling = () => {
 // 게임 도중 종료 수신
 export const exitMeteoGame = ({roomId, nickname}) => {
   if (!roomId || !nickname) {
-    // console.error("❌ [exitGame] roomId 또는 nickname이 없습니다.", { roomId, nickname });
+    console.error("❌ [exitGame] roomId 또는 nickname이 없습니다.", { roomId, nickname });
     return;
   }
   getSocket().emit("exitRoom", { roomId, nickname });
