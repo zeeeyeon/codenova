@@ -24,7 +24,7 @@ const FinalResultModal = ({ visible, results = [], onClose, roomInfo }) => {
             <li key={user.nickname} className="mb-2">
               <span className="font-semibold mr-2">{index + 1}위</span>
               <span className="font-semibold mr-2">{user.nickname}</span>
-              <span className="font-semibold mr-2">({user.averageScore}점)</span>
+              <span className="font-semibold mr-2">({user.totalScore}점)</span>
             </li>
           ))}
         </ul>
