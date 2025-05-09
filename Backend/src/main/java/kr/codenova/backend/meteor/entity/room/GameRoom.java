@@ -31,6 +31,9 @@ public class GameRoom {
     // 재도전 인원
     private final Set<String> readyForRetryPlayers = ConcurrentHashMap.newKeySet();
 
+    // 게임 준비 인원
+    private final Set<String> readyPlayers = ConcurrentHashMap.newKeySet();
+
     // 팀 목숨 관리
     private AtomicInteger life = new AtomicInteger();
 
@@ -79,6 +82,9 @@ public class GameRoom {
             // 플레이어 제거
             players.removeIf(u -> u.getSessionId().equals(sessionId));
 
+            // 준비 상태 제거
+            readyForRetryPlayers.remove(sessionId);
+
             // 방장이었고 다른 플레이어가 아직 남아있다면 새 방장 지정
             if (isHost && !players.isEmpty()) {
                 // 새 방장 랜덤 선택
@@ -99,11 +105,9 @@ public class GameRoom {
 
     public void start() {
         synchronized (gameLock) {
-            if (players.size() < maxPlayers) {
-                throw new IllegalStateException("플레이어가 모두 모이지 않았습니다.");
-            }
             this.status = GameStatus.PLAYING;
             this.life.set(INITIAL_LIVES);
+            this.readyPlayers.clear();
 
         }
     }
@@ -239,5 +243,42 @@ public class GameRoom {
     // 재도전 준비 상태 초기화
     public void resetRetryState() {
         readyForRetryPlayers.clear();
+    }
+
+    public boolean setReady(String sessionId, boolean isReady) {
+        synchronized (playersLock) {
+            boolean isInRoom = players.stream().anyMatch(
+                    u -> u.getSessionId().equals(sessionId));
+
+            if (!isInRoom) {
+                return false;
+            }
+
+            if (isReady) {
+                readyPlayers.add(sessionId);
+            }else {
+                readyPlayers.remove(sessionId);
+            }
+
+            return isAllReady();
+        }
+
+    }
+    public boolean isAllReady() {
+        synchronized (playersLock) {
+            if (players.size() < 2) {
+                return false;
+            }
+            return readyPlayers.size() == players.size() - 1;
+        }
+    }
+    // 플레이어 준비 상태 확인
+    public boolean isPlayerReady(String sessionId) {
+        return readyPlayers.contains(sessionId);
+    }
+
+    // 준비한 사람 인원 수 확인
+    public int getReadyCount() {
+        return readyPlayers.size();
     }
 }
