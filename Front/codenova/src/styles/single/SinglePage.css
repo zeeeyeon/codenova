@@ -39,6 +39,7 @@
 }
 
 input {
+  font-family: 'D2Coding' !important;
   outline: none; 
 }
 
@@ -55,4 +56,5 @@ input {
   display: inline-flex;  /* flexbox로 변경하여 정렬을 더 쉽게 처리 */
   vertical-align: baseline;
 }
+
 
