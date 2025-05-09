@@ -483,7 +483,7 @@ public class MeteorEventHandler implements SocketEventHandler {
 
         GameReadyResponse response = GameReadyResponse.builder()
                 .allReady(allReady)
-                .player(room.getPlayers())
+                .players(room.getPlayers())
                 .build();
 
 
