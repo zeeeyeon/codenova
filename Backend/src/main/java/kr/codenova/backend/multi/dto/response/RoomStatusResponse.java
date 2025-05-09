@@ -16,6 +16,7 @@ public class RoomStatusResponse {
     private String roomTitle;
     private String language;
     private Boolean isLocked;
+    private Boolean isStarted;
     private String roomCode;
     private Integer maxCount;
     private Integer currentCount;
@@ -39,6 +40,7 @@ public class RoomStatusResponse {
         this.roomTitle = room.getRoomTitle();
         this.language = room.getLanguage();
         this.isLocked = room.getIsLocked();
+        this.isStarted = room.getIsStarted();
         this.maxCount = room.getMaxCount();
         this.currentCount = room.getCurrentCount();
         List<UserStatus> status = new ArrayList<>();
