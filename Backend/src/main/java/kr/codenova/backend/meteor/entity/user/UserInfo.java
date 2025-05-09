@@ -12,5 +12,6 @@ public class UserInfo {
     private final String nickname;
     private Boolean isHost;
     private Boolean isReady;
+    private Boolean isWaiting;
 
 }
