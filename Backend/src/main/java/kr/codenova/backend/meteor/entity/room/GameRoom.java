@@ -69,7 +69,6 @@ public class GameRoom {
                 return;
             }
 
-            user.setIsReady(false);
 
             players.add(user);
             scoreMap.put(user.getSessionId(), 0);
@@ -258,7 +257,9 @@ public class GameRoom {
             }
 
             // 모든 플레이어가 준비 상태인지 확인
-            return readyPlayers.size() == players.size() - 1;
+            return players.stream()
+                    .allMatch(player -> player.getIsReady() != null && player.getIsReady());
+
         }
     }
     // 플레이어 준비 상태 확인

@@ -95,7 +95,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         boolean isHost;
         try {
             room = new GameRoom(roomId, isPrivate, roomCode, 4, hostSessionId);
-            room.addPlayer(new UserInfo(hostSessionId, nickname,true,false));
+            room.addPlayer(new UserInfo(hostSessionId, nickname,true,true));
             roomManager.addRoom(room);
             isHost = true;
         } catch (Exception e) {
@@ -183,7 +183,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         // 1️. 방 조회+생성 → 생성 여부까지 RandomRoomResult 로 받는다
         RoomManager.RandomRoomResult result = roomManager.findOrCreateRandomRoom(
                 () -> UUID.randomUUID().toString(),
-                roomId -> new UserInfo(client.getSessionId().toString(), nickname,true,false)
+                roomId -> new UserInfo(client.getSessionId().toString(), nickname,true,true)
         );
 
         GameRoom room  = result.getRoom();
