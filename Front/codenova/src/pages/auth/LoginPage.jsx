@@ -27,7 +27,7 @@ const LoginPage = () => {
       // console.log(response)
       const rawToken = response.headers['authorization'];
       if (!rawToken) {
-        alert("토큰이 없습니다!");
+        alert("아이디 및 비밀번호가 틀렸습니다.");
         return;
       }
   
