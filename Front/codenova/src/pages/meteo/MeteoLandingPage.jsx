@@ -10,11 +10,15 @@ import Profile3 from "../../assets/images/profile3.png";
 import Profile4 from "../../assets/images/profile4.png";
 import { getSocket } from "../../sockets/socketClient";
 import useAuthStore from "../../store/authStore";
+import Ready from "../../assets/images/multi_ready_btn.png";
+import Unready from "../../assets/images/multi_unready_btn.png";
 import {
   exitMeteoRoom,
+  GameReady,
   offMeteoGameStart,
   offRoomExit,
   onChatMessage,
+  onGameReady,
   onMeteoGameStart,
   onRoomExit,
   startMeteoGame,
@@ -38,6 +42,12 @@ const MeteoLandingPage = () => {
   const currentRoomId = localStorage.getItem("meteoRoomId");
   const [countdown, setCountdown] = useState(null);
   const [showReadyAlert, setShowReadyAlert] = useState(false);
+  const readyUsers = users.filter(user => user && user.ready);
+  const totalUsers = users.filter(user => user !== null);
+  // const allReady = totalUsers.length >= 2 && readyUsers.length === totalUsers.length;
+  
+
+
 
   const handleCopy = async () => {
     try {
@@ -48,35 +58,76 @@ const MeteoLandingPage = () => {
     }
   };
 
-  // players 배열을 users 배열로 변환
+  useEffect(() => {
+    const socket = getSocket();
+  
+    const handleGameReady = ((data) => {
+      console.log("[onGameReady] ready 수신", { data });
+      updateUsersFromPlayers(data.players);
+    });
+  
+    onGameReady(handleGameReady);
+    return () => socket.off("readyGame", handleGameReady);
+  }, []);
+  
+
+  const [allReady, setAllReady] = useState(false);
+
+
+
   const updateUsersFromPlayers = (playersArray) => {
+    if (!Array.isArray(playersArray)) return;
+  
     const updated = Array(4).fill(null);
+    let computedAllReady = true;
+    let realPlayerCount = 0;
+  
     playersArray.forEach((player, idx) => {
       if (idx < 4) {
+        const isHost = player.isHost || false;
+        const isReady = isHost ? true : player.isReady || false;
+  
+        if (player.nickname) realPlayerCount++;
+        if (!isReady) computedAllReady = false;
+  
         updated[idx] = {
           nickname: player.nickname,
-          isHost: player.isHost || false,
+          isHost,
+          ready: isReady,
         };
       }
     });
-    // console.log("✅ [updateUsersFromPlayers] 유저 리스트:", updated);
-    setUsers(updated);
-
-    const currentCount = playersArray.length;
-
-    if (currentCount === 4) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          nickname: "SYSTEM",
-          message: "모든 플레이어가 준비되었습니다. 방장님은 게임을 시작할 수 있어요!",
-        },
-      ]);
   
+    // 두 명 이상이어야 allReady 인정
+    const allReady = computedAllReady && realPlayerCount >= 2;
+  
+    setUsers(updated);
+    setAllReady(allReady);
+  
+    if (allReady) {
+      setMessages((prev) => {
+        const exists = prev.some((msg) =>
+          msg.message.includes("모든 플레이어가 준비되었습니다")
+        );
+        return exists
+          ? prev
+          : [
+              ...prev,
+              {
+                nickname: "SYSTEM",
+                message: "모든 플레이어가 준비되었습니다. 방장님은 게임을 시작할 수 있어요!",
+              },
+            ];
+      });
       setShowReadyAlert(true);
       setTimeout(() => setShowReadyAlert(false), 4000);
     }
   };
+  
+  
+  
+  
+  
 
   // 1) 방 정보 저장 전용 useEffect
   useEffect(() => {
@@ -166,6 +217,7 @@ const MeteoLandingPage = () => {
       }
     };
     onRoomExit(handleRoomExit);
+    
 
     // 3) cleanup
     return () => {
@@ -202,7 +254,7 @@ const MeteoLandingPage = () => {
       // confirm 창 띄우기
       const leave = window.confirm("방을 나가시겠습니까?");
       if (leave) {
-        // “확인” 눌렀을 때만 나가기 로직 실행
+        // "확인" 눌렀을 때만 나가기 로직 실행
         const savedRoomId = localStorage.getItem("meteoRoomId");
         const savedNickname = nickname;
         if (savedRoomId && savedNickname) {
@@ -212,7 +264,7 @@ const MeteoLandingPage = () => {
         localStorage.removeItem("meteoRoomId");
         navigate("/main");
       } else {
-        // “취소” 눌렀을 때, history 스택 복원
+        // "취소" 눌렀을 때, history 스택 복원
         window.history.pushState(
           { page: "meteo" },
           "",
@@ -231,7 +283,7 @@ const MeteoLandingPage = () => {
     const socket = getSocket();
 
     const handleMatchRandom = (roomData) => {
-      // console.log("🛰️ [matchRandom 수신 - LandingPage]", roomData);
+      console.log("🛰️ [matchRandom 수신 - LandingPage]", roomData);
       updateUsersFromPlayers(roomData.players);
       // ✅ 마지막 들어온 유저 추적해서 system 메시지 출력
       const prevCount = users.filter((u) => u !== null).length;
@@ -399,7 +451,9 @@ const MeteoLandingPage = () => {
                 className="absolute top-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-black bg-opacity-90 text-white text-sm px-3 py-2 rounded shadow-md whitespace-nowrap z-30 text-center
                 animate-fade-slide-up"
               >
-                Player 4명이 모두 들어오면
+                2~4인의 협력 모드
+                <br />
+                들어온 Player들이 모두 준비되면
                 <br />
                 방장이 시작 버튼을 눌러
                 <br />
@@ -433,18 +487,29 @@ const MeteoLandingPage = () => {
                   <img
                     src={profileImages[idx]}
                     alt={`user-profile-${idx}`}
-                    className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto"
+                    className="absolute top-12 left-1/2 transform -translate-x-1/2 w-12 h-auto"
                   />
                 ) : null}
                 {/* <img src={profileImages[idx]} alt={`user-profile-${idx}`} className="absolute top-12 left-1/2 transform -translate-x-1/2 w-14 h-auto" /> */}
                 {/* 닉네임 */}
                 <div
-                  className={`absolute bottom-7 left-1/2 transform -translate-x-1/2 text-m w-[16rem] text-center truncate ${
+                  className={`absolute bottom-9 left-1/2 transform -translate-x-1/2 text-m w-[16rem] text-center truncate ${
                     user?.nickname === nickname ? "text-cyan-300" : "text-white"
                   }`}
                 >
                   {user?.nickname || "-"}
                 </div>
+                {user && (
+                  <div
+                    className={`absolute bottom-3 left-1/2 transform -translate-x-1/2 text-m w-[16rem] text-center truncate ${
+                      user.ready ? "text-green-400" : "text-white"
+                    }`}
+                  >
+                    {user.ready ? "Ready" : "unReady"}
+                  </div>
+                )}
+
+
               </div>
             ))}
           </div>
@@ -528,19 +593,16 @@ const MeteoLandingPage = () => {
                 style={{ borderColor: "#01FFFE" }}
               >
                 {users.find((user) => user?.nickname === nickname)?.isHost ? (
-                  users.filter((user) => user !== null).length === 4 ? (
-                    // ✅ 방장이고, 4명 다 찼으면 진짜 Start 버튼
+                    allReady && totalUsers.length >= 2 ? (
+                    // ✅ 방장이고, allReady이면 진짜 Start 버튼
                     <img
                       src={StartButton}
                       alt="start"
-                      className={`w-full h-full cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95] ${
-                        users.filter((user) => user !== null).length === 4 ? 'animate-pulse' : ''
-                      }`}
+                      className="w-full h-full cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95] animate-pulse"
                       onClick={handleStartGame}
                     />
-
                   ) : (
-                    // ✅ 방장이지만 아직 4명 안 찼으면 흐릿한 Start 버튼
+                    // ✅ 방장이지만 아직 allReady가 false면 흐릿한 버튼
                     <img
                       src={StartButton}
                       alt="start-disabled"
@@ -548,14 +610,26 @@ const MeteoLandingPage = () => {
                     />
                   )
                 ) : (
-                  // ✅ 방장이 아니면 무조건 Wait 버튼
+                  // ✅ 일반 유저는 ready/unready 토글 버튼
                   <img
-                    src={WaitButton}
-                    alt="wait"
-                    className="w-full h-full opacity-50"
+                    src={
+                      users.find((u) => u?.nickname === nickname)?.ready
+                        ? Unready
+                        : Ready
+                    }
+                    alt="ready-btn"
+                    onClick={() =>
+                      GameReady({
+                        roomId,
+                        nickname,
+                        ready: !users.find((u) => u?.nickname === nickname)?.ready,
+                      })
+                    }
+                    className="w-[8rem] cursor-pointer hover:scale-105 transition"
                   />
                 )}
               </div>
+
             </div>
           </div>
           <img
