@@ -19,7 +19,7 @@ const SignupPage = () => {
   const [idCheck, setIdCheck] = useState(null);
   const [nicknameCheck, setNicknameCheck] = useState(null);
   const token = useAuthStore((state) => state.token);
-  console.log("🔑 [토큰]", token);
+  // console.log("🔑 [토큰]", token);
   useEffect(() => {
     if (token) {
       navigate("/main");
