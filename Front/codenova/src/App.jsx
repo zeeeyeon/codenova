@@ -31,7 +31,7 @@ function App() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    preventDevTool();
+    // preventDevTool();
   }, [])
 
   return (
