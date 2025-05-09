@@ -13,6 +13,7 @@ import kr.codenova.backend.meteor.service.WordDropScheduler;
 import kr.codenova.backend.meteor.service.WordService;
 import kr.codenova.backend.meteor.entity.room.GameStatus;
 
+
 import kr.codenova.backend.multi.dto.request.SendChatRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,8 +68,8 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().addEventListener("sendChat", SendChatRequest.class, (client, data, ack) -> handleSendChat(client, data));
         // 목숨 차감 이벤트
 //        server().addEventListener("lifeLost", RemoveWordRequest.class, (client, data, ack) -> handleRemoveWord(client, data));
-        // 게임 재도전 이벤트
-        server().addEventListener("retryGame", RetryGameRequest.class, (client, data, ack) -> handleRetryGame(client, data));
+        // 게임 준비 이벤트
+        server().addEventListener("gameReady", GameReadyRequest.class, (client, data, ack) -> handleReadyGame(client, data));
     }
 
     private void handleCreateRoom(SocketIOClient client, CreateRoomRequest data) {
@@ -228,14 +229,21 @@ public class MeteorEventHandler implements SocketEventHandler {
             return;
         }
 
-        // 2️. 플레이어 수 확인 (4명일 때만)
-        if (room.getPlayers().size() < room.getMaxPlayers()) {
+        // 2. 플레이어 수 확인 ( 최소 2명이 있어야 시작 가능)
+        if (room.getPlayers().size() < 2) {
             client.sendEvent("gameStart",
-                    new ErrorResponse("NOT_ENOUGH_PLAYERS", "플레이어가 아직 4명 모이지 않았습니다."));
+                    new ErrorResponse("MIN_PLAYER", "게임을 시작하려면 2명 이상의 플레이어가 필요합니다."));
+            return;
+        }
+        // 3. 모든 플레이어가 준비 완료 상태인지 확인
+        if (!room.isAllReady()) {
+            client.sendEvent("gameStart",
+                    new ErrorResponse("NOT_ALL_READY", "모든 플레이어가 준비 완료 상태여야 합니다."));
             return;
         }
 
-        // 3️. 단어 리스트 조회
+
+        // 4. 단어 리스트 조회
         List<String> fallingWords = wordService.getRandomWords();
         if (fallingWords == null || fallingWords.isEmpty()) {
             client.sendEvent("gameStart",
@@ -446,74 +454,29 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().getRoomOperations(roomId).sendEvent("chatSend", response);
 
     }
-    private void handleRetryGame(SocketIOClient client, RetryGameRequest data) {
-        String sessionId = client.getSessionId().toString();
+
+
+    private void handleReadyGame(SocketIOClient client, GameReadyRequest data) {
+        String nickname = data.getNickname();
         String roomId = data.getRoomId();
+        String sessionId = client.getSessionId().toString();
+        boolean ready = data.isReady();
 
         GameRoom room = roomManager.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
 
-        // FINISHED 상태인 방에서만 재도전 허용
-        if (room.getStatus() != GameStatus.FINISHED) {
-            client.sendEvent("gameRetry",
-                    new ErrorResponse("INVALID_STATE", "게임이 종료된 상태에서만 재도전이 가능합니다."));
-            return;
-        }
+        boolean allReady = room.setReady(sessionId, ready);
 
-        boolean allReady = room.isReady(sessionId);
-
-        int readyCount = room.retryCount();
-
-        if (allReady) {
-
-            String newRoomId = UUID.randomUUID().toString();
-
-            List<UserInfo> retryPlayers = new ArrayList<>(room.getPlayers());
-
-            GameRoom newRoom = new GameRoom(
-                    newRoomId,
-                    room.isPrivate(),
-                    room.isPrivate() ? generateRoomCode() : null,
-                    room.getMaxPlayers(),
-                    room.getHostSessionId()
-            );
-
-            for (UserInfo player : retryPlayers) {
-                newRoom.addPlayer(player);
-
-                SocketIOClient playerClient = server().getClient(UUID.fromString(player.getSessionId()));
-                if (playerClient != null) {
-                    playerClient.leaveRoom(roomId);
-                    playerClient.joinRoom(newRoomId);
-                }
-            }
-
-            roomManager.addRoom(newRoom);
-
-            roomManager.removeRoom(roomId);
-
-            RetryGameResponse response = RetryGameResponse.builder()
-                    .roomId(newRoomId)
-                    .players(newRoom.getPlayers())
-                    .readyCount(readyCount)
-                    .allReady(true)
-                    .build();
-
-            server().getRoomOperations(newRoomId).sendEvent("gameRetry", response);
+        GameReadyResponse response = GameReadyResponse.builder()
+                .nickname(nickname)
+                .readyCount(room.getReadyCount())
+                .ready(ready)
+                .allReady(allReady).build();
 
 
-        }else{
-            RetryGameResponse response = RetryGameResponse.builder()
-                    .roomId(roomId)
-                    .players(room.getPlayers())
-                    .readyCount(readyCount)
-                    .allReady(false)
-                    .build();
-
-            server().getRoomOperations(roomId).sendEvent("gameRetry", response);
-        }
-
+        server().getRoomOperations(roomId).sendEvent("readyGame", response);
     }
+
 
 
     public ConnectListener listenConnected() {
