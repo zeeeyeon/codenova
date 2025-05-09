@@ -312,7 +312,7 @@ public class MeteorEventHandler implements SocketEventHandler {
                         u.getSessionId(),
                         u.getNickname(),
                         u.getSessionId().equals(newHostSessionId),
-                        false
+                        u.getIsReady()
                 ))
                 .collect(Collectors.toList());
 
