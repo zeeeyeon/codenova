@@ -13,7 +13,7 @@ import { connectSocket, disconnectSocket } from "./sockets/socketClient";
 import { useEffect} from "react";
 import PrivateRoute from "./routes/PrivateRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
-// import { preventDevTool } from "./components/common/preDevTool";
+import { preventDevTool } from "./components/common/preDevTool";
 
 function App() {
   const isAuthenticated = useAuthStore((state) => !!state.token);
@@ -30,9 +30,9 @@ function App() {
     }
   }, [isAuthenticated]);
 
-  // useEffect(() => {
-  //   preventDevTool();
-  // }, [])
+  useEffect(() => {
+    preventDevTool();
+  }, [])
 
   return (
     <BrowserRouter>

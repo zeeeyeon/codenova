@@ -5,7 +5,7 @@
   }
 
 .typed, .pending, .wrong, .currentInput{
-    font-family: monospace !important;
+    font-family: 'D2Coding' !important;
     /* font-weight: bold; */
     display: inline-block;
     width: 11px;
