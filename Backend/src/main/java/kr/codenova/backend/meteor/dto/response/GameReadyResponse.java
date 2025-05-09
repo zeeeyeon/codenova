@@ -10,5 +10,5 @@ import java.util.List;
 @Builder
 public class GameReadyResponse {
     private boolean allReady;
-    private final List<UserInfo> player;
+    private final List<UserInfo> players;
 }
