@@ -239,6 +239,12 @@ public class GameRoom {
             // 준비 상태 설정
             player.setIsReady(ready);
 
+            if (ready) {
+                readyPlayers.add(sessionId);
+            }else {
+                readyPlayers.remove(sessionId);
+            }
+
             // 모든 플레이어가 준비 완료되었는지 확인하여 반환
             return isAllReady();
         }
@@ -252,8 +258,7 @@ public class GameRoom {
             }
 
             // 모든 플레이어가 준비 상태인지 확인
-            return players.stream()
-                    .allMatch(player -> player.getIsReady() != null && player.getIsReady());
+            return readyPlayers.size() == players.size() - 1;
         }
     }
     // 플레이어 준비 상태 확인
