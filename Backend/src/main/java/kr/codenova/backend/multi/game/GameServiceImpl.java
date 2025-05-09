@@ -263,6 +263,8 @@ public class GameServiceImpl implements GameService {
                     status.setReady(false);
                 }
             });
+
+            room.setIsStarted(false);
         }
 
         RoomStatusResponse broadcast = new RoomStatusResponse(room);
