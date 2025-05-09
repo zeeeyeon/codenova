@@ -3,6 +3,7 @@ import javaImg from '../../assets/images/Java.png'
 import cImg from '../../assets/images/C.png'
 import csImg from '../../assets/images/CS.png'
 import sqlImg from '../../assets/images/SQL.png'
+import jsImg from '../../assets/images/js.png'
 import endBtn from '../../assets/images/end_game_button.png'
 
 import { calculateWPM, calculateCPM, getSpeedProgress, getProgress } from '../../utils/typingUtils'
@@ -19,7 +20,7 @@ const ProgressBox = ({lang, elapsedTime, cpm, progress}) => {
         else if (lang === "python") return pythonImg;
         else if (lang === "c") return cImg;
         else if (lang === "sql") return sqlImg;
-        else return csImg;  // 기본값은 csImg
+        else return jsImg;  // 기본값은 csImg
     }
     
     const [langImg, setLangImg] = useState(getLangImg(lang));

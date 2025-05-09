@@ -185,8 +185,10 @@ const MyPage= () => {
                               value={newNickname}
                               maxLength={11}
                               onChange={(e) => {
-                                setNewNickName(e.target.value)
-                                setNicknameCheck(false)
+                                const value = e.target.value;
+                                const trimmed = value.slice(0, 11); // 문자 수 기준 잘라내기
+                                setNewNickName(trimmed);
+                                setNicknameCheck(false);
                               }}
                               className="w-[50%] h-[110%] bg-transparent border-2 px-2 text-xl text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 "
                               style={{
