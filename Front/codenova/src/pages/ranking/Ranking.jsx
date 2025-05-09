@@ -136,12 +136,12 @@ const Ranking = () => {
                 />
 
                 <div className=" w-full h-full flex p-6 justify-center items-center">
-                    <div className="w-[40%] h-full text-white flex flex-col gap-8 justify-center">
+                    <div className="w-[50%] h-full text-white flex flex-col gap-8 justify-center">
                         <div className="w-full h-[20%] flex items-center gap-4">
                             <img src={goldMedal} alt="금메달" className="w-[20%]"/>
                             
-                            <div className="flex w-[70%] flex-col items-center justify-center text-xl">
-                                <span >
+                            <div className="flex w-full flex-col items-center justify-center lg:text-lg md:text-md sm:text-sm">
+                                <span className="text-center">
                                     {ranking[currentLangIndex]?.top10?.[0]?.nickname || "없음"}
                                 </span>
                                 <span >
@@ -155,8 +155,8 @@ const Ranking = () => {
                         <div className="w-full h-[20%]  flex items-center gap-4">
                             <img src={silverMedal} alt="은메달" className="w-[20%]"/>
                             
-                            <div className="flex w-[70%] flex-col items-center justify-center text-xl">
-                                <span >
+                            <div className="flex w-[80%] flex-col items-center justify-center lg:text-lg md:text-md sm:text-sm">
+                                <span className="text-center">
                                     {ranking[currentLangIndex]?.top10?.[1]?.nickname || "없음"}
                                 </span>
                                 <span >
@@ -164,14 +164,13 @@ const Ranking = () => {
                                     Math.floor(ranking[currentLangIndex]?.top10?.[1]?.typingSpeed) : 0}타
                                 </span>
                             </div>
-                            
                         </div>
 
                         <div className="w-full h-[20%] flex items-center gap-4">
                             <img src={bronzeMedal} alt="동메달" className="w-[20%]"/>
                             
-                            <div className="flex w-[70%] flex-col items-center justify-center text-xl">
-                                <span >
+                            <div className="flex w-[70%] flex-col items-center justify-center lg:text-lg md:text-md sm:text-sm">
+                                <span className="text-center">
                                     {ranking[currentLangIndex]?.top10?.[2]?.nickname || "없음"}
                                 </span>
                                 <span >
@@ -196,13 +195,13 @@ const Ranking = () => {
                                 const nickname = ranking[currentLangIndex]?.top10?.[idx+3]?.nickname || "없음";
                                 const speed =  ranking[currentLangIndex]?.top10?.[idx+3]?.typingSpeed || 0;
                                 return (
-                                    <div key={idx} className=" w-full h-auto ">
+                                    <div key={idx} className=" w-full h-auto sm:text-sm">
                                         {idx + 4}. {nickname} ({Math.floor(speed)})
                                     </div>
                                 )
                             })}
                             {userType !== "guest" && (
-                            <div className=" w-full h-auto flex justify-end mt-4 text-xl">
+                            <div className=" w-full h-auto flex justify-end mt-4 md:text-md lg:text-lg sm:text-sm">
                                 내 등수: {ranking[currentLangIndex]?.myRank?.rank != null
                                     ? ` ${Math.floor(ranking[currentLangIndex].myRank.rank)}`
                                     : " - "
