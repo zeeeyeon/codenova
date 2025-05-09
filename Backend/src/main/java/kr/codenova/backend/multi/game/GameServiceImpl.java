@@ -102,6 +102,7 @@ public class GameServiceImpl implements GameService {
                 .sendEvent("game_started", countdown);
 
         delayedTypingStart(request.getRoomId());
+
     }
     // 게임 시작 전 검증 (방장 여부 + 모든 준비 완료)
     public void validateStartGame(String roomId, String nickname) {
@@ -146,6 +147,8 @@ public class GameServiceImpl implements GameService {
         getServer().getRoomOperations(roomId)
                 .sendEvent("typing_start", typingStart);
 
+        RoomUpdateBroadcast bro = RoomUpdateBroadcast.from(room);
+        getServer().getBroadcastOperations().sendEvent("room_update", bro);
     }
 
 
@@ -270,6 +273,9 @@ public class GameServiceImpl implements GameService {
         RoomStatusResponse broadcast = new RoomStatusResponse(room);
         getServer().getRoomOperations(roomId)
                 .sendEvent("room_status", broadcast);
+
+        RoomUpdateBroadcast bro = RoomUpdateBroadcast.from(room);
+        getServer().getBroadcastOperations().sendEvent("room_update", bro);
     }
 
 
