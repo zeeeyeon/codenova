@@ -13,7 +13,7 @@ import rocket4 from "../../assets/images/multi_rocket_4.png";
 import { getSocket } from "../../sockets/socketClient";
 import RoundScoreModal from "../../components/multi/modal/RoundScoreModal";
 import FinalResultModal from "../../components/multi/modal/FinalResultModal";
-
+import useAuthStore from "../../store/authStore";
 
 
 const TypingBattlePage = () => {
@@ -38,6 +38,7 @@ const TypingBattlePage = () => {
   const [showFinalModal, setShowFinalModal] = useState(false);
 
   const [roomInfo, setRoomInfo] = useState(null);
+  const nickname = useAuthStore((state) => state.user?.nickname);
 
 
   const [users, setUsers] = useState(() => {
@@ -86,7 +87,7 @@ const TypingBattlePage = () => {
     socket.emit("room_status", { roomId });
   
     const handleRoomStatus = (data) => {
-      // console.log("🧑‍🚀 TypingBattlePage room_status 수신:", data);
+      console.log("🧑‍🚀 TypingBattlePage room_status 수신:", data);
   
       const updatedUsers = Array.from({ length: data.maxCount }, (_, i) => {
         const user = data.users[i];
@@ -120,7 +121,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
 
     const handleTypingStart = (data) => {
-      // console.log("🥘 typing_start 수신:", data);
+      console.log("🥘 typing_start 수신:", data);
       setTargetCode(data.script); // 문제 저장
 
       setUsers((prev) =>
@@ -142,7 +143,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
   
     const handleProgressUpdate = (data) => {
-      // console.log("🚀 progress_update 수신:", data);
+      console.log("🚀 progress_update 수신:", data);
   
       setUsers((prev) =>
         prev.map((user) =>
@@ -227,7 +228,7 @@ const TypingBattlePage = () => {
   
     const handleFinishNotice = (data) => {
       const { nickname } = data;
-      // console.log("🏁 finish_notice 수신:", nickname);
+      console.log("🏁 finish_notice 수신:", nickname);
   
       setFirstFinisher(nickname); // 표시용
       if (!roundEnded) {
@@ -246,7 +247,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
   
     const handleRoundScore = (data) => {
-      // console.log("📊 round_score 수신:", data);
+      console.log("📊 round_score 수신:", data);
       setRoundScoreData(data);
       setCurrentRound(data.round+1);
       setShowRoundScoreModal(true);
@@ -260,13 +261,21 @@ const TypingBattlePage = () => {
   
             if (data.round < 3) {
               console.log("🍆 round_start emit");
+              const host = users.find((u) => u.isHost);
+              if (host?.nickname === nickname) {
+                // 내가 방장이면 round_start emit
+                socket.emit("round_start", {
+                  roomId,
+                  nickname,
+                });
+              }
               setCountdown(5);
               setGameStarted(false);
               setRoundEnded(false);
               setFirstFinisher(null);
-              setTargetCode(""); // optional: 이전 코드 초기화
-              socket.emit("round_start", { roomId });
+              setTargetCode("");
             }
+
           }
           return prev - 1;
         });
@@ -282,7 +291,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
     
     const handleGameResult = (data) => {
-      // console.log("💩 최종 게임 결과 안내 : ",data);
+      console.log("💩 최종 게임 결과 안내 : ",data);
       setFinalResults(data.results); // 서버에서 avgSpeed 등 포함된 리스트로 보낸다고 가정
       setShowFinalModal(true);
 
@@ -297,7 +306,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
   
     const handleRoomStatus = (data) => {
-      // console.log("🧑‍🚀 room_status 수신:", data);
+      console.log("🧑‍🚀 room_status 수신:", data);
       setRoomInfo(data); // 이걸 FinalResultModal로 넘겨줘야 함
   
       const updatedUsers = Array.from({ length: data.maxCount }, (_, i) => {
