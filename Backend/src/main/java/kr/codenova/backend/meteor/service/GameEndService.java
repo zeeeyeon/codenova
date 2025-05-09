@@ -41,7 +41,7 @@ public class GameEndService implements WordDropScheduler.GameEndListener {
                 // 이미 종료된 게임은 다시 처리하지 않음
                 return;
             }
-//            room.finish();
+            room.finish();
         }
         Map<String,Integer> scoreMap = room.getScoreMap();
         List<PlayerResult> results = room.getPlayers().stream()
