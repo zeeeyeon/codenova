@@ -37,4 +37,6 @@ public interface RoomService {
     public Boolean existsRoom(String roomId);
 
     void getRoomStatus(RoomStatusRequest request, SocketIOClient client);
+
+    public void onDisconnect(SocketIOClient client);
 }
