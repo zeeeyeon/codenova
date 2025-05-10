@@ -43,15 +43,15 @@ public class SingleController {
         return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
     }
 
-    @PostMapping("/code/result")
-    public ResponseEntity<?> saveCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody SingleCodeResultRequest request) {
-        boolean isNewRecord = false;
-
-        if (memberDetails != null && memberDetails.getMember() != null) isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), request);
-        SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.speed());
-        ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SUCCESS;
-        return new ResponseEntity<>(Response.create(resultCode, response), resultCode.getHttpStatus());
-    }
+//    @PostMapping("/code/result")
+//    public ResponseEntity<?> saveCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody SingleCodeResultRequest request) {
+//        boolean isNewRecord = false;
+//
+//        if (memberDetails != null && memberDetails.getMember() != null) isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), request);
+//        SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.speed());
+//        ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SUCCESS;
+//        return new ResponseEntity<>(Response.create(resultCode, response), resultCode.getHttpStatus());
+//    }
 
     @GetMapping("/cs/categories")
     public ResponseEntity<?> getCsCategories() {
