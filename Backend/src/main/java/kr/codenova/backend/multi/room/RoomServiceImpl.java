@@ -20,8 +20,11 @@ import kr.codenova.backend.multi.exception.InvalidPasswordException;
 import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import kr.codenova.backend.multi.room.Room.UserStatus;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -32,14 +35,58 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RoomServiceImpl implements RoomService {
 
     private final Map<String, Room> roomMap = new ConcurrentHashMap<>();
-    private final Map<String, String> userRoomMap = new ConcurrentHashMap<>();
-
+    private final Map<String, UserRoomInfo> userSessionMap = new ConcurrentHashMap<>();
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private SocketIOServer getServer() {
         return SocketIOServerProvider.getServer();
     }
 
+    /**
+     * 유저 세션-방 정보 매핑 클래스
+     */
+    @Data
+    @AllArgsConstructor
+    public static class UserRoomInfo {
+        private String roomId;
+        private String nickname;
+    }
+
+    /**
+     * Socket.IO 연결 해제 이벤트 처리
+     * 사용자의 연결이 끊겼을 때 방 퇴장 처리
+     */
+    public void onDisconnect(SocketIOClient client) {
+        String sessionId = client.getSessionId().toString();
+        log.info("Client disconnectd: {}", sessionId);
+
+        // 사용자가 참여 중이던 방 정보 찾기
+        UserRoomInfo userRoomInfo = userSessionMap.get(sessionId);
+
+        if(userRoomInfo != null) {
+            String roomId = userRoomInfo.getRoomId();
+            String nickname = userRoomInfo.getNickname();
+
+            log.info("Disconnected user was in room: {}, nickname: {}", roomId, nickname);
+
+            // LeaveRoomRequest 객체 생성하여 기존 퇴장 로직 호출
+            LeaveRoomRequest leaveRequest = new LeaveRoomRequest();
+            leaveRequest.setRoomId(roomId);
+            leaveRequest.setNickname(nickname);
+
+            try {
+                leaveRoom(leaveRequest, client);
+                log.info("Disconnect에 의한 방 퇴장 처리 완료: {}, 방: {}", nickname, roomId);
+            } catch (RoomNotFoundException e) {
+                log.error("Disconnect 처리 중 방을 찾을 수 없음: {}", roomId);
+            } catch (Exception e) {
+                log.error("Disconnect 처리 중 오류 발생", e);
+            } finally {
+                // 세션 정보 정리
+                userSessionMap.remove(sessionId);
+            }
+        }
+    }
     /**
      * 방 생성
      * 1. 방 생성 시 즉시 방장 지정
@@ -75,8 +122,8 @@ public class RoomServiceImpl implements RoomService {
         room.getUserJoinTimes().put(request.getNickname(), System.currentTimeMillis());
 
         // 유저-방 매핑 정보 저장
-        userRoomMap.put(sessionId, roomId);
-
+        userSessionMap.put(client.getSessionId().toString(),
+                new UserRoomInfo(roomId, request.getNickname()));
         // 클라이언트 방 입장시키기
         client.joinRoom(roomId);
 
@@ -142,6 +189,8 @@ public class RoomServiceImpl implements RoomService {
         room.getUserJoinTimes().put(request.getNickname(), System.currentTimeMillis());
         roomMap.put(room.getRoomId(), room);
 
+        userSessionMap.put(client.getSessionId().toString(),
+                new UserRoomInfo(request.getRoomId(), request.getNickname()));
         // ✅ 클라이언트 방 조인
         client.joinRoom(room.getRoomId());
 
@@ -237,8 +286,7 @@ public class RoomServiceImpl implements RoomService {
         room.getUserJoinTimes().remove(request.getNickname());
 
         // userRoomMap에서 사용자 정보 제거
-        userRoomMap.remove(client.getSessionId().toString());
-
+        userSessionMap.remove(client.getSessionId().toString());
         // ✅ [추가] 퇴장 알림 - 본인 제외하고 전송
         getServer().getRoomOperations(request.getRoomId())
                 .getClients()
