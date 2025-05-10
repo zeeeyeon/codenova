@@ -53,6 +53,7 @@ public class SingleController {
 //        return new ResponseEntity<>(Response.create(resultCode, response), resultCode.getHttpStatus());
 //    }
 
+
     @GetMapping("/cs/categories")
     public ResponseEntity<?> getCsCategories() {
         List<String> categories = CsCategory.toCsList();
