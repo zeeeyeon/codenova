@@ -18,6 +18,7 @@ public enum ResponseCode {
     AVAILABLE_ID(200,HttpStatus.OK, "사용가능한 아이디입니다"),
     AVAILABLE_NICKNAME(200,HttpStatus.OK, "사용가능한 닉네임입니다"),
     SUCCESS_CHANGE_PROFILE(200, HttpStatus.OK, "프로필 수정에 성공했습니다."),
+
     // single
     GET_LANGUAGE_CATEGORIES_SUCCESS(200, HttpStatus.OK, "언어 카테고리 조회에 성공했습니다."),
     GET_CS_CATEGORIES_SUCCESS(200, HttpStatus.OK, "CS 카테고리 조회에 성공했습니다."),
@@ -31,12 +32,14 @@ public enum ResponseCode {
     GET_RANKING_SUCCESS(200, HttpStatus.OK, "랭킹 조회에 성공했습니다."),
 
 
-
+    KEYLOG_TOO_SHORT(400, HttpStatus.BAD_REQUEST, "입력 기록이 부족합니다."),
+    KEYLOG_INVALID_ORDER(400, HttpStatus.BAD_REQUEST, "입력 시간 순서가 올바르지 않습니다."),
+    CODE_RESULT_INVALID_INPUT(400, HttpStatus.BAD_REQUEST, "입력 값이 잘못되었습니다"),
     CODE_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 언어에 대한 코드가 존재하지 않습니다."),
     FORBIDDEN_SAVE_RESULT_FOR_GUEST(403, HttpStatus.FORBIDDEN, "비회원은 기록을 저장할 수 없습니다."),
     GPT_RESPONSE_FAIL(502, HttpStatus.BAD_GATEWAY, "GPT 응답 처리에 실패했습니다."),
     REPORT_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 리포트를 찾을 수 없습니다."),
-
+    CODE_RESULT_FAIL(500, HttpStatus.INTERNAL_SERVER_ERROR, "점수 저장 실패"),
 
     INVALID_TOKEN_FORMAT(401, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰 형식입니다."),
     MISSING_MANDATORY_CLAIMS(400, HttpStatus.BAD_REQUEST, "토큰에 필수 클레임이 없습니다."),
