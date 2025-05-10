@@ -131,7 +131,6 @@ const SinglePage = () => {
     }
 
     const handleKeyDown = (e) => {
-
         const newLog = {
             key: e.key,
             time: Date.now(),
