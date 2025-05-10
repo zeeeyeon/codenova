@@ -79,6 +79,16 @@ public class RoomSocketHandler implements SocketEventHandler {
             }
         });
 
+        server.addDisconnectListener(client -> {
+            try {
+                log.info("Socket disconnected: {}", client.getSessionId());
+                // RoomServiceImpl의 onDisconnect 메서드호출
+                roomService.onDisconnect(client);
+            } catch (Exception e) {
+                log.error("Disconnect event handling failed", e);
+            }
+        });
+
 
     }
 
