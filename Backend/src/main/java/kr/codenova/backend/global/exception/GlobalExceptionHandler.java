@@ -61,6 +61,4 @@ public class GlobalExceptionHandler {
         }
         return fieldName;
     }
-
-
 }
