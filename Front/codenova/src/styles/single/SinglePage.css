@@ -38,7 +38,7 @@
   100% { opacity: 1; }
 }
 
-input {
+.single-input {
   font-family: 'D2Coding' !important;
   outline: none; 
 }
