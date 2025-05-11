@@ -315,6 +315,8 @@ public class RoomServiceImpl implements RoomService {
         } else {
             RoomUpdateBroadcast updated = RoomUpdateBroadcast.from(room);
             getServer().getBroadcastOperations().sendEvent("room_update", updated);
+            RoomStatusResponse roomStatusResponse = new RoomStatusResponse(room);
+            getServer().getRoomOperations(request.getRoomId()).sendEvent("room_status", roomStatusResponse);
         }
 
 
