@@ -28,10 +28,12 @@ public class ScoreSavingController {
 
     @PostMapping("/save")
     public ResponseEntity<?> saveCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody SaveRequestDto request) {
-        if (memberDetails == null || memberDetails.getMember() == null) throw new CustomException(FORBIDDEN_SAVE_RESULT_FOR_GUEST);
         VerifiedScorePayload payload = tokenProvider.parseToken(request.verifiedToken());
-        int memberId = memberDetails.getMember().getMemberId();
-        boolean isNew = typingSpeedService.saveIfNewRecord(memberId, payload.language(), payload.typingSpeed());
+        double speed = payload.typingSpeed();
+        boolean isNew = false;
+
+        if (memberDetails != null && memberDetails.getMember() != null) isNew = typingSpeedService.saveIfNewRecord(memberDetails.getMember().getMemberId(), payload.language(), speed);
+
         return new ResponseEntity<>(Response.create(isNew ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SUCCESS, new SingleTypingResultResponse(isNew, payload.typingSpeed())), (isNew ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SUCCESS).getHttpStatus());
     }
 }
