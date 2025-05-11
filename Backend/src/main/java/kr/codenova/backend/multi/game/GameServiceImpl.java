@@ -163,6 +163,10 @@ public class GameServiceImpl implements GameService {
         int progress = request.getProgressPercent();
         Integer time = request.getTime(); // 밀리초 기준
 
+        // ✅ 현재 진행 상황 브로드캐스트
+        getServer().getRoomOperations(request.getRoomId())
+                .sendEvent("progress_update", request);
+
         // ✅ 유효한 시간인지 검사 (null 또는 0 이하 방지)
         if (progress >= 100 && time != null && time > 0) {
             double seconds = time / 1000.0;
@@ -176,7 +180,6 @@ public class GameServiceImpl implements GameService {
                 getServer().getRoomOperations(request.getRoomId())
                         .sendEvent("finish_notice", broadcast);
 
-                // ✅ 서버 타이머로 종료 제어
                 startCountDownTimer(request.getRoomId());
             } else {
                 // ✅ 이미 1등이 있으면 도착 시간만 기록
@@ -184,9 +187,7 @@ public class GameServiceImpl implements GameService {
             }
         }
 
-        // ✅ 현재 진행 상황 브로드캐스트
-        getServer().getRoomOperations(request.getRoomId())
-                .sendEvent("progress_update", request);
+
     }
 
     @Async
@@ -230,7 +231,6 @@ public class GameServiceImpl implements GameService {
                 RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
                 getServer().getRoomOperations(roomId)
                         .sendEvent("round_score", broadcast);
-                room.setRoundNumber(room.getRoundNumber() + 1);
                 resetRoundData(room);
             }
         }
@@ -299,7 +299,7 @@ public class GameServiceImpl implements GameService {
         getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("typing_start", broadcast);
 
-        room.setRoundNumber(room.getRoundNumber());
+        room.setRoundNumber(room.getRoundNumber()+1);
         resetRoundData(room);
     }
 
@@ -353,6 +353,9 @@ public class GameServiceImpl implements GameService {
                     isRetire
             ));
         }
+
+        // ✅ score 기준으로 내림차순 정렬
+        results.sort((a, b) -> Integer.compare(b.getScore(), a.getScore()));
 
         return new RoundScoreBroadcast(room.getRoomId(), room.getRoundNumber(), results);
     }
