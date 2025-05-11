@@ -31,10 +31,8 @@ public class TypingSpeedService {
                         existing.updateSpeed(newSpeed);
                         typingSpeedRepository.save(existing);
                         redisRankingService.saveTypingSpeed(language, memberId, member.getNickname(), newSpeed);
-                        log.info("속도 갱신됨 → 기존: {}, 새: {}", oldSpeed, newSpeed);
                         return true;
                     }
-                    log.info("속도 유지됨 → 기존: {}, 새: {}", oldSpeed, newSpeed);
                     return false;
                 })
                 .orElseGet(() -> {
