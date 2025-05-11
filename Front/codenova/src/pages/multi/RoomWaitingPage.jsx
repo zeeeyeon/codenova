@@ -86,6 +86,7 @@ const RoomWaitingPage = () => {
           currentPeople: updatedRoom.currentCount,
           standardPeople: updatedRoom.maxCount,
           roomCode: updatedRoom.roomCode ?? prev.roomCode,
+          status: updatedRoom.isStarted ? "playing" : "waiting"
         }));
 
         socket.emit("room_status", {
@@ -124,7 +125,8 @@ const RoomWaitingPage = () => {
         language: data.language,
         currentPeople: data.currentCount,
         standardPeople: data.maxCount,
-        roomCode: data.roomCode ?? prev.roomCode
+        roomCode: data.roomCode ?? prev.roomCode,
+        status: data.isStarted ? "playing" : "waiting"
       }));
   
       // 사용자 슬롯 세팅
@@ -191,7 +193,7 @@ const RoomWaitingPage = () => {
     };
   }, [roomInfo?.standardPeople]);
 
-  // join_notice 브로드캐스트트
+  // join_notice 브로드캐스트
   useEffect(() => {
   const socket = getSocket();
   if (!socket) return;
