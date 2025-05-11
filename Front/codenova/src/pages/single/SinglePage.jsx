@@ -208,10 +208,11 @@ const SinglePage = () => {
             keyLogs : keyLogsRef.current 
         }
         try {
+            console.log(keyLogsRef.current)
             const response = await verifiedRecord(data);
             const {code, message} = response.status;
             if (code === 200){
-                setCpm(response.content.typingSpeed * 5)
+                setCpm(response.content.typingSpeed)
                 await postResult(response.content.verifiedToken)
             } else{
                 alert("🤬 메크로 썼니??")
@@ -437,7 +438,7 @@ const SinglePage = () => {
                             {/* 유저가 타이핑한 코드가 보이는 곳 */}
                             <input
                                 ref={inputAreaRef}
-                                className={`flex items-center bg-white text-black rounded-2xl w-full h-[12%] p-2 border-4 ${wrongChar ?  'border-red-400' :'border-green-400'} ${shake ? "animate-shake" : ""}`}
+                                className={`single-input flex items-center bg-white text-black rounded-2xl w-full h-[12%] p-2 border-4 ${wrongChar ?  'border-red-400' :'border-green-400'} ${shake ? "animate-shake" : ""}`}
                                 type="text"
                                 value={currentInput}
                                 onChange={handleInputChange}  
