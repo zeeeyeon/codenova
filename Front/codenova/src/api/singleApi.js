@@ -59,13 +59,3 @@ export const verifiedRecord = async (data) => {
     }
 }
 
-export const verifiedRecord = async (data) => {
-    try {
-        const response = await authApi.post('/api/single/code/verified', data);
-        // console.log(response.data);
-        return response.data;
-    } catch (e) {
-        // console.error("기록저장 API 요청 실패",e);
-        throw e;
-    }
-}
