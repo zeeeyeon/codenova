@@ -111,7 +111,7 @@ public class GameRoom {
             for (UserInfo player : players) {
                 player.setIsReady(false);
             }
-
+            scoreMap.clear();
         }
     }
     public void finish() {
