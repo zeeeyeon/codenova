@@ -47,6 +47,9 @@ public class CodeResultService {
 
     public VerifyResponseDto verifyAndGenerateToken(CodeResultRequest request, Integer memberId) {
         ScoreResult result = calculateOnly(request);
+
+        if (memberId == null) return new VerifyResponseDto(result.typingSpeed(), null);
+
         VerifiedScorePayload payload = new VerifiedScorePayload(memberId, request.codeId(), request.language(), result.typingSpeed());
         String token = tokenProvider.generateToken(payload);
 
