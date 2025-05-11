@@ -312,7 +312,7 @@ const MeteoLandingPage = () => {
 
   // 게임 시작
   const handleStartGame = () => {
-    startMeteoGame(roomId);
+    startMeteoGame(currentRoomId);
   };
 
   useEffect(() => {
@@ -395,7 +395,7 @@ const MeteoLandingPage = () => {
   const sendChat = () => {
     if (!chatInput.trim()) return;
     onChatMessage({
-      roomId,
+      roomId : currentRoomId,
       nickname,
       message: chatInput.trim(),
     });
@@ -620,7 +620,7 @@ const MeteoLandingPage = () => {
                     alt="ready-btn"
                     onClick={() =>
                       GameReady({
-                        roomId,
+                        roomId : currentRoomId,
                         nickname,
                         ready: !users.find((u) => u?.nickname === nickname)?.ready,
                       })
