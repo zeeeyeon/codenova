@@ -110,6 +110,7 @@ public class GameRoom {
             this.readyPlayers.clear();
             for (UserInfo player : players) {
                 player.setIsReady(false);
+                player.setIsWaiting(false);
             }
             scoreMap.clear();
         }
@@ -237,6 +238,7 @@ public class GameRoom {
 
             // 준비 상태 설정
             player.setIsReady(ready);
+
 
             if (ready) {
                 readyPlayers.add(sessionId);
