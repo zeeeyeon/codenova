@@ -8,8 +8,10 @@ import kr.codenova.backend.member.repository.MemberRepository;
 import kr.codenova.backend.single.entity.TypingSpeed;
 import kr.codenova.backend.single.repository.TypingSpeedRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TypingSpeedService {
@@ -28,6 +30,8 @@ public class TypingSpeedService {
                         existing.updateSpeed(newSpeed);
                         typingSpeedRepository.save(existing);
                         redisRankingService.saveTypingSpeed(language, member.getMemberId(), member.getNickname(), newSpeed);
+                        log.info("기존 속도: {}", existing.getTypingSpeed());
+                        log.info("새 속도: {}", newSpeed);
                         return true;
                     }
                     return false;
