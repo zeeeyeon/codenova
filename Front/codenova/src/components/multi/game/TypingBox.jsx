@@ -221,6 +221,7 @@ const TypingBox = ({
   onFinish, 
   targetCode,
   currentRound,
+  disabled = false
 }) => {
   if (!targetCode) {
     return (
@@ -251,12 +252,12 @@ const TypingBox = ({
   }, []);
 
   const handleInputChange = (e) => {
-    if (!gameStarted) return;
+    if (disabled || !gameStarted) return;
     setUserInput(e.target.value);
   };
 
   const handleKeyDown = (e) => {
-    if (!gameStarted) {
+    if (disabled || !gameStarted) {
       e.preventDefault();
       return;
     }
@@ -499,6 +500,7 @@ const TypingBox = ({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="Start Typing Code Here."
+          disabled={disabled}
           onFocus={(e) => (e.target.placeholder = "")}
           onBlur={(e) => (e.target.placeholder = "Start Typing Code Here.")}
           className={`input w-full px-4 py-2 rounded-md text-black focus:outline-none 

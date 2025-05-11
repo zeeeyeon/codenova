@@ -30,6 +30,16 @@ const MainPage = () => {
   
     return () => clearTimeout(timer);
   }, []);
+
+  // 혹시 모르니 일단 main에선 모든 로컬 초기화
+  useEffect(() => {
+    localStorage.removeItem("roomId");
+    localStorage.removeItem("roomCode");
+    localStorage.removeItem("meteoRoomId");
+    localStorage.removeItem("meteoRoomCode");
+    localStorage.removeItem("meteoPlayers");
+  }, []);
+  
   
 
   const handleMultiClick = () => {
