@@ -199,46 +199,102 @@ const TypingBattlePage = () => {
   //   return () => socket.off("finish_notice", handleFinishNotice);
   // }, []);
 
+  // const handleFinish = () => {
+  //   if (roundEnded) return; // ✅ 중복 방지 (가장 먼저 체크)
+  //   setRoundEnded(true);
+  //   setTimeRunning(false); // 타자 타이머 정지
+  //   setRoundEndingCountdown(10); // 🔔 카운트다운 표시 시작
+  
+  //   const countdownInterval = setInterval(() => {
+  //     setRoundEndingCountdown((prev) => {
+  //       if (prev === 1) {
+  //         clearInterval(countdownInterval); // 끝나면 타이머 제거
+  //         return null;
+  //       }
+  //       return prev - 1;
+  //     });
+  //   }, 1000);
+  
+  //   // 10초 후 서버에 round_end 알림
+  //   setTimeout(() => {
+  //     const socket = getSocket();
+  //     socket.emit("round_end", { roomId });
+  //   }, 10000);
+  // };
   const handleFinish = () => {
-    if (roundEnded) return; // ✅ 중복 방지 (가장 먼저 체크)
+    if (roundEnded) return;
     setRoundEnded(true);
-    setTimeRunning(false); // 타자 타이머 정지
-    setRoundEndingCountdown(10); // 🔔 카운트다운 표시 시작
+    setTimeRunning(false); // 타자 타이머 멈춤
   
-    const countdownInterval = setInterval(() => {
-      setRoundEndingCountdown((prev) => {
-        if (prev === 1) {
-          clearInterval(countdownInterval); // 끝나면 타이머 제거
-          return null;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  
-    // 10초 후 서버에 round_end 알림
+    // 10초 후 서버에 라운드 종료 알림 (이건 내 타자 성공시에만)
     setTimeout(() => {
       const socket = getSocket();
       socket.emit("round_end", { roomId });
     }, 10000);
   };
   
+
+  
+  // useEffect(() => {
+  //   const socket = getSocket();
+  //   if (!socket) return;
+  
+  //   const handleFinishNotice = (data) => {
+  //     const { nickname } = data;
+  //     console.log("🏁 finish_notice 수신:", nickname);
+  
+  //     setFirstFinisher(nickname); // 표시용
+  //     if (!roundEnded) {
+  //       handleFinish(); // ✅ 중복 방지
+  //     }
+  //   };
+  
+  //   socket.on("finish_notice", handleFinishNotice);
+  //   return () => socket.off("finish_notice", handleFinishNotice);
+  // }, []);
+  
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
   
+    // ✅ 모든 유저: 안내창만 표시
     const handleFinishNotice = (data) => {
       const { nickname } = data;
       console.log("🏁 finish_notice 수신:", nickname);
-  
-      setFirstFinisher(nickname); // 표시용
-      if (finisherNickname === nickname && !roundEnded) {
-        handleFinish(); // ✅ 중복 방지
-      }
+      setFirstFinisher(nickname); // 모든 사람에게 안내창 띄움 (타이머는 X)
     };
   
+    // ✅ 내 타이머만 멈추게 할 새로운 이벤트
+    const handleCountDown = (data) => {
+      console.log("⏱ count_down 수신:", data.seconds); // 10~1까지 수신
+  
+      if (data.count === 10) {
+        // 최초 10초 카운트 시작 시, 내 타이머 멈춤 + 카운트다운 시작
+        setRoundEnded(true);
+        setTimeRunning(false);
+        setRoundEndingCountdown(10);
+      } else {
+        setRoundEndingCountdown(data.seconds);
+  
+        // 👇 안내창 자동 제거 (1초 끝나고)
+        if (data.seconds === 1) {
+          setTimeout(() => {
+            setRoundEndingCountdown(null);
+          }, 1000);
+        }
+      }
+    };
     socket.on("finish_notice", handleFinishNotice);
-    return () => socket.off("finish_notice", handleFinishNotice);
+    socket.on("count_down", handleCountDown);
+  
+    return () => {
+      socket.off("finish_notice", handleFinishNotice);
+      socket.off("count_down", handleCountDown);
+    };
   }, []);
+  
+  
+
   
 
   // 소켓 수신
