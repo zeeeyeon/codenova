@@ -46,13 +46,11 @@ public class CodeResultService {
     }
 
     public VerifyResponseDto verifyAndGenerateToken(CodeResultRequest request, Integer memberId) {
-        CodeResultResponse result = processCodeResult(memberId, request);
-
-        if (memberId == null) return new VerifyResponseDto(result.responseData().typingSpeed(), null);
-        VerifiedScorePayload payload = new VerifiedScorePayload(memberId, request.codeId(), request.language(), result.responseData().typingSpeed());
+        ScoreResult result = calculateOnly(request);
+        VerifiedScorePayload payload = new VerifiedScorePayload(memberId, request.codeId(), request.language(), result.typingSpeed());
         String token = tokenProvider.generateToken(payload);
 
-        return new VerifyResponseDto(result.responseData().typingSpeed(), token);
+        return new VerifyResponseDto(result.typingSpeed(), token);
     }
 
     private String getCorrectCode(Integer codeId) {
