@@ -98,13 +98,14 @@ public class TypingSession {
     public ScoreResult result() {
         int charCount = keyLogs.size();
         long durationMillis = keyLogs.get(keyLogs.size() - 1).timestamp() - keyLogs.get(0).timestamp();
-        double wpm = calculateWPM(expectedLines.correctLength(), durationMillis) * 5 ; //입력한 단어가 아니라 총단어수로 변경
+        double wpm = calculateWPM(expectedLines.correctLength(), durationMillis); //입력한 단어가 아니라 총단어수로 변경
         double accuracy = calculateAccuracy();
         return new ScoreResult(charCount, durationMillis, wpm, accuracy);
     }
 
     private double calculateWPM(int charCount, long durationMillis) {
-        return (charCount / 5.0) / (durationMillis / 1000.0 / 60.0);
+        double basicWpm = (charCount / 5.0) / (durationMillis / 1000.0 / 60.0);
+        return basicWpm * 5.0;
     }
 
     // 정답 코드 줄별로 나누기 - 좌우 공백 trim로 삭제
