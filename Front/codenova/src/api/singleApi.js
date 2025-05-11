@@ -34,10 +34,13 @@ export const getLangCode = async (codeId) => {
     }
 }
 
-export const postRecord = async (data) => {
+export const postRecord = async (token) => {
     try {
-        const response = await authApi.post('/api/single/code/result', data);
-        // console.log(response.data);
+        const data = {
+            "verifiedToken" : token
+        }
+        const response = await authApi.post('/api/single/code/save', data);
+        console.log(response.data);
         return response.data;
     } catch (e) {
         // console.error("기록저장 API 요청 실패",e);
@@ -47,8 +50,8 @@ export const postRecord = async (data) => {
 
 export const verifiedRecord = async (data) => {
     try {
-        const response = await authApi.post('/api/single/code/verified', data);
-        // console.log(response.data);
+        const response = await authApi.post('/api/single/code/verify', data);
+        console.log(response.data);
         return response.data;
     } catch (e) {
         // console.error("기록저장 API 요청 실패",e);

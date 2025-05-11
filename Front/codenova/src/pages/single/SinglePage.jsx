@@ -100,7 +100,7 @@ const SinglePage = () => {
     useEffect(() => {
         if (lang) {
             singleLangCode(lang)
-            // getLangCode(476) //476 : h만 있음
+            // getLangCode(12) //476 : h만 있음
                 .then(data => {
                     // console.log("api 결과", data);            
                     const { lines , space, charCount } = processCode(data.content);
@@ -133,10 +133,10 @@ const SinglePage = () => {
     const handleKeyDown = (e) => {
         const newLog = {
             key: e.key,
-            time: Date.now(),
+            timestamp: Date.now(),
         };
         keyLogsRef.current.push(newLog)
-        console.log("입력된 키", newLog.key)
+        // console.log("입력된 키", newLog.key)
 
         setLogCount((prev) => prev + 1);
 
@@ -207,14 +207,14 @@ const SinglePage = () => {
 
         const data = {
             codeId : codeId,
+            language : lang.toUpperCase(),
             keyLogs : keyLogsRef.current 
         }
         try {
             const response = await verifiedRecord(data);
             const {code, message} = response.status;
             if (code === 200){
-                setCpm(response.content.speed)
-                setElapsedTime(response.content.elapsedTime)
+                setCpm(response.content.typingSpeed * 5)
                 await postResult(response.content.verifiedToken)
             } else{
                 alert("🤬 메크로 썼니??")
@@ -234,8 +234,10 @@ const SinglePage = () => {
             if (code === 200) {
                 if (response.content.isNewRecord) {
                     alert(message);
-
                 }
+            }
+            else if (code === 400) {
+                console.log("비정상적인 접근입니다.")
             }
         } catch (e) {
             console.error("postResult error:", e);
@@ -248,7 +250,7 @@ const SinglePage = () => {
 
         if( lines.length > 0 && currentLineIndex === lines.length) {
             
-            if (userType == "member") {
+            if (userType === "member") {
                 verifiedResult();
             }
             setIsFinished(true);
@@ -320,9 +322,9 @@ const SinglePage = () => {
         setWrongChar(hasWrongChar);
     }
 
-    useEffect(() => {
-        console.log(keyLogsRef.current)
-    },[logCount])
+    // useEffect(() => {
+    //     console.log(keyLogsRef.current)
+    // },[logCount])
 
 
     return (
