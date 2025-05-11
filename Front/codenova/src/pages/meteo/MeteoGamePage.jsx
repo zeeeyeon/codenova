@@ -8,7 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getSocket } from "../../sockets/socketClient";
 import EndGameBtn from "../../assets/images/end_game_button.png";
 import ConfirmModal from "../../components/modal/ConfirmModal";
-import { exitMeteoGame, exitMeteoRoom, offUserInput, onCheckText, onCheckTextResponse, onGameEnd,  onRemoveHeartResponse, onUserInput, onUserInputResponse } from "../../sockets/meteoSocket";
+import { exitMeteoGame, exitMeteoRoom, offUserInput, onCheckText, onCheckTextResponse, onExitMeteoGame, onGameEnd,  onRemoveHeartResponse, onUserInput, onUserInputResponse } from "../../sockets/meteoSocket";
 import GameResultModal from "../../components/modal/GameResultModal";
 import redHeart from "../../assets/images/red_heart.png";
 import blackHeart from "../../assets/images/black_heart.png";
@@ -447,13 +447,30 @@ const MeteoGamePage = () => {
           results={gameResult.results}
           success={gameResult.success}
           onExit={() => {
+            const roomId = localStorage.getItem("roomId");
+            const nickname = localStorage.getItem("nickname");
+            console.log("🟨 [GameResultModal 종료] onExit 실행", { roomId, nickname });
+            // if (!roomId || !nickname) {
+            //   console.warn("❗ roomId 또는 nickname 누락 → 강제 메인 이동");
+            //   navigate("/main");
+            //   return;
+            // }
+            exitMeteoGame({ roomId, nickname })
             localStorage.removeItem("roomId");
             localStorage.removeItem("roomCode");
             navigate("/main");
+
+            // // 브로드캐스트 수신 후 이동
+            // onExitMeteoGame((data) => {
+            //   console.log("🟨 [onExitMeteoGame 수신] 게임 종료 처리", data);
+            //   localStorage.removeItem("roomId");
+            //   localStorage.removeItem("roomCode");
+            //   localStorage.removeItem("nickname");
+            //   navigate("/main");
+            // }, 300);
           }}
           onRetry={() => {
-            // 재도전 로직 (예: navigate to waiting room or emit retry)
-            window.location.reload(); // 임시로 새로고침
+            window.location.reload(); // 필요 시 재도전 로직 수정 가능
           }}
         />
       )}
