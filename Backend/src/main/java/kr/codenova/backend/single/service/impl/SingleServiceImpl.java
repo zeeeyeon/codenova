@@ -59,31 +59,31 @@ public class SingleServiceImpl implements SingleService {
                 .orElseThrow(() -> new CustomException(CODE_NOT_FOUND));
     }
 
-    @Override
-    public boolean saveTypingSpeed(int memberId, SingleCodeResultRequest request) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND_USER));
-
-        double newSpeed = request.speed();
-        Language language = request.language();
-
-
-        return typingSpeedRepository.findByMemberIdAndLanguage(memberId, request.language())
-                .map(existing -> {
-                    if (existing.isUpdatable(newSpeed)) {
-                        existing.updateSpeed(newSpeed);
-                        typingSpeedRepository.save(existing);
-                        redisRankingService.saveTypingSpeed(language, member.getMemberId(), member.getNickname(), newSpeed);
-                        return true;
-                    }
-                    return false;
-                })
-                .orElseGet(() -> {
-                    typingSpeedRepository.save(TypingSpeed.create(memberId, language, newSpeed));
-                    redisRankingService.saveTypingSpeed(language, member.getMemberId(), member.getNickname(), newSpeed);
-                    return true;
-                });
-    }
+//    @Override
+//    public boolean saveTypingSpeed(int memberId, SingleCodeResultRequest request) {
+//        Member member = memberRepository.findById(memberId)
+//                .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND_USER));
+//
+//        double newSpeed = request.speed();
+//        Language language = request.language();
+//
+//
+//        return typingSpeedRepository.findByMemberIdAndLanguage(memberId, request.language())
+//                .map(existing -> {
+//                    if (existing.isUpdatable(newSpeed)) {
+//                        existing.updateSpeed(newSpeed);
+//                        typingSpeedRepository.save(existing);
+//                        redisRankingService.saveTypingSpeed(language, member.getMemberId(), member.getNickname(), newSpeed);
+//                        return true;
+//                    }
+//                    return false;
+//                })
+//                .orElseGet(() -> {
+//                    typingSpeedRepository.save(TypingSpeed.create(memberId, language, newSpeed));
+//                    redisRankingService.saveTypingSpeed(language, member.getMemberId(), member.getNickname(), newSpeed);
+//                    return true;
+//                });
+//    }
 
 
     @Override
