@@ -7,6 +7,7 @@ import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
 import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
 import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
+import kr.codenova.backend.multi.exception.UserNotInRoomException;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,7 +30,7 @@ public interface RoomService {
     public Collection<Room> getAllRooms();
 
     // 방 나가기 처리
-    public void leaveRoom(LeaveRoomRequest request, SocketIOClient client);
+    public void leaveRoom(LeaveRoomRequest request, SocketIOClient client) throws UserNotInRoomException;
 
     // 룸 코드 생성
     public String generatedRoomCode();

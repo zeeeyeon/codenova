@@ -15,10 +15,7 @@ import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
 import kr.codenova.backend.multi.dto.response.CreateRoomResponse;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
 import kr.codenova.backend.multi.dto.response.RoomStatusResponse;
-import kr.codenova.backend.multi.exception.AlreadyStartException;
-import kr.codenova.backend.multi.exception.InvalidPasswordException;
-import kr.codenova.backend.multi.exception.RoomFullException;
-import kr.codenova.backend.multi.exception.RoomNotFoundException;
+import kr.codenova.backend.multi.exception.*;
 import kr.codenova.backend.multi.room.Room.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -81,6 +78,8 @@ public class RoomServiceImpl implements RoomService {
                 log.error("Disconnect 처리 중 방을 찾을 수 없음: {}", roomId);
             } catch (Exception e) {
                 log.error("Disconnect 처리 중 오류 발생", e);
+            } catch (UserNotInRoomException e) {
+                log.error("해당 유저는 방에 속해있는 유저가 아닙니다.");
             } finally {
                 // 세션 정보 정리
                 userSessionMap.remove(sessionId);
@@ -231,84 +230,79 @@ public class RoomServiceImpl implements RoomService {
      * 4. 퇴장하는 유저의 세션-방 매핑 정보를 삭제합니다.
      * 5. 기존 로직대로 퇴장 알림, 방 나가기, 방 업데이트/삭제 처리를 수행합니다.
      */
-    public void leaveRoom(LeaveRoomRequest request, SocketIOClient client) {
+    public void leaveRoom(LeaveRoomRequest request, SocketIOClient client) throws UserNotInRoomException {
         Room room = roomMap.get(request.getRoomId());
         if (room == null) {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
 
-        // ✅ 현재 인원 감소
-        room.setCurrentCount(Math.max(room.getCurrentCount() - 1, 0));
-
-        // 방장 권한 위임 처리
+        // 현재 유저 정보 가져오기
         UserStatus userStatus = room.getUserStatusMap().get(request.getNickname());
-
+        if (userStatus == null) {
+            throw new UserNotInRoomException("해당 유저는 방에 속해있는 유저가 아닙니다.");
+        }
         boolean isHost = userStatus.isHost();
-        // ✅ 클라이언트 방 나가기
+
+        // 클라이언트 방 나가기
         client.leaveRoom(request.getRoomId());
-        String newHostNickname = null;
 
+        // 유저 준비 상태 및 입장 시간 정보 제거
+        room.getUserJoinTimes().remove(request.getNickname());
+        room.getUserStatusMap().remove(request.getNickname());
+        userSessionMap.remove(client.getSessionId().toString());
 
+        // 현재 인원 수 계산 (유저 제거 이후)
+        int currentCount = room.getUserStatusMap().size();
 
-        if (isHost && room.getCurrentCount() > 0) {
-            room.getUserStatusMap().remove(request.getNickname());
-
-            // 방장이 나가고 다른 유저가 남아있는 경우, 가장 먼저 입장한 유저에게 방장 권한 위임
+        // 방장 권한 위임
+        if (isHost && currentCount > 0) {
             Map<String, Long> joinTimes = room.getUserJoinTimes();
 
-            // 방장을 제외한 유저 중 가장 입장 시간이 빠른 유저 찾기
-            newHostNickname = joinTimes.entrySet().stream()
-                    .filter(entry -> !entry.getKey().equals(request.getNickname()))
-                    .min(Map.Entry.comparingByKey()) // 입장 시간이 가장 빠른 유저
+            String newHostNickname = joinTimes.entrySet().stream()
+                    .min(Map.Entry.comparingByValue()) // 입장 시간 기준
                     .map(Map.Entry::getKey)
                     .orElse(null);
 
-
-
             if (newHostNickname != null) {
-                // 새 방장 설정
                 UserStatus newHostStatus = room.getUserStatusMap().get(newHostNickname);
+                if (newHostStatus == null) {
+                    throw new UserNotFoundException("방장으로 임명할 유저가 없습니다.");
+                }
                 newHostStatus.setHost(true);
                 newHostStatus.setReady(true);
                 log.info("방장 권한 위임: {} -> {}, 방: {}",
                         request.getNickname(), newHostNickname, request.getRoomId());
 
                 RoomStatusResponse roomStatusResponse = new RoomStatusResponse(room);
-
-
                 getServer().getRoomOperations(request.getRoomId())
                         .sendEvent("host_changed", roomStatusResponse);
             }
         }
 
-        // 유저 준비 상태 및 입장 시간 정보 제거
-        room.getUserStatusMap().remove(request.getNickname());
-        room.getUserJoinTimes().remove(request.getNickname());
-
-        // userRoomMap에서 사용자 정보 제거
-        userSessionMap.remove(client.getSessionId().toString());
-        // ✅ [추가] 퇴장 알림 - 본인 제외하고 전송
+        // 퇴장 알림 (본인 제외)
         getServer().getRoomOperations(request.getRoomId())
                 .getClients()
                 .stream()
-                .filter(c -> !c.getSessionId().equals(client.getSessionId())) // 본인 제외
-                .forEach(otherClient ->
-                        otherClient.sendEvent("leave_notice", new NoticeBroadcast(
-                                request.getRoomId(),
-                                request.getNickname(),
-                                request.getNickname() + "님이 퇴장했습니다."
-                        ))
-                );
+                .filter(c -> !c.getSessionId().equals(client.getSessionId()))
+                .forEach(otherClient -> otherClient.sendEvent("leave_notice", new NoticeBroadcast(
+                        request.getRoomId(),
+                        request.getNickname(),
+                        request.getNickname() + "님이 퇴장했습니다."
+                )));
 
-        // ✅ 방 삭제 or 업데이트 브로드캐스트
-        if (room.getCurrentCount() == 0) {
+        // 방 삭제 or 브로드캐스트
+        if (currentCount == 0) {
             roomMap.remove(request.getRoomId());
             getServer().getBroadcastOperations().sendEvent("room_removed", request.getRoomId());
+        } else if (currentCount == 1) {
+            RoomStatusResponse roomStatusResponse = new RoomStatusResponse(room);
+            getServer().getRoomOperations(request.getRoomId()).sendEvent("room_one_person", roomStatusResponse);
         } else {
             RoomUpdateBroadcast updated = RoomUpdateBroadcast.from(room);
             getServer().getBroadcastOperations().sendEvent("room_update", updated);
         }
     }
+
 
     public String generatedRoomCode() {
         return UUID.randomUUID().toString().substring(0,6).toUpperCase();
