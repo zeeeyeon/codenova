@@ -636,7 +636,7 @@ const MeteoLandingPage = () => {
             src={ExitButton}
             alt="exit"
             onClick={handleExitRoom}
-            className="absolute bottom-3 right-[0rem] w-[8rem] cursor-pointer z-50
+            className="absolute bottom-3 right-[0rem] w-[8rem] cursor-pointer z-30
         transition-all duration-150 hover:brightness-110 hover:scale-105 active:scale-95"
           />
         </div>

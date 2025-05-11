@@ -116,7 +116,7 @@ export const onCheckText = ({ roomId, nickname, text }) => {
 // 입력한 단어 정답인 지 브로드캐스트 수신
 export const onCheckTextResponse = (callback) => {
   getSocket().on("textCheck", (data) => {
-    // console.log("[onCheckTextResponse] checkTextResponse 수신", data);
+    console.log("[onCheckTextResponse] checkTextResponse 수신", data);
     callback(data);
   });
 };
@@ -124,7 +124,7 @@ export const onCheckTextResponse = (callback) => {
 // 게임 종료 후 결과 수신
 export const onGameEnd = (callback) => {
   getSocket().on("gameEnd", (data) => {
-    // console.log("[onGameEnd] gameEnd 수신", data);
+    console.log("[onGameEnd] gameEnd 수신", data);
     callback(data);
   });
 };
@@ -132,7 +132,7 @@ export const onGameEnd = (callback) => {
 // 단어가 땅에 도달 수신
 export const onRemoveHeartResponse = (callback) => {
   getSocket().on("lostLife", (data) => {
-    // console.log("[onRemoveHeartResponse] lostLife 수신", data);
+    console.log("[onRemoveHeartResponse] lostLife 수신", data);
     callback(data);
   });
 };
@@ -214,6 +214,27 @@ export const onGameReady = (callback) => {
   //  }
     callback(data);
   });
+};
+
+
+// 대기방 
+export const goWaitingRoom = ({nickname, roomId}) => {
+  getSocket().emit("goWaitingRoom", { nickname, roomId });
+  console.log("[goWaitingRoom] goWaitingRoom emit 보냄", { nickname, roomId });
+};
+
+// 대기방 on
+export const onGoWaitingRoom = (callback) => {
+  getSocket().on("waitingRoomGo", (data) => {
+    console.log("[onGoWaitingRoom] goWaitingRoom 수신", data);
+    callback(data);
+  });
+};
+
+
+// 대기방 off
+export const offGoWaitingRoom = () => {
+  getSocket().off("waitingRoomGo");
 };
 
 
