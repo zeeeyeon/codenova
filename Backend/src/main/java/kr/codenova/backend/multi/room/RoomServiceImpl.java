@@ -310,10 +310,14 @@ public class RoomServiceImpl implements RoomService {
         } else if (room.getCurrentCount() == 1) {
             RoomStatusResponse roomStatusResponse = new RoomStatusResponse(room);
             getServer().getRoomOperations(request.getRoomId()).sendEvent("room_one_person", roomStatusResponse);
+            RoomUpdateBroadcast updated = RoomUpdateBroadcast.from(room);
+            getServer().getBroadcastOperations().sendEvent("room_update", updated);
+        } else {
+            RoomUpdateBroadcast updated = RoomUpdateBroadcast.from(room);
+            getServer().getBroadcastOperations().sendEvent("room_update", updated);
         }
 
-        RoomUpdateBroadcast updated = RoomUpdateBroadcast.from(room);
-        getServer().getBroadcastOperations().sendEvent("room_update", updated);
+
 
     }
 
