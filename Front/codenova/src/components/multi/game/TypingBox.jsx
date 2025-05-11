@@ -282,19 +282,34 @@ const TypingBox = ({
 
     if (e.key === "Enter") {
       if (trimmedUserInput === trimmedCurrentLine) {
-        if (currentLine === lines.length - 1) {
-          onFinish?.();
+        const isLastLine = currentLine === lines.length - 1;
+    
+        if (isLastLine) {
+          const socket = getSocket();
+          if (socket && nickname && roomId) {
+            socket.emit("progress_update", {
+              roomId,
+              nickname,
+              progressPercent: 100,
+              time: elapsedTime,
+            }); // ✅ time 보내는 유일한 위치
+          }
+    
+          onFinish?.(); // 게임 종료 처리
         }
+    
         setCurrentLine((prev) => prev + 1);
-        codeContainerRef.current.scrollLeft = 0; // 전줄에서 오른쪽 스클롤 한게 있으면 돌려야함
         setUserInput("");
+        codeContainerRef.current.scrollLeft = 0;
       } else {
         setShake(true);
         setTimeout(() => setShake(false), 500);
       }
+    
       e.preventDefault();
     }
   };
+    
 
   useEffect(() => {
     // if (currentLineRef.current) {
@@ -347,20 +362,23 @@ const TypingBox = ({
     if (progressPercent > prevProgressRef.current) {
       prevProgressRef.current = progressPercent;
   
-      const payload = {
-        roomId,
-        nickname,
-        progressPercent,
+      // const payload = {
+      //   roomId,
+      //   nickname,
+      //   progressPercent,
 
-      };
+      // };
   
-      // 100%일 때만 time 추가
-      if (progressPercent === 100) {
-        payload.time = elapsedTime;
-        
-      }
+      // // 100%일 때만 time 추가
+      // if (progressPercent === 100 && currentLine === lines.length - 1 && trimmedUserInput === trimmedCurrentLine) {
+      //   payload.time = elapsedTime;
+      // }
+      
       // console.log("🍳progress_update : ", payload);
-      socket.emit("progress_update", payload);
+      socket.emit("progress_update",       
+        {roomId,
+        nickname,
+        progressPercent});
     }
   }, [userInput, currentLine]);
 
