@@ -23,9 +23,9 @@ export const calculateWPM = (totalTypedChars, elapsedSeconds) => {
 */
 export const calculateCPM = (totalTypedChars, elapsedSeconds) => {
     if (elapsedSeconds === 0) return 0;
-    // return Math.floor((totalTypedChars / elapsedSeconds) * 60);
-    return  Math.floor((totalTypedChars / elapsedSeconds) * 60 * 100000) /100000;
+    const minutes = elapsedSeconds / 60;
 
+    return Math.floor(totalTypedChars / minutes)
 };
 
 
