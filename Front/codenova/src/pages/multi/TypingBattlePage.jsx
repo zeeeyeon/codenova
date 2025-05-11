@@ -52,9 +52,9 @@ const TypingBattlePage = () => {
     }));
   });
 
-  // useEffect(() => {
-  //   console.log("🔥 TypingBattlePage 초기 users 상태:", state?.users);
-  // }, []);
+  useEffect(() => {
+    console.log("🔥 TypingBattlePage 초기 users 상태:", state?.users);
+  }, []);
 
   // 카운트다운
   useEffect(() => {
@@ -231,7 +231,7 @@ const TypingBattlePage = () => {
       console.log("🏁 finish_notice 수신:", nickname);
   
       setFirstFinisher(nickname); // 표시용
-      if (!roundEnded) {
+      if (finisherNickname === nickname && !roundEnded) {
         handleFinish(); // ✅ 중복 방지
       }
     };
@@ -261,19 +261,17 @@ const TypingBattlePage = () => {
   
             if (data.round < 3) {
               console.log("🍆 round_start emit");
-              const host = users.find((u) => u.isHost);
-              if (host?.nickname === nickname) {
-                // 내가 방장이면 round_start emit
-                socket.emit("round_start", {
-                  roomId,
-                  nickname,
-                });
-              }
               setCountdown(5);
               setGameStarted(false);
               setRoundEnded(false);
               setFirstFinisher(null);
               setTargetCode("");
+              console.log("🎙️ round_start emit 시도:", { roomId, nickname});
+              socket.emit("round_start", {
+                roomId,
+                nickname,
+              });
+            
             }
 
           }
