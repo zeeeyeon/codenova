@@ -180,7 +180,7 @@ public class TypingSession {
                 case "Shift", "Alt", "Control", "Meta", "Tab", "CapsLock",
                      "ArrowUp", "ArrowDown", "Escape", "Insert", "Delete",
                      "Home", "End", "PageUp", "PageDown", "NumLock", "ScrollLock",
-                     "PrintScreen", "ContextMenu", "HanjaMode", "HangulMode",
+                     "PrintScreen", "ContextMenu", "HanjaMode", "HangulMode", "Process",
                      "F1", "F2", "F3", "F4", "F6", "F7", "F8", "F9", "F10", "F11", "F12" -> {
                     // 무시
                 }
