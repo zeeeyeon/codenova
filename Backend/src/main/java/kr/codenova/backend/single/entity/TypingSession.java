@@ -125,6 +125,13 @@ public class TypingSession {
 
     private double calculateAccuracy() {
 
+        log.info("📋 KeyLogs 전체 출력 시작 ======================");
+        for (int i = 0; i < keyLogs.size(); i++) {
+            KeyLog logEntry = keyLogs.get(i);
+            log.info("[{}] key: '{}', timestamp: {}", i, logEntry.key(), logEntry.timestamp());
+        }
+        log.info("📋 KeyLogs 전체 출력 끝 ========================");
+
         List<StringBuilder> lines = new ArrayList<>();
         lines.add(new StringBuilder());
 
@@ -153,7 +160,12 @@ public class TypingSession {
                 case "Enter" -> {
                     String currentInput = currentLine.toString().trim();
                     String expected = expectedLines.lines().get(lineCursor).trim();
+
+                    log.info("[줄 {} 입력 완료] 입력값: '{}'", lineCursor, currentInput);
+                    log.info("[줄 {} 기대값] 기대값: '{}'", lineCursor, expected);
+
                     if (currentInput.equals(expected)){
+                        log.info("✅ 줄 {} 일치! match += {}", lineCursor, expected.length());
                         // 줄 전환 커서 초기화
                         lineCursor++;
                         charCursor = 0;
@@ -162,6 +174,7 @@ public class TypingSession {
 
                     } else {
                         // 틀렸으면 가만히 있기
+                        log.info("❌ 줄 {} 불일치! 줄 이동 없음", lineCursor);
                     }
                 }
                 case "Shift", "Alt", "Control", "Meta", "Tab", "CapsLock",
@@ -174,9 +187,11 @@ public class TypingSession {
                 default -> {
                     currentLine.insert(charCursor, key);
                     charCursor++;
+                    log.debug("입력 키: '{}', 현재 줄: '{}', 커서 위치: {}", key, currentLine.toString(), charCursor);
                 }
             }
         }
+        log.info("최종 match: {}, 전체 정답 길이: {}", match, expectedLines.correctLength());
         return ((double) match / expectedLines.correctLength()) * 100.0;
     }
 
