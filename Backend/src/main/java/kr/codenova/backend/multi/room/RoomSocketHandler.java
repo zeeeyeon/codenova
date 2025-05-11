@@ -10,6 +10,7 @@ import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import kr.codenova.backend.global.socket.SocketEventHandler;
 import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
+import kr.codenova.backend.multi.exception.UserNotInRoomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -67,6 +68,8 @@ public class RoomSocketHandler implements SocketEventHandler {
                 roomService.leaveRoom(request, client);
             } catch (Exception e) {
                 client.sendEvent("error", new SocketErrorResponse("방 퇴장 실패"));
+            } catch (UserNotInRoomException e) {
+                throw new RuntimeException(e);
             }
         });
 
