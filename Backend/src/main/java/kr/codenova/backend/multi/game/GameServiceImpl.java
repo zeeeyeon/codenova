@@ -356,6 +356,9 @@ public class GameServiceImpl implements GameService {
             ));
         }
 
+        // ✅ score 기준으로 내림차순 정렬
+        results.sort((a, b) -> Integer.compare(b.getScore(), a.getScore()));
+
         return new RoundScoreBroadcast(room.getRoomId(), room.getRoundNumber(), results);
     }
 
