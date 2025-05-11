@@ -52,7 +52,7 @@ const MultiPage = () => {
     };
   
     const handleRoomUpdate = (updatedRoom) => {
-      // console.log("🟡 room_update 수신:", updatedRoom);
+      console.log("🟡 room_update 수신:", updatedRoom);
       const parsed = {
         id: updatedRoom.roomId,
         title: updatedRoom.title,

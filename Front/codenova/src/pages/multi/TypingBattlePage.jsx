@@ -231,7 +231,7 @@ const TypingBattlePage = () => {
       console.log("🏁 finish_notice 수신:", nickname);
   
       setFirstFinisher(nickname); // 표시용
-      if (!roundEnded) {
+      if (finisherNickname === nickname && !roundEnded) {
         handleFinish(); // ✅ 중복 방지
       }
     };
