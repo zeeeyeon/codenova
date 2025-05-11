@@ -133,7 +133,7 @@ const SinglePage = () => {
             timestamp: Date.now(),
         };
         keyLogsRef.current.push(newLog)
-        console.log("입력된 키", newLog.key)
+        // console.log("입력된 키", newLog.key)
 
         setLogCount((prev) => prev + 1);
 
