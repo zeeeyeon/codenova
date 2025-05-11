@@ -26,15 +26,16 @@ public class TypingSpeedService {
 
         return typingSpeedRepository.findByMemberIdAndLanguage(memberId, language)
                 .map(existing -> {
-                    double oldSpeed = existing.getTypingSpeed(); // 🔥 기존 값 따로 저장
+                    double oldSpeed = existing.getTypingSpeed();
                     boolean isNewRecord = newSpeed > oldSpeed;
+
                     if (isNewRecord) {
-                        existing.updateSpeed(newSpeed); // 내부 값 바뀜
+                        existing.updateSpeed(newSpeed);
                         typingSpeedRepository.save(existing);
                         redisRankingService.saveTypingSpeed(language, memberId, member.getNickname(), newSpeed);
                         log.info("속도 갱신됨 → 기존: {}, 새: {}", oldSpeed, newSpeed);
                     } else {
-                        log.info("갱신 안함 → 기존: {}, 새: {}", oldSpeed, newSpeed);
+                        log.info("속도 갱신 안함 → 기존: {}, 새: {}", oldSpeed, newSpeed);
                     }
                     return isNewRecord;
                 })
