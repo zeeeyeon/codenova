@@ -94,7 +94,7 @@ public class GameServiceImpl implements GameService {
                 3
         );
         room.setIsStarted(true);
-        room.setRoundNumber(1);
+        room.setRoundNumber(0);
         resetRoundData(room);
         room.setTotalScoreMap(new ConcurrentHashMap<>());
 
@@ -232,7 +232,6 @@ public class GameServiceImpl implements GameService {
                 RoundScoreBroadcast broadcast = buildRoundScoreBroadcast(room);
                 getServer().getRoomOperations(roomId)
                         .sendEvent("round_score", broadcast);
-                room.setRoundNumber(room.getRoundNumber() + 1);
                 resetRoundData(room);
             }
         }
@@ -301,7 +300,7 @@ public class GameServiceImpl implements GameService {
         getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("typing_start", broadcast);
 
-        room.setRoundNumber(room.getRoundNumber());
+        room.setRoundNumber(room.getRoundNumber()+1);
         resetRoundData(room);
     }
 
