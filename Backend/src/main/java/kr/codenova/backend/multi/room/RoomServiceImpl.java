@@ -243,23 +243,13 @@ public class RoomServiceImpl implements RoomService {
         }
         boolean isHost = userStatus.isHost();
 
-        // 클라이언트 방 나가기
-        client.leaveRoom(request.getRoomId());
-
-        // 유저 준비 상태 및 입장 시간 정보 제거
-        room.getUserJoinTimes().remove(request.getNickname());
-        room.getUserStatusMap().remove(request.getNickname());
-        userSessionMap.remove(client.getSessionId().toString());
-
-        // 현재 인원 수 계산 (유저 제거 이후)
-        int currentCount = room.getUserStatusMap().size();
-
-        // 방장 권한 위임
-        if (isHost && currentCount > 0) {
+        // ✅ 호스트 권한 위임 먼저 처리
+        if (isHost && room.getUserStatusMap().size() > 1) {
             Map<String, Long> joinTimes = room.getUserJoinTimes();
 
             String newHostNickname = joinTimes.entrySet().stream()
-                    .min(Map.Entry.comparingByKey()) // 입장 시간 기준
+                    .filter(entry -> !entry.getKey().equals(request.getNickname())) // 나가는 사람 제외
+                    .min(Map.Entry.comparingByValue()) // 입장 시간 기준
                     .map(Map.Entry::getKey)
                     .orElse(null);
 
@@ -270,6 +260,7 @@ public class RoomServiceImpl implements RoomService {
                 }
                 newHostStatus.setHost(true);
                 newHostStatus.setReady(true);
+
                 log.info("방장 권한 위임: {} -> {}, 방: {}",
                         request.getNickname(), newHostNickname, request.getRoomId());
 
@@ -278,6 +269,15 @@ public class RoomServiceImpl implements RoomService {
                         .sendEvent("host_changed", roomStatusResponse);
             }
         }
+
+        // ✅ 이후 나가는 유저 정보 제거
+        room.getUserJoinTimes().remove(request.getNickname());
+        room.getUserStatusMap().remove(request.getNickname());
+        userSessionMap.remove(client.getSessionId().toString());
+        client.leaveRoom(request.getRoomId());
+
+        // 남은 인원 수 계산
+        int currentCount = room.getUserStatusMap().size();
 
         // 퇴장 알림 (본인 제외)
         getServer().getRoomOperations(request.getRoomId())
@@ -290,7 +290,7 @@ public class RoomServiceImpl implements RoomService {
                         request.getNickname() + "님이 퇴장했습니다."
                 )));
 
-        // 방 삭제 or 브로드캐스트
+        // 방 상태 처리
         if (currentCount == 0) {
             roomMap.remove(request.getRoomId());
             getServer().getBroadcastOperations().sendEvent("room_removed", request.getRoomId());
@@ -302,6 +302,7 @@ public class RoomServiceImpl implements RoomService {
             getServer().getBroadcastOperations().sendEvent("room_update", updated);
         }
     }
+
 
 
     public String generatedRoomCode() {
