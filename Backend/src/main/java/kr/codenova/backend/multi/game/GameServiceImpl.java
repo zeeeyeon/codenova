@@ -163,6 +163,10 @@ public class GameServiceImpl implements GameService {
         int progress = request.getProgressPercent();
         Integer time = request.getTime(); // 밀리초 기준
 
+        // ✅ 현재 진행 상황 브로드캐스트
+        getServer().getRoomOperations(request.getRoomId())
+                .sendEvent("progress_update", request);
+
         // ✅ 유효한 시간인지 검사 (null 또는 0 이하 방지)
         if (progress >= 100 && time != null && time > 0) {
             double seconds = time / 1000.0;
@@ -184,9 +188,7 @@ public class GameServiceImpl implements GameService {
             }
         }
 
-        // ✅ 현재 진행 상황 브로드캐스트
-        getServer().getRoomOperations(request.getRoomId())
-                .sendEvent("progress_update", request);
+
     }
 
     @Async
