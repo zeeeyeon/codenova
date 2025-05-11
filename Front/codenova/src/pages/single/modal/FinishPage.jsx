@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 // import CsWordSelectPage from './CsWordSelectPage'
 
-const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words, onRestart}) => {
+const FinishPage = ({ codeId, lang, cpm, elapsedTime}) => {
 
     const navigate = useNavigate();
 
@@ -23,58 +23,6 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words, onR
         setUserType(auth?.state?.user?.userType);
 
     }, [])
-
-    const saveRecord = async () => {
-        setIsApiLoading(true);
-
-        const data = {
-            codeId : codeId,
-            language : lang.toUpperCase(),
-            time : elapsedTime,
-            speed : cpm
-        }
-        try {
-            const response = await postRecord(data);
-            const {code, message} = response.status;
-            if (code === 200){
-                if (response.content.isNewRecord) {
-                    alert(message);
-                }
-            } else{
-                alert("기록 저장에 실패하였습니다.")
-            }
-        } 
-        catch (e) {
-            alert("서버 오류로 인해 기록을 저장할 수 없습니다.");
-        }finally {
-            setIsApiLoading(false);  
-        } 
-    }
-
-    // 다시 하기
-    const handleRestartClick = async () => {
-
-        if (userType !== "guest"){
-            await saveRecord()
-        }
-        // onRestart(); // 부모에서 상태 초기화
-        window.location.reload(); // 🔁 새로고침
-    }
-
-
-    // 그만하기
-    const handleConfirmClick = async () => {
-
-        if (userType === "guest") {
-            alert("비회원은 기록을 저장할 수 없습니다.")
-            navigate("/single/select/language"); 
-            return;
-        }
-        await saveRecord();
-        navigate("/single/select/language");
-
-        
-    };
 
     return (
         <div     
@@ -126,12 +74,12 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, isCS, category, words, onR
                             src={restartBtn}
                             alt="다시하기"
                             className={`w-full max-w-[200px] rounded-3xl transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94] ${isApiLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            onClick={handleRestartClick}
+                            onClick={() => window.location.reload()}
                             style={{ pointerEvents: isApiLoading ? 'none' : 'auto' }} // 비활성화 시 클릭 방지
                         />
                         <img
                             src={stopBtn}
-                            onClick={handleConfirmClick}
+                            onClick={() => navigate("/single/select/language")}
                             alt="확인"
                             className={`w-full max-w-[200px] rounded-3xl transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94] ${isApiLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             style={{ pointerEvents: isApiLoading ? 'none' : 'auto' }} // 비활성화 시 클릭 방지

@@ -20,9 +20,7 @@ import ProgressBox from '../../components/single/ProgressBox'
 import { calculateCPM, getProgress, processCode, compareInputWithLineEnter, compareInputWithLine, calculateCurrentLineTypedChars } from '../../utils/typingUtils';
 import FinishPage from '../single/modal/FinishPage';
 
-import { singleLangCode, getLangCode } from '../../api/singleApi'
-import { createSingleRoom, emitGameStart, onceGameEnd, exitSingleGame, inputText, speedUpdate } from '../../sockets/singleSocket'
-import useAuthStore from '../../store/authStore';
+import { singleCsCode, singleLangCode, getLangCode } from '../../api/singleApi'
 
 // 등록
 hljs.registerLanguage('java', java);
@@ -34,10 +32,10 @@ hljs.registerLanguage('sql', sql);
 const SinglePage = () => {
 
     const navigate = useNavigate();
+    const location = useLocation();
+    const query = new URLSearchParams(location.search);
+    const category = query.get('category') // "DATABASE", "NETWORK", "OS", "DATA_STRUCTURE", "COMPUTER_STRUCTURE"
     const { lang } = useParams();
-
-    const nickname = useAuthStore((state) => state.user?.nickname);
-
 
 
     // 코드 입력 관련 상태관리
@@ -73,7 +71,10 @@ const SinglePage = () => {
 
     // 자동으로 내려가게
     const codeContainerRef = useRef(null);
-    
+
+    const [CScode, setCScode] = useState([]);
+    const [isCs , setIsCs] = useState(false);
+
     useEffect(() => {
         if (inputAreaRef.current) {
             inputAreaRef.current.focus();
@@ -115,21 +116,45 @@ const SinglePage = () => {
 
     useEffect(() => {
         if (lang) {
-            const upperLang = lang.toUpperCase()
-            createSingleRoom(
-                { upperLang , nickname},
-                (code) => {
-                    const {lines, space, charCount} = processCode(code);
-                    setLines(lines);
-                    setSpace(space);
-                    setlinesCharCount(charCount);
-                },
-                (e) => {
-                    console.log("코드 못불러옴", e)
-                }
-            )
+            if (lang === 'cs') {
+                setIsCs(true);
+                singleCsCode(category)
+                    .then(data => {
+                        setCScode(data);
+                    })
+                    .catch(e => {
+                        // console.error("api 요청 실패:" , e)
+                    })
+            } else {
+                setIsCs(false);
+                singleLangCode(lang)
+                // getLangCode(476) //476 : h만 있음
+                    .then(data => {
+                        // console.log("api 결과", data);            
+                        const { lines , space, charCount } = processCode(data.content);
+                        setCodeId(data.codeId);
+                        setLines(lines);
+                        setSpace(space);
+                        setlinesCharCount(charCount)
+                    })
+                    .catch(e => {
+                        // console.error("api 요청 실패:" , e)
+                    })
+                
+            }
+
         }
     },[lang])
+
+    useEffect(() => {
+        if (!Array.isArray(CScode)) return;
+
+        // console.log(CScode);
+        // const allLines = CScode.map((item) => `${item.keyword} - ${item.content}`);
+        //     setLines(allLines); // 하나의 배열로 상태 저장
+        const allLines = CScode.map((item) => `${item.keyword} - ${item.content}`);
+            setLines(allLines); // 하나의 배열로 상태 저장
+    }, [CScode])
 
     const getLanguageClass = (lang) => {
         if (!lang) {
@@ -437,6 +462,7 @@ const SinglePage = () => {
                         lang = {lang}
                         cpm = {cpm}
                         elapsedTime = {elapsedTime}
+                        isCS = {lang === 'cs'}
                         onRestart={resetGame}
                     />
                 </div>
