@@ -44,6 +44,10 @@ public enum ResponseCode {
     INVALID_TOKEN_FORMAT(401, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰 형식입니다."),
     MISSING_MANDATORY_CLAIMS(400, HttpStatus.BAD_REQUEST, "토큰에 필수 클레임이 없습니다."),
     SUCCESS_CREATE_ROOM(201, HttpStatus.CREATED, "성공적으로 방이 생성되었습니다."),
+    EXPIRED_VERIFIED_TOKEN(400, HttpStatus.BAD_REQUEST, "토큰이 만료되었습니다."),
+    INVALID_VERIFIED_TOKEN(400, HttpStatus.BAD_REQUEST, "토큰이 유효하지 않습니다."),
+
+
 
     BINDING_ERROR(2000, HttpStatus.BAD_REQUEST, "입력값 중 검증에 실패한 값이 있습니다."),
     BAD_REQUEST(2001, HttpStatus.BAD_REQUEST, "올바르지 않은 요청입니다."),

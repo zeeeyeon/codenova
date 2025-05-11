@@ -1,12 +1,11 @@
 package kr.codenova.backend.single.service;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import kr.codenova.backend.common.enums.Language;
+import kr.codenova.backend.global.exception.CustomException;
+import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.single.dto.VerifiedScorePayload;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -57,8 +56,10 @@ public class VerifiedScoreTokenProvider {
                     claims.get("typingSpeed", Double.class)
             );
 
-        } catch (JwtException e) {
-            throw new IllegalArgumentException("Invalid or expired verifiedToken", e);
+        } catch (ExpiredJwtException e) {
+            throw new CustomException(ResponseCode.EXPIRED_VERIFIED_TOKEN);
+        } catch (Exception e) {
+            throw new CustomException(ResponseCode.INVALID_VERIFIED_TOKEN);
         }
     }
 }
