@@ -56,7 +56,7 @@ public class TypingSession {
         double accuracy = calculateAccuracy();
 
         // 긴 멈춤 없는 경우
-        boolean noPauseDetected = intervals.stream().noneMatch(i -> i > 1000);  // 1초 이상 쉬는 구간 없음
+        boolean noPauseDetected = intervals.stream().noneMatch(i -> i > 1000);
 
         // 의심 조건들
         boolean tooFast = avg < 50;
