@@ -259,7 +259,7 @@ public class RoomServiceImpl implements RoomService {
             Map<String, Long> joinTimes = room.getUserJoinTimes();
 
             String newHostNickname = joinTimes.entrySet().stream()
-                    .min(Map.Entry.comparingByValue()) // 입장 시간 기준
+                    .min(Map.Entry.comparingByKey()) // 입장 시간 기준
                     .map(Map.Entry::getKey)
                     .orElse(null);
 
