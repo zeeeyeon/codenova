@@ -236,76 +236,88 @@ public class RoomServiceImpl implements RoomService {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
 
-        // 현재 유저 정보 가져오기
+        // ✅ 현재 인원 감소
+        room.setCurrentCount(Math.max(room.getCurrentCount() - 1, 0));
+
+        // 방장 권한 위임 처리
         UserStatus userStatus = room.getUserStatusMap().get(request.getNickname());
         if (userStatus == null) {
             throw new UserNotInRoomException("해당 유저는 방에 속해있는 유저가 아닙니다.");
         }
-        boolean isHost = userStatus.isHost();
 
-        // ✅ 호스트 권한 위임 먼저 처리
-        if (isHost && room.getUserStatusMap().size() > 1) {
+        boolean isHost = userStatus.isHost();
+        // ✅ 클라이언트 방 나가기
+        client.leaveRoom(request.getRoomId());
+        String newHostNickname = null;
+
+
+        if (isHost && room.getCurrentCount() > 0) {
+            room.getUserStatusMap().remove(request.getNickname());
+
+            // 방장이 나가고 다른 유저가 남아있는 경우, 가장 먼저 입장한 유저에게 방장 권한 위임
             Map<String, Long> joinTimes = room.getUserJoinTimes();
 
-            String newHostNickname = joinTimes.entrySet().stream()
-                    .filter(entry -> !entry.getKey().equals(request.getNickname())) // 나가는 사람 제외
-                    .min(Map.Entry.comparingByValue()) // 입장 시간 기준
+            // 방장을 제외한 유저 중 가장 입장 시간이 빠른 유저 찾기
+            newHostNickname = joinTimes.entrySet().stream()
+                    .filter(entry -> !entry.getKey().equals(request.getNickname()))
+                    .min(Map.Entry.comparingByValue()) // 입장 시간이 가장 빠른 유저
                     .map(Map.Entry::getKey)
                     .orElse(null);
 
+
             if (newHostNickname != null) {
+                // 새 방장 설정
                 UserStatus newHostStatus = room.getUserStatusMap().get(newHostNickname);
                 if (newHostStatus == null) {
                     throw new UserNotFoundException("방장으로 임명할 유저가 없습니다.");
                 }
                 newHostStatus.setHost(true);
                 newHostStatus.setReady(true);
-
                 log.info("방장 권한 위임: {} -> {}, 방: {}",
                         request.getNickname(), newHostNickname, request.getRoomId());
 
                 RoomStatusResponse roomStatusResponse = new RoomStatusResponse(room);
+
+
                 getServer().getRoomOperations(request.getRoomId())
                         .sendEvent("host_changed", roomStatusResponse);
             }
         }
 
-        // ✅ 이후 나가는 유저 정보 제거
-        room.getUserJoinTimes().remove(request.getNickname());
+        // 유저 준비 상태 및 입장 시간 정보 제거
         room.getUserStatusMap().remove(request.getNickname());
+        room.getUserJoinTimes().remove(request.getNickname());
+
+        // userRoomMap에서 사용자 정보 제거
         userSessionMap.remove(client.getSessionId().toString());
-        client.leaveRoom(request.getRoomId());
-
-        // 남은 인원 수 계산
-        int currentCount = room.getUserStatusMap().size();
-
-        // 퇴장 알림 (본인 제외)
+        // ✅ [추가] 퇴장 알림 - 본인 제외하고 전송
         getServer().getRoomOperations(request.getRoomId())
                 .getClients()
                 .stream()
-                .filter(c -> !c.getSessionId().equals(client.getSessionId()))
-                .forEach(otherClient -> otherClient.sendEvent("leave_notice", new NoticeBroadcast(
-                        request.getRoomId(),
-                        request.getNickname(),
-                        request.getNickname() + "님이 퇴장했습니다."
-                )));
+                .filter(c -> !c.getSessionId().equals(client.getSessionId())) // 본인 제외
+                .forEach(otherClient ->
+                        otherClient.sendEvent("leave_notice", new NoticeBroadcast(
+                                request.getRoomId(),
+                                request.getNickname(),
+                                request.getNickname() + "님이 퇴장했습니다."
+                        ))
+                );
 
-        // 방 상태 처리
-        if (currentCount == 0) {
+        // ✅ 방 삭제 or 업데이트 브로드캐스트
+        if (room.getCurrentCount() == 0) {
             roomMap.remove(request.getRoomId());
             getServer().getBroadcastOperations().sendEvent("room_removed", request.getRoomId());
-        } else if (currentCount == 1) {
+        } else if (room.getCurrentCount() == 1) {
             RoomStatusResponse roomStatusResponse = new RoomStatusResponse(room);
             getServer().getRoomOperations(request.getRoomId()).sendEvent("room_one_person", roomStatusResponse);
         } else {
             RoomUpdateBroadcast updated = RoomUpdateBroadcast.from(room);
             getServer().getBroadcastOperations().sendEvent("room_update", updated);
         }
+
     }
 
-
-
-    public String generatedRoomCode() {
+        public String generatedRoomCode() {
         return UUID.randomUUID().toString().substring(0,6).toUpperCase();
     }
 
