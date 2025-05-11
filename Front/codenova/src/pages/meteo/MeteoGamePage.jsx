@@ -219,12 +219,12 @@ const MeteoGamePage = () => {
         }, 3000);
       }
     };
-    socket.off("playDisconnected", handleGameLeave);
-    socket.on("playDisconnected", handleGameLeave);
+    socket.off("playerDisconnected", handleGameLeave);
+    socket.on("playerDisconnected", handleGameLeave);
   
     return () => {
       socket.off("gameLeave", handleLeave);
-      socket.off("playDisconnected", handleGameLeave);
+      socket.off("playerDisconnected", handleGameLeave);
     };
   }, []);
   
