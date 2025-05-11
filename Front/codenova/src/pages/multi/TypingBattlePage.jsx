@@ -322,6 +322,10 @@ const TypingBattlePage = () => {
               setRoundEnded(false);
               setFirstFinisher(null);
               setTargetCode("");
+              setElapsedTime(0);       // 타이머 초기화
+              setStartTime(null);      // 시작시간 초기화
+              setTimeRunning(false);   // 혹시 모를 타이머 동작 방지
+
               console.log("🎙️ round_start emit 시도:", { roomId, nickname});
               socket.emit("round_start", {
                 roomId,
@@ -421,6 +425,10 @@ const TypingBattlePage = () => {
         )}
     <div className="absolute top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[72rem] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
       <img src={boardBg} alt="board" className="absolute object-cover rounded-2xl z-0" />
+
+      <div className="absolute top-22 left-1/2 -translate-x-1/2 z-10">
+          <img src={logo} alt="logo" className="w-[150px] drop-shadow-md" />
+      </div>
   
       {/* 컨텐츠 */}
       <div className="relative z-10 w-full h-full flex flex-col px-20 py-6 top-16">
@@ -433,12 +441,14 @@ const TypingBattlePage = () => {
         {/* 타이핑 박스 */}
         <div className="h-[45%] flex items-center justify-center ">
         <TypingBox
+            key={currentRound}
             roomId={roomId}
             gameStarted = {gameStarted} 
             elapsedTime={elapsedTime} 
             onFinish={handleFinish}
             targetCode={targetCode}
             currentRound={currentRound}
+            disabled={showRoundScoreModal || showFinalModal}
             />
         </div>
   
@@ -463,7 +473,6 @@ const TypingBattlePage = () => {
       results={finalResults}
       onClose={() => setShowFinalModal(false)}
       roomInfo={roomInfo}
-
     />
   </div>
 
