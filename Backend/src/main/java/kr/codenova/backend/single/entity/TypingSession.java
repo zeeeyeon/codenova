@@ -98,7 +98,7 @@ public class TypingSession {
     public ScoreResult result() {
         int charCount = keyLogs.size();
         long durationMillis = keyLogs.get(keyLogs.size() - 1).timestamp() - keyLogs.get(0).timestamp();
-        double wpm = calculateWPM(expectedLines.correctLength(), durationMillis); //입력한 단어가 아니라 총단어수로 변경
+        double wpm = calculateWPM(expectedLines.correctLength(), durationMillis) * 5 ; //입력한 단어가 아니라 총단어수로 변경
         double accuracy = calculateAccuracy();
         return new ScoreResult(charCount, durationMillis, wpm, accuracy);
     }
