@@ -27,19 +27,15 @@ public class TypingSpeedService {
         return typingSpeedRepository.findByMemberIdAndLanguage(memberId, language)
                 .map(existing -> {
                     double oldSpeed = existing.getTypingSpeed();
-                    log.info("기존: {}", oldSpeed);
-                    boolean isNewRecord = newSpeed > oldSpeed;
-                    log.info("isNewRecord: {}", isNewRecord);
-
-                    if (isNewRecord) {
+                    if (existing.isUpdatable(newSpeed)) {
                         existing.updateSpeed(newSpeed);
                         typingSpeedRepository.save(existing);
                         redisRankingService.saveTypingSpeed(language, memberId, member.getNickname(), newSpeed);
                         log.info("속도 갱신됨 → 기존: {}, 새: {}", oldSpeed, newSpeed);
-                        return isNewRecord;
+                        return true;
                     }
                     log.info("속도 유지됨 → 기존: {}, 새: {}", oldSpeed, newSpeed);
-                    return isNewRecord;
+                    return false;
                 })
                 .orElseGet(() -> {
                     typingSpeedRepository.save(TypingSpeed.create(memberId, language, newSpeed));
