@@ -94,7 +94,7 @@ public class GameServiceImpl implements GameService {
                 3
         );
         room.setIsStarted(true);
-        room.setRoundNumber(0);
+        room.setRoundNumber(1);
         resetRoundData(room);
         room.setTotalScoreMap(new ConcurrentHashMap<>());
 
@@ -180,7 +180,6 @@ public class GameServiceImpl implements GameService {
                 getServer().getRoomOperations(request.getRoomId())
                         .sendEvent("finish_notice", broadcast);
 
-                // ✅ 서버 타이머로 종료 제어
                 startCountDownTimer(request.getRoomId());
             } else {
                 // ✅ 이미 1등이 있으면 도착 시간만 기록
