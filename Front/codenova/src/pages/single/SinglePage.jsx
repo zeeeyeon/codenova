@@ -6,7 +6,7 @@ import Keyboard from '../../components/keyboard/Keyboard'
 
 import { getAccessToken } from "../../utils/tokenUtils";
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
-import { useEffect, useState, useRef, use } from 'react'
+import { useEffect, useState, useRef} from 'react'
 
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
@@ -32,9 +32,6 @@ hljs.registerLanguage('sql', sql);
 const SinglePage = () => {
 
     const navigate = useNavigate();
-    const location = useLocation();
-    const query = new URLSearchParams(location.search);
-    const category = query.get('category') // "DATABASE", "NETWORK", "OS", "DATA_STRUCTURE", "COMPUTER_STRUCTURE"
     const { lang } = useParams();
 
     const [userType ,setUserType] = useState(null);
