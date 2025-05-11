@@ -104,7 +104,8 @@ public class TypingSession {
     }
 
     private double calculateWPM(int charCount, long durationMillis) {
-        return (charCount / 5.0) / (durationMillis / 1000.0 / 60.0);
+        double basicWpm = (charCount / 5.0) / (durationMillis / 1000.0 / 60.0);
+        return basicWpm * 5.0;
     }
 
     // 정답 코드 줄별로 나누기 - 좌우 공백 trim로 삭제
