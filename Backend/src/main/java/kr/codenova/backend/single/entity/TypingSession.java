@@ -29,7 +29,7 @@ public class TypingSession {
     }
 
     public boolean isSuspicious() {
-        if (keyLogs.size() < 10) return false;
+//        if (keyLogs.size() < 10) return false;
 
         List<Long> intervals = new ArrayList<>();
         int backspaceCount = 0;
@@ -262,7 +262,7 @@ public class TypingSession {
 //    }
 
     private void validateKeyLogs(List<KeyLog> logs) {
-        if (logs == null || logs.size() < 50) throw new CustomException(ResponseCode.KEYLOG_TOO_SHORT);
+        if (logs == null) throw new CustomException(ResponseCode.KEYLOG_TOO_SHORT);
         if (logs.get(0).timestamp() >= logs.get(logs.size() - 1).timestamp()) throw new CustomException(ResponseCode.KEYLOG_INVALID_ORDER);
     }
 }
