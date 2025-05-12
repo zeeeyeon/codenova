@@ -117,7 +117,7 @@ public class GameRoom {
     }
     public void finish() {
         synchronized (gameLock) {
-            this.status = GameStatus.WAITING;
+            this.status = GameStatus.FINISHED;
             this.finishedAt = new Date();
         }
     }

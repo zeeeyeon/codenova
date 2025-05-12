@@ -226,8 +226,8 @@ public class MeteorEventHandler implements SocketEventHandler {
 
         // 1. 방장인지 확인
         String requester = client.getSessionId().toString();
-        UserInfo host = room.getPlayers().get(0);
-        if (!host.getSessionId().equals(requester)) {
+        String host = room.getHostSessionId();
+        if (!requester.equals(host)) {
             client.sendEvent("gameStart",
                     new ErrorResponse("NOT_HOST", "방장만 게임을 시작할 수 있습니다."));
             return;
@@ -330,7 +330,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         }
 
         // 3. 사용자들에게 브로드캐스트
-        if (room.getStatus() == GameStatus.PLAYING) {
+        if (room.getStatus() == GameStatus.PLAYING || room.getStatus() == GameStatus.FINISHED) {
             ExitGameResponse response = new ExitGameResponse(
                     roomId,
                     leftUser,
