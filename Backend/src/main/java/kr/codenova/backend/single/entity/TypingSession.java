@@ -260,7 +260,7 @@ public class TypingSession {
 //    }
 
     private void validateKeyLogs(List<KeyLog> logs) {
-        if (logs == null || logs.size() < 2) throw new CustomException(ResponseCode.KEYLOG_TOO_SHORT);
+        if (logs == null || logs.size() < 50) throw new CustomException(ResponseCode.KEYLOG_TOO_SHORT);
         if (logs.get(0).timestamp() >= logs.get(logs.size() - 1).timestamp()) throw new CustomException(ResponseCode.KEYLOG_INVALID_ORDER);
     }
 }
