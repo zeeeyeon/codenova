@@ -1,4 +1,4 @@
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import multiBg from "../../assets/images/multi_background.png";
 import Header from "../../components/common/Header";
@@ -14,6 +14,7 @@ import { getSocket } from "../../sockets/socketClient";
 import RoundScoreModal from "../../components/multi/modal/RoundScoreModal";
 import FinalResultModal from "../../components/multi/modal/FinalResultModal";
 import useAuthStore from "../../store/authStore";
+import AloneAlertModal from "../../components/multi/modal/AloneAlertModal";
 
 
 const TypingBattlePage = () => {
@@ -36,6 +37,8 @@ const TypingBattlePage = () => {
   const [modalCountdown, setModalCountdown] = useState(5);
   const [finalResults, setFinalResults] = useState([]);
   const [showFinalModal, setShowFinalModal] = useState(false);
+  const [oneLeftRoomInfo, setOneLeftRoomInfo] = useState(null);  // 배틀시 한명남았을때
+  const navigate = useNavigate();
 
   const [roomInfo, setRoomInfo] = useState(null);
   const nickname = useAuthStore((state) => state.user?.nickname);
@@ -158,69 +161,7 @@ const TypingBattlePage = () => {
     return () => socket.off("progress_update", handleProgressUpdate);
   }, []);
 
-  // const handleFinish = () => {
-  //   setTimeRunning(false); // 타자 타이머 정지
-  
-  //   if (!roundEnded) {
-  //     setRoundEnded(true);
-  //     setRoundEndingCountdown(10); // 🔔 카운트다운 표시 시작
-  
-  //     const countdownInterval = setInterval(() => {
-  //       setRoundEndingCountdown((prev) => {
-  //         if (prev === 1) {
-  //           clearInterval(countdownInterval); // 끝나면 타이머 제거
-  //           return null;
-  //         }
-  //         return prev - 1;
-  //       });
-  //     }, 1000);
-  
-  //     // 10초 후 서버에 round_end 알림
-  //     setTimeout(() => {
-  //       const socket = getSocket();
-  //       socket.emit("round_end", { roomId });
-  //     }, 10000);
-  //   }
-  // };
 
-  // useEffect(() => {
-  //   const socket = getSocket();
-  //   if (!socket) return;
-  
-  //   const handleFinishNotice = (data) => {
-  //     const { nickname } = data;
-  //     console.log("🏁 finish_notice 수신:", nickname);
-  
-  //     setFirstFinisher(nickname); // 표시용
-  //     handleFinish(); // 기존 라운드 종료 카운트다운 실행
-  //   };
-  
-  //   socket.on("finish_notice", handleFinishNotice);
-  //   return () => socket.off("finish_notice", handleFinishNotice);
-  // }, []);
-
-  // const handleFinish = () => {
-  //   if (roundEnded) return; // ✅ 중복 방지 (가장 먼저 체크)
-  //   setRoundEnded(true);
-  //   setTimeRunning(false); // 타자 타이머 정지
-  //   setRoundEndingCountdown(10); // 🔔 카운트다운 표시 시작
-  
-  //   const countdownInterval = setInterval(() => {
-  //     setRoundEndingCountdown((prev) => {
-  //       if (prev === 1) {
-  //         clearInterval(countdownInterval); // 끝나면 타이머 제거
-  //         return null;
-  //       }
-  //       return prev - 1;
-  //     });
-  //   }, 1000);
-  
-  //   // 10초 후 서버에 round_end 알림
-  //   setTimeout(() => {
-  //     const socket = getSocket();
-  //     socket.emit("round_end", { roomId });
-  //   }, 10000);
-  // };
   const handleFinish = () => {
     if (roundEnded) return;
     setRoundEnded(true);
@@ -234,25 +175,6 @@ const TypingBattlePage = () => {
   };
   
 
-  
-  // useEffect(() => {
-  //   const socket = getSocket();
-  //   if (!socket) return;
-  
-  //   const handleFinishNotice = (data) => {
-  //     const { nickname } = data;
-  //     console.log("🏁 finish_notice 수신:", nickname);
-  
-  //     setFirstFinisher(nickname); // 표시용
-  //     if (!roundEnded) {
-  //       handleFinish(); // ✅ 중복 방지
-  //     }
-  //   };
-  
-  //   socket.on("finish_notice", handleFinishNotice);
-  //   return () => socket.off("finish_notice", handleFinishNotice);
-  // }, []);
-  
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
@@ -391,14 +313,54 @@ const TypingBattlePage = () => {
     socket.on("room_status", handleRoomStatus);
     return () => socket.off("room_status", handleRoomStatus);
   }, [roomId]);
+
+  // 배틀페이지에서 한명남았을때 감지지
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleOnePersonLeft = (data) => {
+      console.log("🎉room_one_person 수신 : ", data);
+      setOneLeftRoomInfo(data);
+    };
+
+    socket.on("room_one_person", handleOnePersonLeft);
+    return () => socket.off("room_one_person", handleOnePersonLeft);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // F5 키 또는 Ctrl+R 눌렀을 때
+      if (e.key === "F5" || (e.ctrlKey && e.key === "r")) {
+        e.preventDefault();
+        e.stopPropagation();
+        alert("새로고침은 사용할 수 없습니다.");
+      }
+    };
+  
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+  
   
   
 
   return (
     <div
-    className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
+    className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative "
     style={{ backgroundImage: `url(${multiBg})` }}
   >
+      {/* 방 혼자 남았을때 alert 창 */}
+      {oneLeftRoomInfo && (
+          <AloneAlertModal
+            roomInfo={oneLeftRoomInfo}
+            onConfirm={() => {
+              navigate(`/multi/room/${oneLeftRoomInfo.roomId}`, {
+                state: oneLeftRoomInfo,
+              });
+            }}
+          />
+        )}
 
     {roundEndingCountdown !== null && (
         <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 text-white text-xl bg-black bg-opacity-80 px-6 py-3 rounded-xl border border-white text-center leading-relaxed">
