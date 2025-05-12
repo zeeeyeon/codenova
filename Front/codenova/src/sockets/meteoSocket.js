@@ -9,7 +9,7 @@ export const createMeteoRoom = ({ isPrivate, nickname }, onSuccess, onError) => 
     onSuccess(roomData);
   });
 
-  getSocket().once("error", (error) => {
+  getSocket().once("roomCreate", (error) => {
     // console.error("[createMeteoRoom] error 수신", error);
     onError(error.message);
   });
