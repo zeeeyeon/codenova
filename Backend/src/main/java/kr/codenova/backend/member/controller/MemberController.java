@@ -110,7 +110,7 @@ public class MemberController {
 
     @GetMapping("/check-nickname/{nickname}")
     public ResponseEntity<?> checkNickname(@PathVariable String nickname) {
-        boolean available = memberService.isNicknameExist(nickname);
+        boolean available = memberService.isNicknameAvailable(nickname);
         ResponseCode code = available ? ResponseCode.AVAILABLE_NICKNAME : ResponseCode.EXISTED_USER_NICKNAME;
         return new ResponseEntity<>(
                 Response.create(code, null),
