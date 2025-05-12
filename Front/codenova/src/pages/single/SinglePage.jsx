@@ -215,7 +215,7 @@ const SinglePage = () => {
                 setCpm(response.content.typingSpeed)
                 await postResult(response.content.verifiedToken)
             } else{
-                alert("🤬 메크로 썼니??")
+                alert("서버 오류로 인해 기록을 저장할 수 없습니다.")
             }
         } 
         catch (e) {
