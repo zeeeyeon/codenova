@@ -47,6 +47,7 @@ export default function FallingWord({
         pointerEvents: "none",
         userSelect: "none",
         zIndex: 100,
+        // fontFamily : "D2Coding"
       }}
     >
       {word}
