@@ -66,7 +66,7 @@ public class TypingSession {
         // 의심 조건들
         boolean tooFast = avg < 50;
         boolean tooConsistent = stdDev < 10;
-        boolean insaneSpeed = wpm > 120;
+        boolean insaneSpeed = wpm > 600;
         boolean flawlessNoBackspace = backspaceCount == 0;
 
         // calculateAccuracy로 시뮬레이션 했을때 keyLogs가 100가 아니면 부정확하면 이상한 것
