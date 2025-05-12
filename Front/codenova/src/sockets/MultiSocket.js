@@ -6,7 +6,7 @@ export const requestRoomList = (callback) => {
     if (!socket) return;
   
     socket.emit("room_list", (rooms) => {
-      console.log("📥 방 목록 응답 수신:", rooms);
+      // console.log("📥 방 목록 응답 수신:", rooms);
       callback?.(rooms);
     });
   };
@@ -44,10 +44,10 @@ export const createRoom = (payload, callback) => {
     const socket = getSocket();
     if (!socket) return;
   
-    console.log("create_Room 요청:", payload);
+    // console.log("create_Room 요청:", payload);
   
     socket.emit("create_room", payload, (response) => {
-      console.log("📥 방 생성 응답:", response);
+      // console.log("📥 방 생성 응답:", response);
       callback?.(response);
     });
 };
@@ -58,7 +58,7 @@ export const joinRoom = (payload, callback) => {
     if (!socket || !socket.connected) return;
 
     socket.emit("join_room", payload, (res) => {
-        console.log("[서버 응답: join_room]", res);  // "joined" 또는 실패 응답
+        // console.log("[서버 응답: join_room]", res);  // "joined" 또는 실패 응답
         callback?.(res);
     });
 };

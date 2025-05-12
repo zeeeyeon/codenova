@@ -59,7 +59,7 @@ const Ranking = () => {
                 newRanking[currentLangIndex] = response.data.content
                 setRanking(newRanking);
             } else{
-                console.log(message);
+                // console.log(message);
             }
             
         } catch (e) {
