@@ -200,6 +200,7 @@ const MeteoLandingPage = () => {
     const handleRoomExit = (data) => {
       const { currentPlayers, leftUser } = data;
       const mySessionId = socket.id;
+      localStorage.setItem("meteoPlayers", JSON.stringify(currentPlayers));
 
       updateUsersFromPlayers(currentPlayers);
 
