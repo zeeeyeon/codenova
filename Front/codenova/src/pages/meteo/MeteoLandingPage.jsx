@@ -43,12 +43,9 @@ const MeteoLandingPage = () => {
   const currentRoomCode = localStorage.getItem("meteoRoomCode");
   const [countdown, setCountdown] = useState(null);
   const [showReadyAlert, setShowReadyAlert] = useState(false);
-  const readyUsers = users.filter(user => user && user.ready);
-  const totalUsers = users.filter(user => user !== null);
+  const readyUsers = users.filter((user) => user && user.ready);
+  const totalUsers = users.filter((user) => user !== null);
   // const allReady = totalUsers.length >= 2 && readyUsers.length === totalUsers.length;
-  
-
-
 
   const handleCopy = async () => {
     try {
@@ -61,37 +58,34 @@ const MeteoLandingPage = () => {
 
   useEffect(() => {
     const socket = getSocket();
-  
-    const handleGameReady = ((data) => {
+
+    const handleGameReady = (data) => {
       console.log("[onGameReady] ready 수신", { data });
       updateUsersFromPlayers(data.players);
       localStorage.setItem("meteoPlayers", JSON.stringify(data.players));
-    });
-  
+    };
+
     onGameReady(handleGameReady);
     return () => socket.off("readyGame", handleGameReady);
   }, []);
-  
 
   const [allReady, setAllReady] = useState(false);
 
-
-
   const updateUsersFromPlayers = (playersArray) => {
     if (!Array.isArray(playersArray)) return;
-  
+
     const updated = Array(4).fill(null);
     let computedAllReady = true;
     let realPlayerCount = 0;
-  
+
     playersArray.forEach((player, idx) => {
       if (idx < 4) {
         const isHost = player.isHost || false;
         const isReady = isHost ? true : player.isReady || false;
-  
+
         if (player.nickname) realPlayerCount++;
         if (!isReady) computedAllReady = false;
-  
+
         updated[idx] = {
           nickname: player.nickname,
           isHost,
@@ -99,13 +93,13 @@ const MeteoLandingPage = () => {
         };
       }
     });
-  
+
     // 두 명 이상이어야 allReady 인정
     const allReady = computedAllReady && realPlayerCount >= 2;
-  
+
     setUsers(updated);
     setAllReady(allReady);
-  
+
     if (allReady) {
       setMessages((prev) => {
         const exists = prev.some((msg) =>
@@ -117,7 +111,8 @@ const MeteoLandingPage = () => {
               ...prev,
               {
                 nickname: "SYSTEM",
-                message: "모든 플레이어가 준비되었습니다. 방장님은 게임을 시작할 수 있어요!",
+                message:
+                  "모든 플레이어가 준비되었습니다. 방장님은 게임을 시작할 수 있어요!",
               },
             ];
       });
@@ -125,11 +120,6 @@ const MeteoLandingPage = () => {
       setTimeout(() => setShowReadyAlert(false), 4000);
     }
   };
-  
-  
-  
-  
-  
 
   // 1) 방 정보 저장 전용 useEffect
   useEffect(() => {
@@ -150,7 +140,6 @@ const MeteoLandingPage = () => {
   useEffect(() => {
     usersRef.current = users;
   }, [users]);
-
 
   // 2) guard + socket 이벤트 관리
   useEffect(() => {
@@ -178,22 +167,22 @@ const MeteoLandingPage = () => {
     const handleSecretRoomJoin = (roomData) => {
       updateUsersFromPlayers(roomData.players);
       localStorage.setItem("meteoPlayers", JSON.stringify(roomData.players));
-        // ✅ 2. SYSTEM 메시지 추가
-        const prevCount = usersRef.current.filter((u) => u !== null).length;
-        const newCount = roomData.players.length;
+      // ✅ 2. SYSTEM 메시지 추가
+      const prevCount = usersRef.current.filter((u) => u !== null).length;
+      const newCount = roomData.players.length;
 
-        if (newCount > prevCount) {
-          const joined = roomData.players[newCount - 1];
-          if (joined?.nickname) {
-            setMessages((prev) => [
-              ...prev,
-              {
-                nickname: "SYSTEM",
-                message: `${joined.nickname} 님이 들어왔습니다.`,
-              },
-            ]);
-          }
-        } // console.log("🛰️ [secretRoomJoin] localStorage 업데이트");
+      if (newCount > prevCount) {
+        const joined = roomData.players[newCount - 1];
+        if (joined?.nickname) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              nickname: "SYSTEM",
+              message: `${joined.nickname} 님이 들어왔습니다.`,
+            },
+          ]);
+        }
+      } // console.log("🛰️ [secretRoomJoin] localStorage 업데이트");
     };
     socket.on("secretRoomJoin", handleSecretRoomJoin);
 
@@ -220,7 +209,6 @@ const MeteoLandingPage = () => {
       }
     };
     onRoomExit(handleRoomExit);
-    
 
     // 3) cleanup
     return () => {
@@ -252,43 +240,74 @@ const MeteoLandingPage = () => {
       window.removeEventListener("beforeunload", handleUnloadOrBack);
     };
   }, [nickname]);
+  // useEffect(() => {
+  //   const handlePopState = (event) => {
+  //     // confirm 창 띄우기
+  //     const leave = window.confirm("방을 나가시겠습니까?");
+  //     if (leave) {
+  //       // "확인" 눌렀을 때만 나가기 로직 실행
+  //       const savedRoomId = localStorage.getItem("meteoRoomId");
+  //       const savedNickname = nickname;
+  //       if (savedRoomId && savedNickname) {
+  //         exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
+  //       }
+  //       localStorage.removeItem("meteoRoomCode");
+  //       localStorage.removeItem("meteoRoomId");
+  //       navigate("/main");
+  //     } else {
+  //       // "취소" 눌렀을 때, history 스택 복원
+  //       window.history.pushState(
+  //         { page: "meteo" },
+  //         "",
+  //         window.location.pathname
+  //       );
+
+  //       const savedPlayers = JSON.parse(
+  //         localStorage.getItem("meteoPlayers") || "[]"
+  //       );
+  //       if (savedPlayers.length > 0) {
+  //         console.log("savedPlayers", savedPlayers);
+  //         updateUsersFromPlayers(savedPlayers);
+  //       }
+  //     }
+  //   };
+
+  //   // 현재 상태로 히스토리 한번 채워놓고
+  //   window.history.pushState({ page: "meteo" }, "", window.location.pathname);
+  //   window.addEventListener("popstate", handlePopState);
+  //   return () => window.removeEventListener("popstate", handlePopState);
+  // }, [nickname, navigate]);
+  //       localStorage.removeItem("meteoRoomCode");
+  //       localStorage.removeItem("meteoRoomId");
+  //       navigate("/main");
+
   useEffect(() => {
     const handlePopState = (event) => {
-      // confirm 창 띄우기
-      const leave = window.confirm("방을 나가시겠습니까?");
-      if (leave) {
-        // "확인" 눌렀을 때만 나가기 로직 실행
-        const savedRoomId = localStorage.getItem("meteoRoomId");
-        const savedNickname = nickname;
-        if (savedRoomId && savedNickname) {
-          exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
-        }
+      // 브라우저 alert 사용 (콘솔이 안 보일때도 확인 가능)
+
+      alert("게임을 나가시겠습니까?");
+
+      const savedNickname = nickname;
+
+      if (currentRoomId && savedNickname) {
+        exitMeteoRoom({ roomId: roomId, nickname: nickname });
         localStorage.removeItem("meteoRoomCode");
         localStorage.removeItem("meteoRoomId");
         navigate("/main");
-      } else {
-        // "취소" 눌렀을 때, history 스택 복원
-        window.history.pushState(
-          { page: "meteo" },
-          "",
-          window.location.pathname
-        );
-
-        const savedPlayers = JSON.parse(
-          localStorage.getItem("meteoPlayers") || "[]"
-        );
-        if (savedPlayers.length > 0) {
-          console.log("savedPlayers", savedPlayers);
-          updateUsersFromPlayers(savedPlayers);
-        }
+        console.log("🚪 [뒤로가기] 방 나감 처리 시작");
       }
     };
 
-    // 현재 상태로 히스토리 한번 채워놓고
+    // 현재 history 상태 저장
     window.history.pushState({ page: "meteo" }, "", window.location.pathname);
+
+    // 이벤트 리스너 등록
     window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [nickname, navigate]);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [nickname]);
 
   useEffect(() => {
     const socket = getSocket();
@@ -375,8 +394,7 @@ const MeteoLandingPage = () => {
     if (savedRoomId && savedNickname) {
       exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
     } else {
-      console.error("❌ [방 나가기] roomId 또는 nickname 없음", 
-        {
+      console.error("❌ [방 나가기] roomId 또는 nickname 없음", {
         savedRoomId,
         savedNickname,
       });
@@ -407,7 +425,7 @@ const MeteoLandingPage = () => {
   const sendChat = () => {
     if (!chatInput.trim()) return;
     onChatMessage({
-      roomId : currentRoomId,
+      roomId: currentRoomId,
       nickname,
       message: chatInput.trim(),
     });
@@ -422,15 +440,15 @@ const MeteoLandingPage = () => {
 
   return (
     <div
-    className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
-    style={{ backgroundImage: `url(${MeteoBg})` }}
+      className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
+      style={{ backgroundImage: `url(${MeteoBg})` }}
     >
-    {showReadyAlert && (
-      <div className="absolute top-6 left-1/3 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-full text-lg shadow-xl animate-bounce">
-        방장님은 시작 버튼을 눌러 게임을 시작해주세요!
-      </div>
-    )}
-      
+      {showReadyAlert && (
+        <div className="absolute top-6 left-1/3 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-full text-lg shadow-xl animate-bounce">
+          방장님은 시작 버튼을 눌러 게임을 시작해주세요!
+        </div>
+      )}
+
       {/* <Header /> */}
       {countdown !== null && (
         <div className="absolute inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center pointer-events-none transition-opacity duration-300">
@@ -439,7 +457,6 @@ const MeteoLandingPage = () => {
           </div>
         </div>
       )}
-
 
       <div className="relative flex justify-center items-center mt-20">
         <div className="relative w-[66rem]">
@@ -520,8 +537,6 @@ const MeteoLandingPage = () => {
                     {user.ready ? "Ready" : "unReady"}
                   </div>
                 )}
-
-
               </div>
             ))}
           </div>
@@ -532,34 +547,38 @@ const MeteoLandingPage = () => {
               className="w-[44rem] h-[12.5rem] border-4 rounded-xl bg-#1f0e38 bg-opacity-70 p-3 flex flex-col justify-between text-white text-sm"
               style={{ borderColor: "#01FFFE" }}
             >
-          {/* 채팅 메시지 영역 */}
-          <div className="flex-1 overflow-y-auto scroll-smooth pr-1">
-            {messages.map((msg, idx) => {
-              if (msg.nickname === "SYSTEM") {
-                const isJoin = msg.message.includes("들어왔습니다");
-                const isExit = msg.message.includes("나갔습니다");
+              {/* 채팅 메시지 영역 */}
+              <div className="flex-1 overflow-y-auto scroll-smooth pr-1">
+                {messages.map((msg, idx) => {
+                  if (msg.nickname === "SYSTEM") {
+                    const isJoin = msg.message.includes("들어왔습니다");
+                    const isExit = msg.message.includes("나갔습니다");
 
-                return (
-                  <div
-                    key={idx}
-                    className={`text-center  py-1 ${
-                      isJoin ? "text-green-500" : isExit ? "text-red-500" : "text-gray-400"
-                    }`}
-                  >
-                    {msg.message}
-                  </div>
-                );
-              }
+                    return (
+                      <div
+                        key={idx}
+                        className={`text-center  py-1 ${
+                          isJoin
+                            ? "text-green-500"
+                            : isExit
+                            ? "text-red-500"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        {msg.message}
+                      </div>
+                    );
+                  }
 
-              return (
-                <div key={idx}>
-                  <strong className="text-white">{msg.nickname}</strong>: {msg.message}
-                </div>
-              );
-            })}
-            <div ref={scrollRef} />
-          </div>
-
+                  return (
+                    <div key={idx}>
+                      <strong className="text-white">{msg.nickname}</strong>:{" "}
+                      {msg.message}
+                    </div>
+                  );
+                })}
+                <div ref={scrollRef} />
+              </div>
 
               {/* 채팅 입력창 */}
               <div className="mt-2 flex gap-2">
@@ -588,24 +607,24 @@ const MeteoLandingPage = () => {
                 <p className="text-xl mb-1">방코드</p>
                 <p className="text-3xl">{currentRoomCode || "-"}</p>
                 {currentRoomCode ? (
-                <button
-                  onClick={handleCopy}
-                  className="w-7 h-7 hover:scale-110 transition"
-                >
-                  <img
-                    src={CopyButton}
-                    alt="Copy"
-                    className="w-full h-full object-contain"
-                  />
-                </button>
-              ) : null}
+                  <button
+                    onClick={handleCopy}
+                    className="w-7 h-7 hover:scale-110 transition"
+                  >
+                    <img
+                      src={CopyButton}
+                      alt="Copy"
+                      className="w-full h-full object-contain"
+                    />
+                  </button>
+                ) : null}
               </div>
               <div
                 className="w-[10rem] h-[3.5rem] border-4 rounded-xl flex items-center justify-center"
                 style={{ borderColor: "#01FFFE" }}
               >
                 {users.find((user) => user?.nickname === nickname)?.isHost ? (
-                    allReady && totalUsers.length >= 2 ? (
+                  allReady && totalUsers.length >= 2 ? (
                     // ✅ 방장이고, allReady이면 진짜 Start 버튼
                     <img
                       src={StartButton}
@@ -632,16 +651,16 @@ const MeteoLandingPage = () => {
                     alt="ready-btn"
                     onClick={() =>
                       GameReady({
-                        roomId : currentRoomId,
+                        roomId: currentRoomId,
                         nickname,
-                        ready: !users.find((u) => u?.nickname === nickname)?.ready,
+                        ready: !users.find((u) => u?.nickname === nickname)
+                          ?.ready,
                       })
                     }
                     className="w-[8rem] cursor-pointer hover:scale-105 transition"
                   />
                 )}
               </div>
-
             </div>
           </div>
           <img
