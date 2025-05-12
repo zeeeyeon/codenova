@@ -370,8 +370,23 @@ useEffect(() => {
   };
 }, [nickname]);
 
+// 새로고침 막음
+useEffect(() => {
+  const handleKeyDown = (e) => {
+    // F5 키 또는 Ctrl+R 눌렀을 때
+    if (e.key === "F5" || (e.ctrlKey && e.key === "r")) {
+      e.preventDefault();
+      e.stopPropagation();
+      alert("새로고침은 사용할 수 없습니다.");
+    }
+  };
 
-  
+  window.addEventListener("keydown", handleKeyDown);
+  return () => window.removeEventListener("keydown", handleKeyDown);
+}, []);
+
+
+
 
     return (
         <div

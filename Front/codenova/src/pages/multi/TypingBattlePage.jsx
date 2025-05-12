@@ -161,69 +161,7 @@ const TypingBattlePage = () => {
     return () => socket.off("progress_update", handleProgressUpdate);
   }, []);
 
-  // const handleFinish = () => {
-  //   setTimeRunning(false); // 타자 타이머 정지
-  
-  //   if (!roundEnded) {
-  //     setRoundEnded(true);
-  //     setRoundEndingCountdown(10); // 🔔 카운트다운 표시 시작
-  
-  //     const countdownInterval = setInterval(() => {
-  //       setRoundEndingCountdown((prev) => {
-  //         if (prev === 1) {
-  //           clearInterval(countdownInterval); // 끝나면 타이머 제거
-  //           return null;
-  //         }
-  //         return prev - 1;
-  //       });
-  //     }, 1000);
-  
-  //     // 10초 후 서버에 round_end 알림
-  //     setTimeout(() => {
-  //       const socket = getSocket();
-  //       socket.emit("round_end", { roomId });
-  //     }, 10000);
-  //   }
-  // };
 
-  // useEffect(() => {
-  //   const socket = getSocket();
-  //   if (!socket) return;
-  
-  //   const handleFinishNotice = (data) => {
-  //     const { nickname } = data;
-  //     console.log("🏁 finish_notice 수신:", nickname);
-  
-  //     setFirstFinisher(nickname); // 표시용
-  //     handleFinish(); // 기존 라운드 종료 카운트다운 실행
-  //   };
-  
-  //   socket.on("finish_notice", handleFinishNotice);
-  //   return () => socket.off("finish_notice", handleFinishNotice);
-  // }, []);
-
-  // const handleFinish = () => {
-  //   if (roundEnded) return; // ✅ 중복 방지 (가장 먼저 체크)
-  //   setRoundEnded(true);
-  //   setTimeRunning(false); // 타자 타이머 정지
-  //   setRoundEndingCountdown(10); // 🔔 카운트다운 표시 시작
-  
-  //   const countdownInterval = setInterval(() => {
-  //     setRoundEndingCountdown((prev) => {
-  //       if (prev === 1) {
-  //         clearInterval(countdownInterval); // 끝나면 타이머 제거
-  //         return null;
-  //       }
-  //       return prev - 1;
-  //     });
-  //   }, 1000);
-  
-  //   // 10초 후 서버에 round_end 알림
-  //   setTimeout(() => {
-  //     const socket = getSocket();
-  //     socket.emit("round_end", { roomId });
-  //   }, 10000);
-  // };
   const handleFinish = () => {
     if (roundEnded) return;
     setRoundEnded(true);
@@ -237,25 +175,6 @@ const TypingBattlePage = () => {
   };
   
 
-  
-  // useEffect(() => {
-  //   const socket = getSocket();
-  //   if (!socket) return;
-  
-  //   const handleFinishNotice = (data) => {
-  //     const { nickname } = data;
-  //     console.log("🏁 finish_notice 수신:", nickname);
-  
-  //     setFirstFinisher(nickname); // 표시용
-  //     if (!roundEnded) {
-  //       handleFinish(); // ✅ 중복 방지
-  //     }
-  //   };
-  
-  //   socket.on("finish_notice", handleFinishNotice);
-  //   return () => socket.off("finish_notice", handleFinishNotice);
-  // }, []);
-  
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
@@ -408,12 +327,27 @@ const TypingBattlePage = () => {
     socket.on("room_one_person", handleOnePersonLeft);
     return () => socket.off("room_one_person", handleOnePersonLeft);
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // F5 키 또는 Ctrl+R 눌렀을 때
+      if (e.key === "F5" || (e.ctrlKey && e.key === "r")) {
+        e.preventDefault();
+        e.stopPropagation();
+        alert("새로고침은 사용할 수 없습니다.");
+      }
+    };
+  
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+  
   
   
 
   return (
     <div
-    className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
+    className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative "
     style={{ backgroundImage: `url(${multiBg})` }}
   >
       {/* 방 혼자 남았을때 alert 창 */}
