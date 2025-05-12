@@ -199,6 +199,7 @@ public class TypingSession {
                         currentLine.deleteCharAt(charCursor - 1);
                         charCursor--;
                     }
+                    if (charCursor < 0) charCursor = 0;
                 }
                 case "Enter" -> {
                     String currentInput = currentLine.toString().trim();
@@ -230,6 +231,7 @@ public class TypingSession {
                 default -> {
                     currentLine.insert(charCursor, key);
                     charCursor++;
+                    if (charCursor > currentLine.length()) charCursor = currentLine.length();
                     log.debug("입력 키: '{}', 현재 줄: '{}', 커서 위치: {}", key, currentLine.toString(), charCursor);
                 }
             }
