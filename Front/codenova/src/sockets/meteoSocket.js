@@ -13,6 +13,7 @@ export const createMeteoRoom = ({ isPrivate, nickname }, onSuccess, onError) => 
   //   console.error("[createMeteoRoom] error 수신", error);
   //   onError(error.message);
   // });
+  
 };
 
 // 방 참가
