@@ -15,6 +15,7 @@ import kr.codenova.backend.single.dto.response.SingleBattleCodeResponse;
 import kr.codenova.backend.single.dto.response.SingleTypingResultResponse;
 import kr.codenova.backend.single.service.SingleService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ import java.util.List;
 
 import static kr.codenova.backend.global.response.ResponseCode.*;
 
-
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/single")
@@ -38,8 +39,13 @@ public class SingleController {
     }
 
     @GetMapping("/code")
-    public ResponseEntity<?> getSingleBattleCodeByLanguage(@RequestParam("language") String language) {
+    public ResponseEntity<?> getSingleBattleCodeByLanguage(@RequestParam("language") String language, @AuthenticationPrincipal CustomMemberDetails memberDetails) {
+        Integer userId = (memberDetails != null) ? memberDetails.getMember().getMemberId() : null;
         SingleBattleCodeResponse code = singleService.getSingleBattleCode(language);
+
+        log.info("event=single_game_start userId={} language={} startTimestamp={}",
+                userId, language, System.currentTimeMillis());
+
         return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
     }
 
