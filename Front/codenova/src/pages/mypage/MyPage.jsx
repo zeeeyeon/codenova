@@ -72,7 +72,7 @@ const MyPage= () => {
         }
 
         try {
-            const response = await checkNicknameApi({newNickname});
+            const response = await checkNicknameApi({nickname: newNickname});
             const { code, messsage } = response.data.status;
 
             if (code === 200 ) {
