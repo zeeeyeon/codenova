@@ -14,7 +14,7 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime}) => {
     const navigate = useNavigate();
 
     const [userType ,setUserType] = useState(null);
-
+    const [fireworks, setFireworks] = useState([]);
     
     const [isApiLoading, setIsApiLoading] = useState(false);
     
@@ -22,13 +22,49 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime}) => {
         const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
         setUserType(auth?.state?.user?.userType);
 
+        const interval = setInterval(() => {
+        setFireworks((prev) => [
+            ...prev,
+            {
+              id: Math.random(),
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              size: Math.random() * 8 + 4,
+              color: ["#ff0", "#f0f", "#0ff", "#0f0", "#f00"][Math.floor(Math.random() * 5)],
+            },
+          ]);
+        }, 80);
+
+    // 30개 생성 후 멈추기
+    setTimeout(() => clearInterval(interval), 40 * 80);
+
+    return () => clearInterval(interval);
+
     }, [])
 
     return (
         <div     
             className='w-screen h-screen flex flex-col items-center justify-center'
-            style={ { backgroundColor : 'rgba(217, 217, 217, 0.7'}}
+            style={ { backgroundColor : 'rgba(0, 0, 0, 0.7'}}
+            // style={ { backgroundColor : 'rgba(217, 217, 217, 0.7'}}
         >
+            {/* 폭죽 레이어 */}
+            {fireworks.map((fw) => (
+              <div
+              key={fw.id}
+              className="firework sparkle"
+              style={{
+                position: "absolute",
+                left: fw.left,
+                top: fw.top,
+                width: `${fw.size}px`,
+                height: `${fw.size}px`,
+                backgroundColor: fw.color,
+                zIndex: 60,
+                borderRadius: "50%",
+              }}
+            />
+            ))}
 
             <div className= 'relative w-[45vw] h-[30vw] max-w-5xl py-12 px-6 flex flex-col items-center gap-6 rounded-3xl'
                 style={{
