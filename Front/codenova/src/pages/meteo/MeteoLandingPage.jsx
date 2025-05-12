@@ -60,7 +60,7 @@ const MeteoLandingPage = () => {
     const socket = getSocket();
 
     const handleGameReady = (data) => {
-      console.log("[onGameReady] ready 수신", { data });
+      // console.log("[onGameReady] ready 수신", { data });
       updateUsersFromPlayers(data.players);
       localStorage.setItem("meteoPlayers", JSON.stringify(data.players));
     };
@@ -294,7 +294,7 @@ const MeteoLandingPage = () => {
         localStorage.removeItem("meteoRoomCode");
         localStorage.removeItem("meteoRoomId");
         navigate("/main");
-        console.log("🚪 [뒤로가기] 방 나감 처리 시작");
+        // console.log("🚪 [뒤로가기] 방 나감 처리 시작");
       }
     };
 

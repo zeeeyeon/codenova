@@ -15,7 +15,8 @@ import { createMeteoRoom } from "../../sockets/meteoSocket";
 import useAuthStore from "../../store/authStore";
 import TutoModal from "../../components/common/TutoModal";
 import { getSocket } from "../../sockets/socketClient";
-
+import randomBtn from "../../assets/images/gorandom_button.png";
+import { onRandomMatch, onRandomMatchResponse, offRandomMatch } from "../../sockets/meteoSocket";
 const MainPage = () => {
   const navigate = useNavigate()
   const [showRoomModal, setShowRoomModal] = useState(false);
@@ -73,7 +74,38 @@ const MainPage = () => {
       }
     );
   };
-    
+  
+  const handleRandomMatch = () => {
+    if (!nickname) {
+      alert("닉네임이 없습니다!");
+      return;
+    }
+  
+    // 1. 랜덤 매칭 emit
+    onRandomMatch(nickname);
+  
+    // 2. 응답 수신 후 처리
+    onRandomMatchResponse((roomData) => {
+      // console.log("🎲 랜덤매칭 완료:", roomData);
+  
+      // ✅ 랜덤 매칭 성공 시 저장
+      localStorage.setItem("meteoRoomCode", ""); // 랜덤은 코드 없음
+      localStorage.setItem("meteoRoomId", roomData.roomId);
+  
+      navigate("/meteo/landing", {
+        state: {
+          roomCode: "", // 랜덤매칭은 코드 없음
+          roomId: roomData.roomId,
+          players: roomData.players,
+        },
+      });
+  
+      // ✅ cleanup
+      offRandomMatch();
+      
+    });
+  };
+  
   return (
     <div
       className="h-screen w-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
@@ -124,12 +156,12 @@ const MainPage = () => {
           <div className="absolute top-6 w-full text-center text-black text-4xl font-bold">
             협력모드
           </div>
-          <div className="absolute top-28 w-full text-center text-white text-2xl drop-shadow-sm">
+          {/* <div className="absolute top-28 w-full text-center text-white text-2xl drop-shadow-sm">
             지구를 지켜라!
-          </div>
+          </div> */}
 
           {/* 버튼 묶음 */}
-          <div className="absolute top-40 w-full flex flex-col items-center gap-2">
+          <div className="absolute top-24 w-full flex flex-col items-center gap-2">
             <img
               src={makeRoomBtn}
               alt="Make Room"
@@ -142,6 +174,12 @@ const MainPage = () => {
               onClick={() => setShowRoomModal(true)}
               className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             />
+                      <img
+            src={randomBtn}
+            alt="랜덤매칭"
+            className="w-[10rem] cursor-pointer hover:brightness-110 hover:scale-105 transition-transform"
+            onClick={handleRandomMatch}
+          />
           </div>
 
           {/* 로티 애니메이션 - 박스 하단 고정 */}

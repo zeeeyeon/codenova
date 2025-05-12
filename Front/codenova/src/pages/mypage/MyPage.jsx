@@ -33,7 +33,7 @@ const MyPage= () => {
     const updateNickname = useAuthStore((state) => state.updateNickname);
 
     useEffect(() =>{
-        console.log(userScoreList)
+        // console.log(userScoreList)
     },[userScoreList])
 
     const getMemberData = async () => {

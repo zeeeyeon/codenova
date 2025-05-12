@@ -33,10 +33,10 @@ const RoomWaitingPage = () => {
     // 나가기
     const handleLeaveRoom = () => {
       const socket = getSocket();
-      console.log("[LEAVE] emit leave_room", {
-        roomId,
-        nickname,
-      });
+      // console.log("[LEAVE] emit leave_room", {
+      //   roomId,
+      //   nickname,
+      // });
       socket.emit("leave_room", { roomId, nickname });
     
       navigate("/multi");
@@ -78,7 +78,7 @@ const RoomWaitingPage = () => {
     // 실시간 업데이트 반영
     const handleRoomUpdate = (updatedRoom) => {
       if (String(updatedRoom.roomId) === String(roomId)) {
-        console.log("💡 방 업데이트 수신:", updatedRoom);
+        // console.log("💡 방 업데이트 수신:", updatedRoom);
         setRoomInfo((prev) => ({
           roomTitle: updatedRoom.title,
           isPublic: !updatedRoom.isLocked,
@@ -115,7 +115,7 @@ const RoomWaitingPage = () => {
     });
   
     const handleRoomStatus = (data) => {
-      console.log("✅ room_status 응답 수신:", data);
+      // console.log("✅ room_status 응답 수신:", data);
   
       // roomInfo 세팅 (추가로 방 정보도 최신화)
       setRoomInfo((prev) => ({
@@ -164,7 +164,7 @@ const RoomWaitingPage = () => {
     if (!socket || !roomInfo?.standardPeople) return;
   
     const handleJoinRoom = (data) => {
-      console.log("🟢 join_room 수신:", data);
+      // console.log("🟢 join_room 수신:", data);
       
       // data.status 기준으로 유저 슬롯 구성
       const updatedSlots = Array.from({ length: 4 }, (_, i) => {
@@ -199,7 +199,7 @@ const RoomWaitingPage = () => {
   if (!socket) return;
 
   const handleJoinNotice = (data) => {
-    console.log("📢 join_notice 수신:", data);
+    // console.log("📢 join_notice 수신:", data);
     setChatMessages((prev) => [...prev, { type: "notice", text: data.message }]);
   };
 
@@ -214,7 +214,7 @@ useEffect(() => {
   if (!socket) return;
 
   const handleLeaveNotice = (data) => {
-    console.log("📤 leave_notice 수신:", data);
+    // console.log("📤 leave_notice 수신:", data);
     setChatMessages((prev) => [...prev, { type: "notice", text: data.message }]);
   };
 
@@ -234,7 +234,7 @@ const handleSendMessage = (messageText) => {
     message: messageText.text,
   };
 
-  console.log("📫emit send_chat : ", messageData);
+  // console.log("📫emit send_chat : ", messageData);
   socket.emit("send_chat", messageData);
 };
 
@@ -243,7 +243,7 @@ useEffect(() => {
   if (!socket) return;
 
   const handleReceiveChat = (data) => {
-    console.log("send_chat 수신 :", data);
+    // console.log("send_chat 수신 :", data);
     setChatMessages((prev) => [
       ...prev,
       {
@@ -263,7 +263,7 @@ const handleReadyToggle = () => {
   if (!socket || !nickname || !roomId) return;
 
 
-  console.log("📤 emit start:", { roomId, nickname });
+  // console.log("📤 emit start:", { roomId, nickname });
   socket.emit("ready", {
     roomId,
     nickname
@@ -275,7 +275,7 @@ useEffect(() => {
   if (!socket) return;
 
   const handleReadyStatusUpdate = (data) => {
-    console.log("🧪 ready_status_update 수신:", data);
+    // console.log("🧪 ready_status_update 수신:", data);
 
     const newUsers = Array.from({ length: 4 }, (_, i) => {
       const user = data.users[i];
@@ -322,7 +322,7 @@ const handleStartGame = () => {
   const socket = getSocket();
   if (!socket || !nickname || !roomId) return;
 
-  console.log("🎮 emit start_game", { roomId, nickname });
+  // console.log("🎮 emit start_game", { roomId, nickname });
   socket.emit("start_game", { roomId, nickname });
 };
 
@@ -331,8 +331,8 @@ useEffect(() => {
   if (!socket) return;
 
   const handleGameStarted = (data) => {
-    console.log("🎮 수신된 이벤트: game_started", data);
-    console.log("📦 navigate 직전 users 상태:", users);
+    // console.log("🎮 수신된 이벤트: game_started", data);
+    // console.log("📦 navigate 직전 users 상태:", users);
     if (String(data.roomId) === String(roomId)) {
       navigate(`/multi/game/${roomId}`);
     }
