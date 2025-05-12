@@ -137,6 +137,11 @@ public class MeteorEventHandler implements SocketEventHandler {
         }
         GameRoom room = optRoom.get();
 
+        if (room.getStatus() == GameStatus.PLAYING) {
+            client.sendEvent("secretRoomJoin",
+                    new ErrorResponse("ALREADY_PLAYING", "게임중인 방입니다."));
+            return;
+        }
 
         // 같은 세션 아이디 중복 입장 못하게 하기
         boolean alreadyIn = room.getPlayers().stream()
