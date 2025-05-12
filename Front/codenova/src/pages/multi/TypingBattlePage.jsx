@@ -416,7 +416,7 @@ const TypingBattlePage = () => {
   
         {/* 진행 보드 */}
         <div className="h-[26%] flex items-center justify-start">
-          <ProgressBoard users={users}/>
+          <ProgressBoard users={users} firstFinisher={firstFinisher} />
         </div>
   
       </div>
