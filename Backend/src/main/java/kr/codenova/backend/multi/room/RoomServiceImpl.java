@@ -320,8 +320,7 @@ public class RoomServiceImpl implements RoomService {
             getServer().getRoomOperations(request.getRoomId()).sendEvent("room_status", roomStatusResponse);
         }
 
-
-
+        roomMap.put(room.getRoomId(), room);
     }
 
         public String generatedRoomCode() {
