@@ -29,7 +29,6 @@ public class TypingSession {
     }
 
     public boolean isSuspicious() {
-//        if (keyLogs.size() < 10) return false;
 
         List<Long> intervals = new ArrayList<>();
         int backspaceCount = 0;
@@ -60,82 +59,52 @@ public class TypingSession {
         // 정확도 & 오타 유무
         double accuracy = calculateAccuracy();
 
-        // 기본 기준 500ms
-//        long pauseThreshold;
-//
-//        if (wpm > 400) {
-//            pauseThreshold = 300; // 고속 타자는 300ms 로 민감하게 봄
-//        } else if (wpm < 200) {
-//            pauseThreshold = 600; // 느린타자는 600ms
-//        } else {
-//            pauseThreshold = 500;
-//        }
+        // === 느린 유저는 걸러내지 않음 ===
+        if (wpm <= 400) {
+            log.info("⚠️ CPM {} 이하이므로 사람으로 간주 (탐지 무시)", wpm);
+            return false;
+        }
 
-        // 긴 멈춤 없는 경우
-//        boolean noPauseDetected = intervals.stream().noneMatch(i -> i > pauseThreshold); // 이거 너무 길어서 메크로아닌데 메크로라캄
-
-        // 의심 조건들
-        // boolean tooFast = avg < 50;
+        // === 빠른 유저에 한해서만 검사하기
+        boolean tooFast = avg < 40;
         boolean tooConsistent = stdDev < 10;
-        // boolean insaneSpeed = wpm > 600;
-        // boolean flawlessNoBackspace = backspaceCount == 0;
+        boolean insaneSpeed = wpm > 750; //cpm 750이란뜻
+        boolean hasSuspiciousInput = hasSimultaneousInput;
 
         // calculateAccuracy로 시뮬레이션 했을때 keyLogs가 100가 아니면 부정확하면 이상한 것
         boolean isAccuracy = accuracy != 100.0;
 
-        // 개선한 조건들
+        boolean flawlessFast = backspaceCount == 0 && wpm > 700;
 
-        // 조건 1 빠르면서 일관성이 높은 경우
-        boolean tooFastAndConsistent = avg < 50 && stdDev < 10;
-
-        // 조건 2 빠른데 실수조차 없는 경우
-        boolean flawlessFast = backspaceCount == 0 && wpm > 300;
-
-        // 진짜 의심스러운 경우
-        boolean reallyFlawlessMacro = flawlessFast && stdDev < 10;
-
-        // 조건 3 속도와 키간의 쉼을 비율적으로 해석
-//        boolean suspiciousNoPause = false;
-//
-//        if (wpm < 300 && noPauseDetected) {
-//            suspiciousNoPause = true; // 느린데 쉬지도 않는다. -> 이상함
-//        } else if (wpm >= 600 && noPauseDetected) {
-//            suspiciousNoPause = true; // 너무 빠르고 쉬지 않음 -> 메크로 가능성이 매우 크다
-//        } else if (wpm >= 300 && wpm < 600 && noPauseDetected) {
-//            suspiciousNoPause = tooConsistent && backspaceCount == 0;
-//        }
+        if (expectedLines.correctLength() > 150) {
+            flawlessFast = backspaceCount == 0 && wpm > 500;
+        } else if (expectedLines.correctLength() > 100) {
+            flawlessFast = backspaceCount == 0 && wpm > 600;
+        } else if (expectedLines.correctLength() > 50) {
+            flawlessFast = backspaceCount == 0 && wpm > 650;
+        }
 
         // 상세 로그 출력
         log.info("🧪 Macro Detection Log:");
         log.info("Total key logs: {}", keyLogs.size());
+        log.info("correctAnswer_length: {}", expectedLines.correctLength());
         log.info("Total duration (ms): {}", totalMillis);
         log.info("Average interval (ms): {}", avg);
         log.info("Standard deviation of interval: {}", stdDev);
         log.info("WPM (words per minute): {}", wpm);
         log.info("Backspace count: {}", backspaceCount);
         log.info("Accuracy: {}", accuracy);
-//        log.info("Long pause detected: {}", noPauseDetected);
-
-        // 조건별 탐지 여부
-        // log.info("Condition - tooFast: {}", tooFast);
-        //log.info("Condition - tooConsistent: {}", tooConsistent);
-        // log.info("Condition - insaneSpeed: {}", insaneSpeed);
-        //log.info("Condition - hasSimultaneousInput: {}", hasSimultaneousInput);
-        // log.info("Condition - flawlessNoBackspace: {}", flawlessNoBackspace);
-        //log.info("Condition - noPauseDetected: {}", noPauseDetected);
-        //log.info("Condition - isAccuracy: {}", isAccuracy);
 
         log.info("===== 매크로 판별 상세 로그 =====");
-        log.info("tooFastAndConsistent: {}", tooFastAndConsistent);
-//        log.info("suspiciousNoPause: {}", suspiciousNoPause);
+        log.info("tooFast: {}", tooFast);
+        log.info("tooConsistent: {}", tooConsistent);
+        log.info("insaneSpeed: {}", insaneSpeed);
         log.info("flawlessFast: {}", flawlessFast);
         log.info("isAccuracy: {}", isAccuracy);
-        log.info("hasSimultaneousInput: {}", hasSimultaneousInput);
-        log.info("reallyFlawlessMacro: {}", reallyFlawlessMacro);
+        log.info("hasSimultaneousInput: {}", hasSuspiciousInput);
         log.info("===================================");
 
-        //return tooFast || tooConsistent || insaneSpeed || hasSimultaneousInput || flawlessNoBackspace || noPauseDetected || isAccuracy;
-        return tooFastAndConsistent || reallyFlawlessMacro || isAccuracy || hasSimultaneousInput;
+        return tooFast || tooConsistent || insaneSpeed || hasSuspiciousInput || flawlessFast ||  isAccuracy;
     }
 
     public ScoreResult result() {
@@ -229,6 +198,8 @@ public class TypingSession {
                     // 무시
                 }
                 default -> {
+
+
                     currentLine.insert(charCursor, key);
                     charCursor++;
                     if (charCursor > currentLine.length()) charCursor = currentLine.length();
