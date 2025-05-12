@@ -1,4 +1,4 @@
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import multiBg from "../../assets/images/multi_background.png";
 import Header from "../../components/common/Header";
@@ -14,6 +14,7 @@ import { getSocket } from "../../sockets/socketClient";
 import RoundScoreModal from "../../components/multi/modal/RoundScoreModal";
 import FinalResultModal from "../../components/multi/modal/FinalResultModal";
 import useAuthStore from "../../store/authStore";
+import AloneAlertModal from "../../components/multi/modal/AloneAlertModal";
 
 
 const TypingBattlePage = () => {
@@ -36,6 +37,8 @@ const TypingBattlePage = () => {
   const [modalCountdown, setModalCountdown] = useState(5);
   const [finalResults, setFinalResults] = useState([]);
   const [showFinalModal, setShowFinalModal] = useState(false);
+  const [oneLeftRoomInfo, setOneLeftRoomInfo] = useState(null);  // 배틀시 한명남았을때
+  const navigate = useNavigate();
 
   const [roomInfo, setRoomInfo] = useState(null);
   const nickname = useAuthStore((state) => state.user?.nickname);
@@ -391,6 +394,20 @@ const TypingBattlePage = () => {
     socket.on("room_status", handleRoomStatus);
     return () => socket.off("room_status", handleRoomStatus);
   }, [roomId]);
+
+  // 배틀페이지에서 한명남았을때 감지지
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleOnePersonLeft = (data) => {
+      console.log("🎉room_one_person 수신 : ", data);
+      setOneLeftRoomInfo(data);
+    };
+
+    socket.on("room_one_person", handleOnePersonLeft);
+    return () => socket.off("room_one_person", handleOnePersonLeft);
+  }, []);
   
   
 
@@ -399,6 +416,17 @@ const TypingBattlePage = () => {
     className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
     style={{ backgroundImage: `url(${multiBg})` }}
   >
+      {/* 방 혼자 남았을때 alert 창 */}
+      {oneLeftRoomInfo && (
+          <AloneAlertModal
+            roomInfo={oneLeftRoomInfo}
+            onConfirm={() => {
+              navigate(`/multi/room/${oneLeftRoomInfo.roomId}`, {
+                state: oneLeftRoomInfo,
+              });
+            }}
+          />
+        )}
 
     {roundEndingCountdown !== null && (
         <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 text-white text-xl bg-black bg-opacity-80 px-6 py-3 rounded-xl border border-white text-center leading-relaxed">
