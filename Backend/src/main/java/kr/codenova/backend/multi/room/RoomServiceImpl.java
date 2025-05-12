@@ -319,8 +319,6 @@ public class RoomServiceImpl implements RoomService {
             RoomStatusResponse roomStatusResponse = new RoomStatusResponse(room);
             getServer().getRoomOperations(request.getRoomId()).sendEvent("room_status", roomStatusResponse);
         }
-
-        roomMap.put(room.getRoomId(), room);
     }
 
         public String generatedRoomCode() {
