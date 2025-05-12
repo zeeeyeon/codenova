@@ -61,13 +61,18 @@ const ProgressBoard = ({ users }) => {
               {/* 점선 트랙 */}
               <div className="w-full border-t-2 border-dashed border-white absolute top-1/2 -translate-y-1/2" />
   
-              {/* 로켓 */}
-              <img
-                src={user.rocketImage}
-                alt="rocket"
-                className="w-8 h-8 rotate-90 absolute -translate-y-1/2 top-[50%] transition-all duration-300"
+              {/* 로켓 + 진행률 % */}
+              <div
+                className="absolute flex flex-col items-center -translate-y-1/2 top-[60%] transition-all duration-300"
                 style={{ left: `${user.progress}%` }}
-              />
+              >
+                <img
+                  src={user.rocketImage}
+                  alt="rocket"
+                  className="w-8 h-8 rotate-90"
+                />
+                <span className="text-white text-xs mt-1">{user.progress}%</span>
+              </div>
             </div>
           </div>
         ))}

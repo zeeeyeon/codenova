@@ -340,15 +340,57 @@ const TypingBox = ({
 
   const prevProgressRef = useRef(0);
 
+  // useEffect(() => {
+  //   if (!gameStarted || !targetCode) return;
+
+  //   const socket = getSocket();
+  //   if (!socket || !nickname || !roomId) return;
+
+  //   const cleanTarget = targetCode.replace(/\s/g, "");
+  //   const cleanTyped = (lines.slice(0, currentLine).join("\n") + userInput).replace(/\s/g, "");
+
+  //   let correctCount = 0;
+  //   for (let i = 0; i < cleanTyped.length; i++) {
+  //     if (cleanTyped[i] === cleanTarget[i]) {
+  //       correctCount++;
+  //     } else {
+  //       break;
+  //     }
+  //   }
+
+  //   const progressPercent = Math.floor((correctCount / cleanTarget.length) * 100);
+
+  //   if (progressPercent > prevProgressRef.current) {
+  //     prevProgressRef.current = progressPercent;
+  
+  //     // const payload = {
+  //     //   roomId,
+  //     //   nickname,
+  //     //   progressPercent,
+
+  //     // };
+  
+  //     // // 100%일 때만 time 추가
+  //     // if (progressPercent === 100 && currentLine === lines.length - 1 && trimmedUserInput === trimmedCurrentLine) {
+  //     //   payload.time = elapsedTime;
+  //     // }
+      
+  //     // console.log("🍳progress_update : ", payload);
+  //     socket.emit("progress_update",       
+  //       {roomId,
+  //       nickname,
+  //       progressPercent});
+  //   }
+  // }, [userInput, currentLine]);
   useEffect(() => {
     if (!gameStarted || !targetCode) return;
-
+  
     const socket = getSocket();
     if (!socket || !nickname || !roomId) return;
-
+  
     const cleanTarget = targetCode.replace(/\s/g, "");
     const cleanTyped = (lines.slice(0, currentLine).join("\n") + userInput).replace(/\s/g, "");
-
+  
     let correctCount = 0;
     for (let i = 0; i < cleanTyped.length; i++) {
       if (cleanTyped[i] === cleanTarget[i]) {
@@ -357,31 +399,30 @@ const TypingBox = ({
         break;
       }
     }
-
-    const progressPercent = Math.floor((correctCount / cleanTarget.length) * 100);
-
-    if (progressPercent > prevProgressRef.current) {
+  
+    let progressPercent = Math.floor((correctCount / cleanTarget.length) * 100);
+  
+    // ✅ 마지막 줄에서 엔터 안 친 경우 100% 막기
+    const isOnLastLine = currentLine === lines.length - 1;
+    const isLastLineFullyTyped = trimmedUserInput === trimmedCurrentLine;
+  
+    if (progressPercent === 100 && isOnLastLine && isLastLineFullyTyped) {
+      // 아직 엔터 안 쳤으므로 막음 (진행률은 99까지만)
+      return;
+    }
+  
+    // ✅ emit 조건
+    if (progressPercent > prevProgressRef.current && progressPercent < 100) {
       prevProgressRef.current = progressPercent;
   
-      // const payload = {
-      //   roomId,
-      //   nickname,
-      //   progressPercent,
-
-      // };
-  
-      // // 100%일 때만 time 추가
-      // if (progressPercent === 100 && currentLine === lines.length - 1 && trimmedUserInput === trimmedCurrentLine) {
-      //   payload.time = elapsedTime;
-      // }
-      
-      // console.log("🍳progress_update : ", payload);
-      socket.emit("progress_update",       
-        {roomId,
+      socket.emit("progress_update", {
+        roomId,
         nickname,
-        progressPercent});
+        progressPercent,
+      });
     }
   }, [userInput, currentLine]);
+  
 
   useEffect(() =>{
         
