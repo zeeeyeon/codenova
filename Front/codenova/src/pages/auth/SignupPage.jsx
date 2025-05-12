@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { checkIdApi, checkNicknameApi } from "../../api/authApi";
 import useAuthStore from "../../store/authStore";
 import { useEffect } from "react";
-
+import goLanding from "../../assets/images/golanding.png";
 const SignupPage = () => {
   const navigate = useNavigate();
   const [id, setId] = useState("");
@@ -199,6 +199,12 @@ const SignupPage = () => {
             alt="Sign Up Button"
             className="w-[10rem] -mt-4 cursor-pointer hover:brightness-110 transition-all duration-150 hover:translate-y-[2px] active:translate-y-[4px]"
             onClick={handleSignup}
+          />
+          <img
+            src={goLanding}
+            alt="Sign Up"
+            className="w-[9rem] -mt-4 cursor-pointer hover:brightness-110 transition-all duration-150 hover:translate-y-[2px] active:translate-y-[4px]"
+            onClick={() => navigate("/")}
           />
           </div>
         </div>
