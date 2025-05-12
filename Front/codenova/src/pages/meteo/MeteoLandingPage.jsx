@@ -270,6 +270,14 @@ const MeteoLandingPage = () => {
           "",
           window.location.pathname
         );
+
+        const savedPlayers = JSON.parse(
+          localStorage.getItem("meteoPlayers") || "[]"
+        );
+        if (savedPlayers.length > 0) {
+          console.log("savedPlayers", savedPlayers);
+          updateUsersFromPlayers(savedPlayers);
+        }
       }
     };
 
