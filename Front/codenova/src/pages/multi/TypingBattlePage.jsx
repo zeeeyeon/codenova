@@ -56,7 +56,7 @@ const TypingBattlePage = () => {
   });
 
   useEffect(() => {
-    console.log("🔥 TypingBattlePage 초기 users 상태:", state?.users);
+    // console.log("🔥 TypingBattlePage 초기 users 상태:", state?.users);
   }, []);
 
   // 카운트다운
@@ -90,7 +90,7 @@ const TypingBattlePage = () => {
     socket.emit("room_status", { roomId });
   
     const handleRoomStatus = (data) => {
-      console.log("🧑‍🚀 TypingBattlePage room_status 수신:", data);
+      // console.log("🧑‍🚀 TypingBattlePage room_status 수신:", data);
   
       const updatedUsers = Array.from({ length: data.maxCount }, (_, i) => {
         const user = data.users[i];
@@ -124,7 +124,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
 
     const handleTypingStart = (data) => {
-      console.log("🥘 typing_start 수신:", data);
+      // console.log("🥘 typing_start 수신:", data);
       setTargetCode(data.script); // 문제 저장
 
       setUsers((prev) =>
@@ -146,7 +146,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
   
     const handleProgressUpdate = (data) => {
-      console.log("🚀 progress_update 수신:", data);
+      // console.log("🚀 progress_update 수신:", data);
   
       setUsers((prev) =>
         prev.map((user) =>
@@ -182,13 +182,13 @@ const TypingBattlePage = () => {
     // ✅ 모든 유저: 안내창만 표시
     const handleFinishNotice = (data) => {
       const { nickname } = data;
-      console.log("🏁 finish_notice 수신:", nickname);
+      // console.log("🏁 finish_notice 수신:", nickname);
       setFirstFinisher(nickname); // 모든 사람에게 안내창 띄움 (타이머는 X)
     };
   
     // ✅ 내 타이머만 멈추게 할 새로운 이벤트
     const handleCountDown = (data) => {
-      console.log("⏱ count_down 수신:", data.seconds); // 10~1까지 수신
+      // console.log("⏱ count_down 수신:", data.seconds); // 10~1까지 수신
   
       if (data.count === 10) {
         // 최초 10초 카운트 시작 시, 내 타이머 멈춤 + 카운트다운 시작
@@ -225,7 +225,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
   
     const handleRoundScore = (data) => {
-      console.log("📊 round_score 수신:", data);
+      // console.log("📊 round_score 수신:", data);
       setRoundScoreData(data);
       setCurrentRound(data.round+1);
       setShowRoundScoreModal(true);
@@ -238,7 +238,7 @@ const TypingBattlePage = () => {
             setShowRoundScoreModal(false);
   
             if (data.round < 3) {
-              console.log("🍆 round_start emit");
+              // console.log("🍆 round_start emit");
               setCountdown(5);
               setGameStarted(false);
               setRoundEnded(false);
@@ -248,7 +248,7 @@ const TypingBattlePage = () => {
               setStartTime(null);      // 시작시간 초기화
               setTimeRunning(false);   // 혹시 모를 타이머 동작 방지
 
-              console.log("🎙️ round_start emit 시도:", { roomId, nickname});
+              // console.log("🎙️ round_start emit 시도:", { roomId, nickname});
               socket.emit("round_start", {
                 roomId,
                 nickname,
@@ -271,7 +271,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
     
     const handleGameResult = (data) => {
-      console.log("💩 최종 게임 결과 안내 : ",data);
+      // console.log("💩 최종 게임 결과 안내 : ",data);
       setFinalResults(data.results); // 서버에서 avgSpeed 등 포함된 리스트로 보낸다고 가정
       setShowFinalModal(true);
 
@@ -286,7 +286,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
   
     const handleRoomStatus = (data) => {
-      console.log("🧑‍🚀 room_status 수신:", data);
+      // console.log("🧑‍🚀 room_status 수신:", data);
       setRoomInfo(data); // 이걸 FinalResultModal로 넘겨줘야 함
   
       const updatedUsers = Array.from({ length: data.maxCount }, (_, i) => {
@@ -320,7 +320,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
 
     const handleOnePersonLeft = (data) => {
-      console.log("🎉room_one_person 수신 : ", data);
+      // console.log("🎉room_one_person 수신 : ", data);
       setOneLeftRoomInfo(data);
     };
 

@@ -208,7 +208,7 @@ const SinglePage = () => {
             keyLogs : keyLogsRef.current 
         }
         try {
-            console.log(keyLogsRef.current)
+            // console.log(keyLogsRef.current)
             const response = await verifiedRecord(data);
             const {code, message} = response.status;
             if (code === 200){
@@ -235,7 +235,7 @@ const SinglePage = () => {
                 }
             }
             else if (code === 400) {
-                console.log("비정상적인 접근입니다.")
+                // console.log("비정상적인 접근입니다.")
             }
         } catch (e) {
             console.error("postResult error:", e);
