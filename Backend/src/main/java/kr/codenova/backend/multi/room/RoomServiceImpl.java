@@ -14,6 +14,7 @@ import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
 import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
 import kr.codenova.backend.multi.dto.response.CreateRoomResponse;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
+import kr.codenova.backend.multi.dto.response.RoomOnePersonResponse;
 import kr.codenova.backend.multi.dto.response.RoomStatusResponse;
 import kr.codenova.backend.multi.exception.*;
 import kr.codenova.backend.multi.room.Room.UserStatus;
@@ -308,8 +309,8 @@ public class RoomServiceImpl implements RoomService {
             roomMap.remove(request.getRoomId());
             getServer().getBroadcastOperations().sendEvent("room_removed", request.getRoomId());
         } else if (room.getCurrentCount() == 1) {
-            RoomStatusResponse roomStatusResponse = new RoomStatusResponse(room);
-            getServer().getRoomOperations(request.getRoomId()).sendEvent("room_one_person", roomStatusResponse);
+            RoomOnePersonResponse roomOnePersonResponse = new RoomOnePersonResponse(room);
+            getServer().getRoomOperations(request.getRoomId()).sendEvent("room_one_person", roomOnePersonResponse);
             RoomUpdateBroadcast updated = RoomUpdateBroadcast.from(room);
             getServer().getBroadcastOperations().sendEvent("room_update", updated);
         } else {
