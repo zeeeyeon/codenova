@@ -40,6 +40,7 @@ const MeteoLandingPage = () => {
   const [chatInput, setChatInput] = useState("");
   const scrollRef = useRef(null);
   const currentRoomId = localStorage.getItem("meteoRoomId");
+  const currentRoomCode = localStorage.getItem("meteoRoomCode");
   const [countdown, setCountdown] = useState(null);
   const [showReadyAlert, setShowReadyAlert] = useState(false);
   const readyUsers = users.filter(user => user && user.ready);
@@ -64,6 +65,7 @@ const MeteoLandingPage = () => {
     const handleGameReady = ((data) => {
       console.log("[onGameReady] ready 수신", { data });
       updateUsersFromPlayers(data.players);
+      localStorage.setItem("meteoPlayers", JSON.stringify(data.players));
     });
   
     onGameReady(handleGameReady);
@@ -225,7 +227,7 @@ const MeteoLandingPage = () => {
       offRoomExit();
       localStorage.removeItem("meteoRoomCode");
       localStorage.removeItem("meteoRoomId");
-      localStorage.removeItem("meteoPlayers");
+      // localStorage.removeItem("meteoPlayers");
     };
   }, [nickname, navigate]);
 
@@ -292,6 +294,7 @@ const MeteoLandingPage = () => {
 
     const handleMatchRandom = (roomData) => {
       console.log("🛰️ [matchRandom 수신 - LandingPage]", roomData);
+      localStorage.setItem("meteoPlayers", JSON.stringify(roomData.players));
       updateUsersFromPlayers(roomData.players);
       // ✅ 마지막 들어온 유저 추적해서 system 메시지 출력
       const prevCount = users.filter((u) => u !== null).length;
@@ -582,8 +585,8 @@ const MeteoLandingPage = () => {
                 style={{ borderColor: "#01FFFE" }}
               >
                 <p className="text-xl mb-1">방코드</p>
-                <p className="text-3xl">{roomCode || "-"}</p>
-                {roomCode ? (
+                <p className="text-3xl">{currentRoomCode || "-"}</p>
+                {currentRoomCode ? (
                 <button
                   onClick={handleCopy}
                   className="w-7 h-7 hover:scale-110 transition"
