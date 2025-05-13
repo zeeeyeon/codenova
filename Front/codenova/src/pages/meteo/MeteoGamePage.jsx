@@ -8,7 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getSocket } from "../../sockets/socketClient";
 import EndGameBtn from "../../assets/images/end_game_button.png";
 import ConfirmModal from "../../components/modal/ConfirmModal";
-import { exitMeteoGame, exitMeteoRoom, offUserInput, onCheckText, onCheckTextResponse, onExitMeteoGame, onGameEnd,  onRemoveHeartResponse, onUserInput, onUserInputResponse } from "../../sockets/meteoSocket";
+import { onGoWaitingRoom, offGoWaitingRoom, exitMeteoGame, exitMeteoRoom, goWaitingRoom, offUserInput, onCheckText, onCheckTextResponse, onExitMeteoGame, onGameEnd,  onRemoveHeartResponse, onUserInput, onUserInputResponse, exitGame } from "../../sockets/meteoSocket";
 import GameResultModal from "../../components/modal/GameResultModal";
 import redHeart from "../../assets/images/red_heart.png";
 import blackHeart from "../../assets/images/black_heart.png";
@@ -63,6 +63,9 @@ const MeteoGamePage = () => {
   const [showExitModal, setShowExitModal] = useState(false);
   const [leaveMessages, setLeaveMessages] = useState([]);
 
+  
+
+
   useEffect(() => {
     const handleBeforeUnloadOrPop = () => {
       const savedRoomId = localStorage.getItem("meteoRoomId");
@@ -70,10 +73,10 @@ const MeteoGamePage = () => {
       // console.log("🔥 [뒤로가기 또는 새로고침] 방 나감 처리", savedRoomId, savedNickname);
       if (savedRoomId && savedNickname) {
         // console.log("🚪 [뒤로가기 또는 새로고침] 방 나감 처리");
-        exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
+        exitGame({ roomId: savedRoomId, nickname: savedNickname });
   
-        localStorage.removeItem("meteoRoomCode");
-        localStorage.removeItem("meteoRoomId");
+        // localStorage.removeItem("meteoRoomCode");
+        // localStorage.removeItem("meteoRoomId");
       }
     };
   
@@ -92,7 +95,7 @@ const MeteoGamePage = () => {
         const savedNickname = nickname;
   
         if (currentRoomId && savedNickname) {
-          exitMeteoRoom({ roomId: roomId, nickname: nickname });
+          exitGame({ roomId: roomId, nickname: nickname });
           // console.log("🚪 [뒤로가기] 방 나감 처리 시작");
         }
       };
@@ -185,7 +188,7 @@ const MeteoGamePage = () => {
     // 1. 정상 종료 처리
     const handleLeave = (data) => {
       const { leftUser, currentPlayers } = data;
-  
+      console.log("[handleLeave] 정상 종료 처리", data);
       if (leftUser.nickname === localStorage.getItem("nickname")) {
         localStorage.removeItem("roomId");
         localStorage.removeItem("roomCode");
@@ -201,7 +204,7 @@ const MeteoGamePage = () => {
     };
     socket.off("gameLeave", handleLeave);
     socket.on("gameLeave", handleLeave);
-  
+    
     // 2. 비정상 종료 처리
     const handleGameLeave = (data) => {
       const { leftUser, currentPlayers } = data;
@@ -311,6 +314,31 @@ const MeteoGamePage = () => {
       offUserInput();
     };
   }, []);
+
+  useEffect(() => {
+    const handleGoWaitingRoom = (data) => {
+      const myNickname = localStorage.getItem("nickname");
+      
+      const isMeIncluded = data.players.some(
+        (player) => player.nickname === myNickname
+      );
+  
+      if (!isMeIncluded) {
+        console.warn("❗ 내 닉네임이 포함되지 않음 → 대기방 이동 안 함");
+        return;
+      }
+  
+      console.log("✅ [내 포함됨] waitingRoomGo 수신 → 대기방 이동", data);
+      navigate("/meteo/landing", { state: data });
+    };
+  
+    onGoWaitingRoom(handleGoWaitingRoom);
+    return () => {
+      offGoWaitingRoom();
+    };
+  }, []);
+  
+  
   
 
   return (
@@ -431,7 +459,7 @@ const MeteoGamePage = () => {
               // console.log("nickname:", nickname); // null이면 문제 있음
               // console.log("🔥 exit 요청할 roomId / nickname:", roomId, nickname);
             
-              exitMeteoGame({ roomId, nickname });
+              exitGame({ roomId, nickname });
             
               localStorage.removeItem("roomId");
               localStorage.removeItem("roomCode");
@@ -449,29 +477,38 @@ const MeteoGamePage = () => {
           onExit={() => {
             const roomId = localStorage.getItem("roomId");
             const nickname = localStorage.getItem("nickname");
-            console.log("🟨 [GameResultModal 종료] onExit 실행", { roomId, nickname });
+            // console.log("🟨 [GameResultModal 종료] onExit 실행", { roomId, nickname });
             // if (!roomId || !nickname) {
             //   console.warn("❗ roomId 또는 nickname 누락 → 강제 메인 이동");
             //   navigate("/main");
             //   return;
             // }
-            exitMeteoGame({ roomId, nickname })
+            exitGame({ roomId, nickname })
             localStorage.removeItem("roomId");
             localStorage.removeItem("roomCode");
             navigate("/main");
 
-            // // 브로드캐스트 수신 후 이동
-            // onExitMeteoGame((data) => {
-            //   console.log("🟨 [onExitMeteoGame 수신] 게임 종료 처리", data);
-            //   localStorage.removeItem("roomId");
-            //   localStorage.removeItem("roomCode");
-            //   localStorage.removeItem("nickname");
-            //   navigate("/main");
-            // }, 300);
           }}
           onRetry={() => {
-            window.location.reload(); // 필요 시 재도전 로직 수정 가능
+            const roomId = localStorage.getItem("roomId");
+            const nickname = localStorage.getItem("nickname");
+            const roomCode = localStorage.getItem("meteoRoomCode");
+          
+            if (!roomId || !nickname) {
+              console.warn("❗ roomId 또는 nickname 누락 → 강제 메인 이동");
+              navigate("/main");
+              return;
+            }
+          
+            // meteoRoomCode가 사라졌다면 다시 복원
+            if (!roomCode && gameData?.roomCode) {
+              localStorage.setItem("meteoRoomCode", gameData.roomCode);
+              console.log("✅ meteoRoomCode 복원:", gameData.roomCode);
+            }
+          
+            goWaitingRoom({ nickname, roomId });
           }}
+          
         />
       )}
 
