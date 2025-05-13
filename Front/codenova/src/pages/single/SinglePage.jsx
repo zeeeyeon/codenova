@@ -68,6 +68,8 @@ const SinglePage = () => {
     // 완료 상태 관리
     const [isFinished, setIsFinished] = useState(false);
 
+    const [requestId, setRequestId] = useState("");
+
     // 자동으로 내려가게
     const codeContainerRef = useRef(null);
 
@@ -105,6 +107,7 @@ const SinglePage = () => {
                     setLines(lines);
                     setSpace(space);
                     setlinesCharCount(charCount)
+                    setRequestId(data.requestId)
                 })
                 .catch(e => {
                     // console.error("api 요청 실패:" , e)
@@ -205,7 +208,8 @@ const SinglePage = () => {
         const data = {
             codeId : codeId,
             language : lang.toUpperCase(),
-            keyLogs : keyLogsRef.current 
+            keyLogs : keyLogsRef.current,
+            requestId : requestId 
         }
         try {
             // console.log(keyLogsRef.current)
@@ -226,7 +230,7 @@ const SinglePage = () => {
     // 검증완료했으면 저장 로직 수행
     const postResult = async (token) => {
         try {
-            const response = await postRecord(token);
+            const response = await postRecord(token, requestId);
             const {code, message} = response.status;
 
             if (code === 200) {
