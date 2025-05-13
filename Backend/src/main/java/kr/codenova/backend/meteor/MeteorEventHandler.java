@@ -72,7 +72,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().addEventListener("gameReady", GameReadyRequest.class, (client, data, ack) -> handleReadyGame(client, data));
         // 게임 종료 후 대기방으로 복귀 이벤트
         server().addEventListener("goWaitingRoom", GoWaitingRoomRequest.class, (client, data, ack) -> handleGoWaitingRoom(client, data));
-
+        server().addEventListener("exitGame", ExitRoomRequest.class, (client, data, ack) -> handleExitRoom(client, data));
 
     }
 
@@ -334,27 +334,82 @@ public class MeteorEventHandler implements SocketEventHandler {
                     .orElse(null);
         }
 
-        // 3. 사용자들에게 브로드캐스트
-        if (room.getStatus() == GameStatus.PLAYING || room.getStatus() == GameStatus.FINISHED) {
-            ExitGameResponse response = new ExitGameResponse(
-                    roomId,
-                    leftUser,
-                    updatedPlayers
-            );
-            server().getRoomOperations(roomId)
-                    .sendEvent("gameLeave", response);
+        // 6. 사용자들에게 브로드캐스트
+
+        ExitRoomResponse response = new ExitRoomResponse(
+                roomId,
+                leftUser,
+                newHost,
+                updatedPlayers
+        );
+        server().getRoomOperations(roomId)
+                .sendEvent("roomExit", response);
 
 
-        }else {
-            ExitRoomResponse response = new ExitRoomResponse(
-                    roomId,
-                    leftUser,
-                    newHost,
-                    updatedPlayers
-            );
-            server().getRoomOperations(roomId)
-                    .sendEvent("roomExit", response);
+
+        // 나간 유저에게도 응답이 필요하면 추가
+
+
+
+    }
+    private void handleExitGame(SocketIOClient client, ExitRoomRequest data) {
+        String roomId = data.getRoomId();
+        String nickname = data.getNickname();
+        String sessionId = client.getSessionId().toString();
+
+        GameRoom room = roomManager.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."))
+                ;
+        //
+        boolean wasHost = sessionId.equals(room.getHostSessionId());
+
+        // 1. 사용자 제거
+        room.removePlayer(sessionId);
+        client.leaveRoom(roomId);
+
+        // 만약 모든 사용자가 나갔다면 방 삭제
+        if (room.getPlayers().isEmpty()) {
+            roomManager.removeRoom(roomId);
+            return;
         }
+
+        // 2. 새로운 방장 세션 ID 조회
+        String newHostSessionId = room.getHostSessionId();
+
+        // 3. isHost가 업데이트 된 플레이어 목록
+        List<UserInfo> updatedPlayers = room.getPlayers().stream()
+                .map(u -> new UserInfo(
+                        u.getSessionId(),
+                        u.getNickname(),
+                        u.getSessionId().equals(newHostSessionId),
+                        u.getIsReady(),
+                        u.getIsWaiting()
+                ))
+                .collect(Collectors.toList());
+
+        // 4. 퇴장한 플레이어 정보
+        UserInfo leftUser = new UserInfo(sessionId, nickname, wasHost,false,false);
+
+        // 5. 새 방장 정보
+        UserInfo newHost = null;
+        if (wasHost && !room.getPlayers().isEmpty()) {
+            newHost = updatedPlayers.stream()
+                    .filter(UserInfo::getIsHost)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        // 6. 사용자들에게 브로드캐스트
+
+        ExitRoomResponse response = new ExitRoomResponse(
+                roomId,
+                leftUser,
+                newHost,
+                updatedPlayers
+        );
+        server().getRoomOperations(roomId)
+                .sendEvent("gameLeave", response);
+
 
 
         // 나간 유저에게도 응답이 필요하면 추가
