@@ -2,6 +2,7 @@ package kr.codenova.backend.single.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.codenova.backend.common.entity.CS;
+import kr.codenova.backend.common.entity.Code;
 import kr.codenova.backend.common.enums.Language;
 import kr.codenova.backend.common.repository.CsRepository;
 import kr.codenova.backend.global.exception.CustomException;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static kr.codenova.backend.global.response.ResponseCode.CODE_NOT_FOUND;
 
@@ -54,9 +56,14 @@ public class SingleServiceImpl implements SingleService {
             throw new CustomException(CODE_NOT_FOUND);
         }
 
-        return codeRepository.findRandomByLanguage(language)
-                .map(SingleBattleCodeResponse::from)
+        String requestId = UUID.randomUUID().toString();
+        Code code = codeRepository.findRandomByLanguage(language)
                 .orElseThrow(() -> new CustomException(CODE_NOT_FOUND));
+
+        log.info("event=single_game_start userId=null language={} requestId={} startTimestamp={}",
+                language, requestId, System.currentTimeMillis());
+
+        return SingleBattleCodeResponse.from(code, requestId);
     }
 
 //    @Override
@@ -124,12 +131,12 @@ public class SingleServiceImpl implements SingleService {
     }
 
 
-    @Override
-    public SingleBattleCodeResponse test(int codeId) {
-        return codeRepository.findByCodeId(codeId)
-                .map(SingleBattleCodeResponse::from)
-                .orElseThrow(() -> new CustomException(CODE_NOT_FOUND));
-    }
+//    @Override
+//    public SingleBattleCodeResponse test(int codeId) {
+//        return codeRepository.findByCodeId(codeId)
+//                .map(SingleBattleCodeResponse::from)
+//                .orElseThrow(() -> new CustomException(CODE_NOT_FOUND));
+//    }
 
     private String buildStructuredPrompt(List<String> keywords) {
         StringBuilder builder = new StringBuilder();

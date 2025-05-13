@@ -72,6 +72,8 @@ public class GameRoom {
 
             players.add(user);
             scoreMap.put(user.getSessionId(), 0);
+            log.info("event=room_join roomId={} roomCode={} sessionId={} nickname={} currentPlayers={}",
+                    roomId, roomCode, user.getSessionId(), user.getNickname(), players.size());
         }
     }
 
@@ -84,6 +86,9 @@ public class GameRoom {
 
             // 준비 상태 제거
             readyPlayers.remove(sessionId);
+
+            log.info("event=room_leave roomId={} sessionId={} remainingPlayers={}",
+                    roomId, sessionId, players.size());
 
             // 방장이었고 다른 플레이어가 아직 남아있다면 새 방장 지정
             if (isHost && !players.isEmpty()) {
@@ -119,6 +124,9 @@ public class GameRoom {
         synchronized (gameLock) {
             this.status = GameStatus.FINISHED;
             this.finishedAt = new Date();
+
+            log.info("event=game_finish roomId={} roomCode={} totalPlayers={} finishedAt={} remainingLife={} scores={}",
+                    roomId, roomCode, players.size(), finishedAt, life.get(), scoreMap.toString());
         }
     }
 
@@ -135,6 +143,15 @@ public class GameRoom {
 
     public int incrementScore(String sessionId) {
         int newScore = scoreMap.merge(sessionId, 1, Integer::sum);
+
+        String nickname = players.stream()
+                .filter(u -> u.getSessionId().equals(sessionId))
+                .map(UserInfo::getNickname)
+                .findFirst()
+                .orElse("unknown");
+
+        log.info("event=word_hit roomId={} userId={} nickname={} newScore={}", roomId, sessionId, nickname, newScore);
+
         return newScore;
     }
     // 게임 종료시 전체 점수 조회
@@ -179,6 +196,10 @@ public class GameRoom {
             synchronized (scoreLock) {
                 activeFallingWords.remove(word);
                 int currentLife = life.decrementAndGet();
+
+                log.info("event=word_miss roomId={} word={} remainingLife={} gameOver={}",
+                        roomId, word, currentLife, currentLife <= 0);
+
                 return currentLife <= 0;
             }
         }

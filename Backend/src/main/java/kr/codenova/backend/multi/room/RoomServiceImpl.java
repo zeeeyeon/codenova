@@ -65,6 +65,7 @@ public class RoomServiceImpl implements RoomService {
             String roomId = userRoomInfo.getRoomId();
             String nickname = userRoomInfo.getNickname();
 
+            log.info("event=disconnect sessionId={} roomId={} nickname={}", sessionId, roomId, nickname);
             log.info("Disconnected user was in room: {}, nickname: {}", roomId, nickname);
 
             // LeaveRoomRequest 객체 생성하여 기존 퇴장 로직 호출
@@ -113,6 +114,11 @@ public class RoomServiceImpl implements RoomService {
                 .createdAt(LocalDateTime.now())
                 .build();
         roomMap.put(roomId, room);
+
+        log.info("event=room_create roomId={} roomTitle={} host={} isLocked={} maxCount={} language={}",
+                roomId, request.getTitle(), request.getNickname(), request.getIsLocked(), request.getMaxNum(), request.getLanguage());
+
+
         log.info("방 생성 : " + room.toString());
 
         // 유저 준비 상태 초기화
@@ -194,6 +200,8 @@ public class RoomServiceImpl implements RoomService {
         // ✅ 클라이언트 방 조인
         client.joinRoom(room.getRoomId());
 
+        log.info("event=room_join roomId={} nickname={} currentCount={}", request.getRoomId(), request.getNickname(), room.getCurrentCount());
+
         ackSender.sendAckData("joined");
 
         // ✅ 응답
@@ -240,6 +248,8 @@ public class RoomServiceImpl implements RoomService {
         // ✅ 현재 인원 감소
         room.setCurrentCount(Math.max(room.getCurrentCount() - 1, 0));
 
+        log.info("event=room_leave roomId={} nickname={} currentCount={}", request.getRoomId(), request.getNickname(), room.getCurrentCount());
+
         // 방장 권한 위임 처리
         UserStatus userStatus = room.getUserStatusMap().get(request.getNickname());
         if (userStatus == null) {
@@ -277,6 +287,8 @@ public class RoomServiceImpl implements RoomService {
                 log.info("방장 권한 위임: {} -> {}, 방: {}",
                         request.getNickname(), newHostNickname, request.getRoomId());
 
+                log.info("event=host_change roomId={} newHost={}", request.getRoomId(), newHostNickname);
+
                 RoomStatusResponse roomStatusResponse = new RoomStatusResponse(room);
 
 
@@ -307,6 +319,7 @@ public class RoomServiceImpl implements RoomService {
         // ✅ 방 삭제 or 업데이트 브로드캐스트
         if (room.getCurrentCount() == 0) {
             roomMap.remove(request.getRoomId());
+            log.info("event=room_removed roomId={}", request.getRoomId());
             getServer().getBroadcastOperations().sendEvent("room_removed", request.getRoomId());
         } else if (room.getCurrentCount() == 1) {
             RoomOnePersonResponse roomOnePersonResponse = new RoomOnePersonResponse(room);
