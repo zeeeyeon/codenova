@@ -5,17 +5,32 @@ import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.single.dto.CorrectAnswerResult;
 import kr.codenova.backend.single.dto.KeyLog;
 import kr.codenova.backend.single.dto.response.ScoreResult;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 @Slf4j
 public class TypingSession {
 
     private final List<KeyLog> keyLogs;
     private final String correctAnswer;
     private final CorrectAnswerResult expectedLines; // 정답 코드를 줄별로 자르고 - 좌우 공백 자르기, 총 길이와 리스트 저장 레코드임
+
+    private boolean tooFast;
+    private boolean tooConsistent;
+    private boolean insaneSpeed;
+    private boolean flawlessFast;
+    private boolean accuracySuspicious;
+    private boolean hasSimultaneousInput;
+    private long totalMillis;
+    private double avg;
+    private double stdDev;
+    private double wpm;
+    private double accuracy;
+    private int backspaceCount;
 
     private TypingSession(List<KeyLog> keyLogs, String correctAnswer) {
         validateKeyLogs(keyLogs);
@@ -31,33 +46,33 @@ public class TypingSession {
     public boolean isSuspicious() {
 
         List<Long> intervals = new ArrayList<>();
-        int backspaceCount = 0;
-        boolean hasSimultaneousInput = false;
+        this.backspaceCount = 0;
+        this.hasSimultaneousInput = false;
         long previous = keyLogs.get(0).timestamp();
 
         for (int i = 1; i < keyLogs.size(); i++) {
             long current = keyLogs.get(i).timestamp();
             long interval = current - previous;
-            if (interval == 0) hasSimultaneousInput = true;
+            if (interval == 0) this.hasSimultaneousInput = true;
             intervals.add(interval);
             previous = current;
 
             if ("Backspace".equalsIgnoreCase(keyLogs.get(i).key())) {
-                backspaceCount++;
+                this.backspaceCount++;
             }
         }
 
         // 평균 및 표준편차
-        double avg = intervals.stream().mapToLong(Long::longValue).average().orElse(0);
-        double stdDev = Math.sqrt(intervals.stream()
+        this.avg = intervals.stream().mapToLong(Long::longValue).average().orElse(0);
+        this.stdDev = Math.sqrt(intervals.stream()
                 .mapToDouble(i -> Math.pow(i - avg, 2)).average().orElse(0));
 
         // 입력 속도 계산
-        long totalMillis = keyLogs.get(keyLogs.size() - 1).timestamp() - keyLogs.get(0).timestamp();
-        double wpm = calculateWPM(expectedLines.correctLength(), totalMillis);
+        this.totalMillis = keyLogs.get(keyLogs.size() - 1).timestamp() - keyLogs.get(0).timestamp();
+        this.wpm = calculateWPM(expectedLines.correctLength(), totalMillis);
 
         // 정확도 & 오타 유무
-        double accuracy = calculateAccuracy();
+        this.accuracy = calculateAccuracy();
 
         // === 느린 유저는 걸러내지 않음 ===
         if (wpm <= 400) {
@@ -66,15 +81,14 @@ public class TypingSession {
         }
 
         // === 빠른 유저에 한해서만 검사하기
-        boolean tooFast = avg < 40;
-        boolean tooConsistent = stdDev < 10;
-        boolean insaneSpeed = wpm > 750; //cpm 750이란뜻
-        boolean hasSuspiciousInput = hasSimultaneousInput;
+        this.tooFast = avg < 40;
+        this.tooConsistent = stdDev < 10;
+        this.insaneSpeed = wpm > 750; //cpm 750이란뜻
 
         // calculateAccuracy로 시뮬레이션 했을때 keyLogs가 100가 아니면 부정확하면 이상한 것
-        boolean isAccuracy = accuracy != 100.0;
+        this.accuracySuspicious = accuracy != 100.0;
 
-        boolean flawlessFast = backspaceCount == 0 && wpm > 700;
+        this.flawlessFast = backspaceCount == 0 && wpm > 700;
 
         if (expectedLines.correctLength() > 150) {
             flawlessFast = backspaceCount == 0 && wpm > 500;
@@ -100,11 +114,11 @@ public class TypingSession {
         log.info("tooConsistent: {}", tooConsistent);
         log.info("insaneSpeed: {}", insaneSpeed);
         log.info("flawlessFast: {}", flawlessFast);
-        log.info("isAccuracy: {}", isAccuracy);
-        log.info("hasSimultaneousInput: {}", hasSuspiciousInput);
+        log.info("isAccuracy: {}", accuracySuspicious);
+        log.info("hasSimultaneousInput: {}", hasSimultaneousInput);
         log.info("===================================");
 
-        return tooFast || tooConsistent || insaneSpeed || hasSuspiciousInput || flawlessFast ||  isAccuracy;
+        return tooFast || tooConsistent || insaneSpeed || hasSimultaneousInput || flawlessFast ||  accuracySuspicious;
     }
 
     public ScoreResult result() {
@@ -235,6 +249,17 @@ public class TypingSession {
     private void validateKeyLogs(List<KeyLog> logs) {
         if (logs == null) throw new CustomException(ResponseCode.KEYLOG_TOO_SHORT);
         if (logs.get(0).timestamp() >= logs.get(logs.size() - 1).timestamp()) throw new CustomException(ResponseCode.KEYLOG_INVALID_ORDER);
+    }
+
+    public String keyLogsToJsonString() {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < keyLogs.size(); i++) {
+            KeyLog logEntry = keyLogs.get(i);
+            sb.append(String.format("{\"key\":\"%s\",\"timestamp\":%d}", logEntry.key(), logEntry.timestamp()));
+            if (i < keyLogs.size() - 1) sb.append(",");
+        }
+        sb.append("]");
+        return sb.toString();
     }
 }
 
