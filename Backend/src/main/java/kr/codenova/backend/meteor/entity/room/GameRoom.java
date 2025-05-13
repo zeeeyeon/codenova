@@ -122,7 +122,7 @@ public class GameRoom {
     }
     public void finish() {
         synchronized (gameLock) {
-            this.status = GameStatus.FINISHED;
+            this.status = GameStatus.WAITING;
             this.finishedAt = new Date();
 
             log.info("event=game_finish roomId={} roomCode={} totalPlayers={} finishedAt={} remainingLife={} scores={}",
