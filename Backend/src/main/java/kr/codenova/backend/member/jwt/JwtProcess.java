@@ -31,6 +31,7 @@ public class JwtProcess {
                     .withExpiresAt(new Date(System.currentTimeMillis() + JwtVO.EXPIRATION_TIME))
                     .withClaim("memberId", loginMember.getMember().getMemberId())
                     .withClaim("id", loginMember.getUsername())
+                    .withClaim("nickname", loginMember.getNickname())
                     .sign(Algorithm.HMAC512(JwtVO.SECRET));
 
             log.debug("디버그 : 생성된 토큰 = {}", jwtToken);
@@ -74,7 +75,7 @@ public class JwtProcess {
 
             Integer memberId = decodedJWT.getClaim("memberId").asInt();
             String id = decodedJWT.getClaim("id").asString();
-
+            String nickname = decodedJWT.getClaim("nickname").asString();
 
             log.debug("토큰에서 추출된 정보 - id: {}", memberId);
 
@@ -85,6 +86,7 @@ public class JwtProcess {
             Member member = Member.builder()
                     .memberId(memberId)
                     .id(id)
+                    .nickname(nickname)
                     .build();
 
             return new CustomMemberDetails(member);
