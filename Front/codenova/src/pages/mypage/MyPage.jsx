@@ -14,6 +14,7 @@ import { getMyProfile, upDateMyProfile } from '../../api/myPage'
 import Header from '../../components/common/Header'
 import TutoModal from '../../components/common/TutoModal'
 import useAuthStore from '../../store/authStore'
+import CustomAlert from '../../components/common/CustomAlert'
 
 const MyPage= () => {
 
@@ -21,7 +22,8 @@ const MyPage= () => {
     const btn_class = 'cursor-pointer scale-75 transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'
     const [showTutoModal, setShowTutoModal] = useState(false)
     const [currentLangIndex, setCurrentLangIndex] = useState(0);
-
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertText, setAlertText] = useState("");
     const [id, setId] = useState("")
     const [nicknameCheck, setNicknameCheck] = useState(false);
     const [nickname, setNickName] = useState(null);
@@ -31,7 +33,10 @@ const MyPage= () => {
     const [userScoreList, setUserScoreList] = useState([]);
 
     const updateNickname = useAuthStore((state) => state.updateNickname);
-
+    const openAlert = (msg) => {
+        setAlertText(msg);
+        setShowAlert(true);
+    };
     useEffect(() =>{
         // console.log(userScoreList)
     },[userScoreList])
@@ -65,10 +70,10 @@ const MyPage= () => {
 
     const handleNicknameCheck = async () => {
         if (!newNickname) {
-            alert("수정하실 닉네임을 입력하세요");
+            openAlert("수정하실 닉네임을 입력하세요");
             return;
         } else if (newNickname.length > 11) {
-            alert("닉네임은 최대 11자까지 입력할 수 있습니다")
+            openAlert("닉네임은 최대 11자까지 입력할 수 있습니다")
         }
 
         try {
@@ -77,10 +82,10 @@ const MyPage= () => {
 
             if (code === 200 ) {
                 setNicknameCheck(true);
-                alert("사용 가능한 닉네임입니다!");
+                openAlert("사용 가능한 닉네임입니다!");
             } else {
                 setNicknameCheck(false);
-                alert(messsage || "닉네임 중복입니다!!")
+                openAlert(messsage || "닉네임 중복입니다!")
             }
         } catch (e) {
             console.error(e);
@@ -96,17 +101,17 @@ const MyPage= () => {
         const numberChanged = newNumber && newNumber !== number;
         
         if(numberChanged && newNumber.length !== 13){ //번호를 입력했지만 올라르지 않을때
-            alert("올바른 번호를 입력해주세요")
+            openAlert("올바른 번호를 입력해주세요")
             return;
         }
         if(nicknameChanged && !nicknameCheck){ //변경 닉네임을 입력했지만 중복검사를 하지 않았을때
-            alert("닉네임 중복 검사를 하지 않았습니다")
+            openAlert("닉네임 중복 검사를 하지 않았습니다")
             return;
         }
 
         // 변경 사항 없을 때
         if (!nicknameChanged && !numberChanged) {
-          alert("변경된 내용이 없습니다.");
+            openAlert("변경된 내용이 없습니다.");
           return;
         }
 
@@ -126,13 +131,13 @@ const MyPage= () => {
                 setNewNickName('');
                 setNewNumber('');
                 setNicknameCheck(false);
-                alert("수정이 완료되었습니다.")
+                openAlert("수정이 완료되었습니다.")
             } else{
                 alert(message)
             }
         } catch (e){
             console.error(e);
-            alert("수정중 오류가 발생했습니다.")
+            openAlert("수정중 오류가 발생했습니다.")
         }
         
     }
@@ -156,6 +161,9 @@ const MyPage= () => {
                 <div className="z-[9999]">
                     <TutoModal onClose={() => setShowTutoModal(false)} />
                 </div>
+            )}
+            {showAlert && (
+                <CustomAlert message={alertText} onConfirm={() => setShowAlert(false)} />
             )}
             <Header onShowTuto={() => setShowTutoModal(true)}/>
             <BoardContainer>

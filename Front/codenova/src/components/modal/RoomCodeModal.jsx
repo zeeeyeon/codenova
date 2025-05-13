@@ -5,15 +5,19 @@ import randomBtn from "../../assets/images/gorandom_button.png";
 import useAuthStore from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
 import { joinMeteoRoom, offRandomMatch, onRandomMatch, onRandomMatchResponse } from "../../sockets/meteoSocket";
+import CustomAlert from "../common/CustomAlert";
 
 const RoomCodeModal = ({ onClose }) => {
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const nickname = useAuthStore((state) => state.user?.nickname);
   const navigate = useNavigate();
-
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  
   const handleEnterRoom = () => {
     if (!roomCodeInput) {
-      alert("방코드를 입력하세요!");
+      setAlertMessage("방코드를 입력하세요!");
+      setShowAlert(true);
       return;
     }
     if (!nickname) {
@@ -37,12 +41,11 @@ const RoomCodeModal = ({ onClose }) => {
         onClose(); // 모달 닫기
       },
       (errorMessage) => {
-        // console.error("❌ 방 입장 실패:", errorMessage);
-        alert("❌ 방 코드가 틀렸습니다.");
-  
-        // ✅ 실패하면 input 초기화 (선택사항)
+        setAlertMessage("❌ 방 코드가 틀렸습니다.");
+        setShowAlert(true);
         setRoomCodeInput(""); 
       }
+      
     );
   };
   
@@ -125,6 +128,14 @@ const RoomCodeModal = ({ onClose }) => {
           /> */}
         </div>
       </div>
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onConfirm={() => setShowAlert(false)}
+          confirmText="확인"
+        />
+      )}
+
     </div>
   );
 };
