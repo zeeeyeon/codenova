@@ -3,6 +3,7 @@ import board3 from "../../assets/images/board3.png";
 import customer from "../../assets/images/customer.png";
 import endBtn from "../../assets/images/end_game_button.png";
 import retryBtn from "../../assets/images/try_again_button.png";
+import goWaitingRoomBtn from "../../assets/images/waitingRoom.png";
 
 const GameResultModal = ({ results, success, onExit, onRetry }) => {
 
@@ -41,12 +42,12 @@ const GameResultModal = ({ results, success, onExit, onRetry }) => {
             className="w-[9rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             onClick={onExit}
           />
-          {/* <img
-            src={retryBtn}
+          <img
+            src={goWaitingRoomBtn}
             alt="retry"
             className="w-[9rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             onClick={onRetry}
-          /> */}
+          />
         </div>
       </div>
     </div>
