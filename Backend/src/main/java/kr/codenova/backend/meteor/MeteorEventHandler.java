@@ -526,7 +526,7 @@ public class MeteorEventHandler implements SocketEventHandler {
                 .collect(Collectors.toList());
 
 
-        GoWaitingRoomResponse response = new GoWaitingRoomResponse(room.getRoomId(), waitingPlayers);
+        GoWaitingRoomResponse response = new GoWaitingRoomResponse(room.getRoomId(), room.getRoomCode(),waitingPlayers);
         server().getRoomOperations(roomId).sendEvent("waitingRoomGo", response);
 
 
