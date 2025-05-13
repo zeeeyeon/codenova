@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import kr.codenova.backend.common.enums.Language;
+import kr.codenova.backend.global.annotation.Loggable;
 import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
@@ -44,6 +45,7 @@ public class MemberController {
     private static final Logger log = LoggerFactory.getLogger(CustomResponseUtil.class);
 
     // 일반 사용자 회원가입
+    @Loggable(event = "user_signup")
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@RequestBody @Valid SignupDto signupDto, HttpServletRequest request) {
         memberService.signUp(signupDto);
@@ -56,6 +58,7 @@ public class MemberController {
         return new ResponseEntity<>(Response.create(SUCCESS_SIGNUP, null), SUCCESS_SIGNUP.getHttpStatus());
     }
 
+    @Loggable(event = "user_visit")
     @GetMapping("/profile")
     public ResponseEntity<?> findUserProfile(@AuthenticationPrincipal CustomMemberDetails memberDetails) {
         String id = memberDetails.getMember().getId();
@@ -118,6 +121,7 @@ public class MemberController {
         );
     }
 
+    @Loggable(event = "user_visit")
     @PostMapping("/guest")
     public ResponseEntity<?> guestLogin(HttpServletResponse response, HttpServletRequest request) {
         String guestId = UUID.randomUUID().toString();

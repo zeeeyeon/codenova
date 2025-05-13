@@ -20,6 +20,7 @@ import kr.codenova.backend.multi.exception.UserNotFoundException;
 import kr.codenova.backend.multi.room.Room;
 import kr.codenova.backend.multi.room.RoomService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;

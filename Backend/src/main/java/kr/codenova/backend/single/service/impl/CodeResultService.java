@@ -11,11 +11,13 @@ import kr.codenova.backend.single.dto.response.SingleTypingResultResponse;
 import kr.codenova.backend.single.entity.TypingSession;
 import kr.codenova.backend.single.service.VerifiedScoreTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 
 import static kr.codenova.backend.global.response.ResponseCode.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CodeResultService {
@@ -46,9 +48,29 @@ public class CodeResultService {
     }
 
     public VerifyResponseDto verifyAndGenerateToken(CodeResultRequest request, Integer memberId) {
-        ScoreResult result = calculateOnly(request);
+        String correctCode = getCorrectCode(request.codeId());
+        TypingSession session = TypingSession.createFrom(request.keyLogs(), correctCode);
+        String requestId = request.requestId();
 
-        if (memberId == null) return new VerifyResponseDto(result.typingSpeed(), null);
+        boolean isSuspicious = session.isSuspicious();
+        ScoreResult result = session.result();
+
+        String keyLogsJson = session.keyLogsToJsonString();
+
+        log.info("event=macro_detection_summary requestId={} memberId={} codeId={} language={} totalKeys={} durationMs={} wpm={} isSuspicious={} tooFast={} tooConsistent={} insaneSpeed={} flawlessFast={} accuracySuspicious={} hasSimultaneousInput={} backspaceCount={} keyLogs={}",
+                requestId, memberId, request.codeId(), request.language(),
+                session.getKeyLogs().size(), session.getTotalMillis(), session.getWpm(), isSuspicious,
+                session.isTooFast(), session.isTooConsistent(), session.isInsaneSpeed(), session.isFlawlessFast(),
+                session.isAccuracySuspicious(), session.isHasSimultaneousInput(), session.getBackspaceCount(),
+                keyLogsJson);
+
+        if (isSuspicious) {
+            throw new CustomException(CODE_RESULT_INVALID_INPUT);
+        }
+
+        if (memberId == null) {
+            return new VerifyResponseDto(result.typingSpeed(), null);
+        }
 
         VerifiedScorePayload payload = new VerifiedScorePayload(memberId, request.codeId(), request.language(), result.typingSpeed());
         String token = tokenProvider.generateToken(payload);
