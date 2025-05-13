@@ -85,6 +85,10 @@ const SinglePage = () => {
         if (inputAreaRef.current) {
             inputAreaRef.current.focus();
         }
+        document.addEventListener("click", handleClickOutside);
+        return () => {
+            document.removeEventListener("click", handleClickOutside);
+        };
     },[])
 
     useEffect(() => {
@@ -95,6 +99,21 @@ const SinglePage = () => {
             navigate("/auth/login");
         }
     }, [navigate]);
+
+    // 포커스를 항상 유지
+    useEffect(() => {
+        if (inputAreaRef.current && isFocused) {
+            inputAreaRef.current.focus();
+        }
+    }, [isFocused]);
+
+    // 외부 클릭시 포커스를 유지
+    const handleClickOutside = (e) => {
+        if (inputAreaRef.current && !inputAreaRef.current.contains(e.target)) {
+            e.preventDefault();
+            inputAreaRef.current.focus();
+        }
+    };
 
     useEffect(() => {
         if (lang) {
@@ -445,8 +464,10 @@ const SinglePage = () => {
                                 className={`single-input flex items-center bg-white text-black rounded-2xl w-full h-[12%] p-2 border-4 ${wrongChar ?  'border-red-400' :'border-green-400'} ${shake ? "animate-shake" : ""}`}
                                 type="text"
                                 value={currentInput}
-                                onChange={handleInputChange}  
+                                onChange={handleInputChange}
+                                onFocus={() => setIsFocused(true)}  
                                 placeholder="여기에 타이핑하세요"
+                                style={{ pointerEvents: 'none' }} // 클릭 방지
                                 onPaste={(e) => e.preventDefault()} //마우스 붙여 넣기도 막기기
                             />
 
