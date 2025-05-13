@@ -21,6 +21,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 import static kr.codenova.backend.global.response.ResponseCode.*;
 
@@ -40,12 +41,7 @@ public class SingleController {
 
     @GetMapping("/code")
     public ResponseEntity<?> getSingleBattleCodeByLanguage(@RequestParam("language") String language, @AuthenticationPrincipal CustomMemberDetails memberDetails) {
-        Integer userId = (memberDetails != null) ? memberDetails.getMember().getMemberId() : null;
         SingleBattleCodeResponse code = singleService.getSingleBattleCode(language);
-
-        log.info("event=single_game_start userId={} language={} startTimestamp={}",
-                userId, language, System.currentTimeMillis());
-
         return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
     }
 
@@ -92,9 +88,9 @@ public class SingleController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_REPORT_DETAIL_SUCCESS, detail), ResponseCode.GET_REPORT_DETAIL_SUCCESS.getHttpStatus());
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<?> test(@RequestParam int codeId) {
-        SingleBattleCodeResponse code = singleService.test(codeId);
-        return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
-    }
+//    @GetMapping("/test")
+//    public ResponseEntity<?> test(@RequestParam int codeId) {
+//        SingleBattleCodeResponse code = singleService.test(codeId);
+//        return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
+//    }
 }

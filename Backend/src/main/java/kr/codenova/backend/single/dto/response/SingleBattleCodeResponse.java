@@ -6,13 +6,16 @@ import kr.codenova.backend.common.enums.Language;
 public record SingleBattleCodeResponse(
         Integer codeId,
         Language language,
-        String content
+        String content,
+        String requestId
+
 ) {
-    public static SingleBattleCodeResponse from(Code code) {
+    public static SingleBattleCodeResponse from(Code code, String requestId) {
         return new SingleBattleCodeResponse(
                 code.getCodeId(),
                 code.getLanguage(),
-                code.getContent()
+                code.getContent(),
+                requestId
         );
     }
 }
