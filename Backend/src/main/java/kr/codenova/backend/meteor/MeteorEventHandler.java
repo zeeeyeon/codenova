@@ -72,7 +72,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         server().addEventListener("gameReady", GameReadyRequest.class, (client, data, ack) -> handleReadyGame(client, data));
         // 게임 종료 후 대기방으로 복귀 이벤트
         server().addEventListener("goWaitingRoom", GoWaitingRoomRequest.class, (client, data, ack) -> handleGoWaitingRoom(client, data));
-        server().addEventListener("exitGame", ExitRoomRequest.class, (client, data, ack) -> handleExitRoom(client, data));
+        server().addEventListener("exitGame", ExitRoomRequest.class, (client, data, ack) -> handleExitGame(client, data));
 
     }
 
