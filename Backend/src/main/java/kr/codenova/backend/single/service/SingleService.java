@@ -18,5 +18,5 @@ public interface SingleService {
     ReportListResponse getReportTitles(int memberId);
     ReportDetailResponse getReportDetail(int memberId, int reportId);
 
-    SingleBattleCodeResponse test(int codeId);
+//    SingleBattleCodeResponse test(int codeId);
 }
