@@ -10,5 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 public class GoWaitingRoomResponse {
     private String roomId;
+    private String roomCode;
     private List<UserInfo> players;
 }
