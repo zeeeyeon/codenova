@@ -31,6 +31,7 @@ import StartButton from "../../assets/images/start_btn.png";
 import WaitButton from "../../assets/images/wait_btn.png";
 import ExitButton from "../../assets/images/multi_exit_btn.png";
 import CopyButton from "../../assets/images/multi_copy_icon.png";
+import CustomAlert from "../../components/common/CustomAlert";
 
 const MeteoLandingPage = () => {
   const navigate = useNavigate();
@@ -49,15 +50,19 @@ const MeteoLandingPage = () => {
   const readyUsers = users.filter((user) => user && user.ready);
   const totalUsers = users.filter((user) => user !== null);
   // const allReady = totalUsers.length >= 2 && readyUsers.length === totalUsers.length;
+  const [alertMessage, setAlertMessage] = useState("");
+  const [showAlert, setShowAlert] = useState(false);
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(roomCode);
-      alert("방 코드가 복사되었습니다.");
-    } catch (err) {
-      alert("복사에 실패했습니다.");
-    }
-  };
+const handleCopy = async () => {
+  try {
+    await navigator.clipboard.writeText(roomCode);
+    setAlertMessage("방 코드가 복사되었습니다.");
+    setShowAlert(true);
+  } catch (err) {
+    setAlertMessage("복사에 실패했습니다.");
+    setShowAlert(true);
+  }
+};
 
   useEffect(() => {
     const socket = getSocket();
@@ -675,6 +680,12 @@ useEffect(() => {
           />
         </div>
       </div>
+      {showAlert && (
+        <CustomAlert
+          message={alertMessage}
+          onConfirm={() => setShowAlert(false)}
+        />
+      )}
     </div>
   );
 };

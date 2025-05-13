@@ -76,6 +76,7 @@ const LoginPage = () => {
               type="text"
               value={id}
               onChange={(e) => setId(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               className="flex-1 px-3 py-3 text-xl bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="Enter your ID"
             />
@@ -87,6 +88,7 @@ const LoginPage = () => {
             <input
               type="password"
               value={password}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               onChange={(e) => setPassword(e.target.value)}
               className="flex-1 px-3 py-4 text-xl bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="Enter your password"

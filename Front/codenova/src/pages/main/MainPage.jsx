@@ -56,7 +56,7 @@ const MainPage = () => {
   // console.log(nickname)
   const handleCreateMeteoRoom = () => {
     if (!nickname) {
-      alert("닉네임이 없습니다.");
+      alert("잘못된 접근입니다.");
       navigate("/auth/login");
       return;
     }
@@ -77,7 +77,7 @@ const MainPage = () => {
   
   const handleRandomMatch = () => {
     if (!nickname) {
-      alert("닉네임이 없습니다!");
+      alert("잘못된 접근입니다.");
       return;
     }
   

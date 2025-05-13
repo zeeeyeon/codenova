@@ -25,7 +25,7 @@ const LandingPage = () => {
       const { nickname, userType } = res.data.content;
 
       if (!accessToken) {
-        alert("비회원 토큰이 없습니다!");
+        alert("잘못된 접근 방식입니다!");
         return;
       }
 
