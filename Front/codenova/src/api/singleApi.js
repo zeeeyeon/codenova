@@ -34,10 +34,11 @@ export const getLangCode = async (codeId) => {
     }
 }
 
-export const postRecord = async (token) => {
+export const postRecord = async (token, uuid) => {
     try {
         const data = {
-            "verifiedToken" : token
+            "verifiedToken" : token,
+            "requestId" : uuid
         }
         const response = await authApi.post('/api/single/code/save', data);
         // console.log(response.data);
