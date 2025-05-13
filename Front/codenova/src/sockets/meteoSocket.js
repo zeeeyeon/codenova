@@ -39,22 +39,45 @@ export const exitMeteoRoom = ({ roomId, nickname }) => {
     // console.error("❌ [exitMeteoRoom] roomId 또는 nickname이 없습니다.", { roomId, nickname });
     return;
   }
-  // console.log("[exitMeteoRoom] exitRoom emit 보냄", { roomId, nickname });
+  console.log("[exitMeteoRoom] exitRoom emit 보냄", { roomId, nickname });
   getSocket().emit("exitRoom", { roomId, nickname });
 };
 
-// 방 나가기 응답 수신
+// // 방 나가기 응답 수신
+// export const onRoomExit = (callback) => {
+//   getSocket().on("roomExit", (data) => {
+//     console.log("[onRoomExit] roomExit 수신", data);
+//     callback(data);
+//   });
+// };
+
+// // 방 나가기 리스너 해제
+// export const offRoomExit = () => {
+//   getSocket().off("roomExit");
+// };
+
+let roomExitHandler = null; // 전역으로 저장
+
 export const onRoomExit = (callback) => {
-  getSocket().on("roomExit", (data) => {
-    // console.log("[onRoomExit] roomExit 수신", data);
+  offRoomExit(); // 등록 전에 항상 기존 리스너 제거
+
+  roomExitHandler = (data) => {
+    console.log("[onRoomExit] roomExit 수신", data);
     callback(data);
-  });
+  };
+
+  getSocket().on("roomExit", roomExitHandler);
 };
 
-// 방 나가기 리스너 해제
 export const offRoomExit = () => {
-  getSocket().off("roomExit");
+  if (roomExitHandler) {
+    getSocket().off("roomExit", roomExitHandler);
+    roomExitHandler = null;
+  } else {
+    getSocket().off("roomExit"); // fallback
+  }
 };
+
 
 // 게임시작 요청 (방장)
 export const startMeteoGame = (roomId) => {
@@ -101,10 +124,16 @@ export const exitMeteoGame = ({roomId, nickname}) => {
   getSocket().emit("exitRoom", { roomId, nickname });
 }
 
+// 게임 도중 게임 종료 버튼 클릭으로 게임 나가기
+export const exitGame = ({ roomId, nickname }) => {
+  console.log("[exitGame] exitGame emit 보냄", { roomId, nickname });
+  getSocket().emit("exitGame", { roomId, nickname });
+}
+
 // 방 나갔을 때 브로드캐스트 수신 
 export const onExitMeteoGame = (callback) => {
   getSocket().on("gameLeave", (data) => {
-    // console.log("[onExitMeteoGame] gameLeave 수신", data);
+    console.log("[onExitMeteoGame] gameLeave 수신", data);
     callback(data);
   });
 };

@@ -22,6 +22,9 @@ import {
   onMeteoGameStart,
   onRoomExit,
   startMeteoGame,
+  onGoWaitingRoom,
+  offGoWaitingRoom,
+  onExitMeteoGame
 } from "../../sockets/meteoSocket";
 import Crown from "../../assets/images/crown_icon.png";
 import StartButton from "../../assets/images/start_btn.png";
@@ -210,11 +213,13 @@ const MeteoLandingPage = () => {
     };
     onRoomExit(handleRoomExit);
 
+
     // 3) cleanup
     return () => {
       socket.off("secretRoomJoin", handleSecretRoomJoin);
+      socket.off("roomExit", handleRoomExit);
       offRoomExit();
-      localStorage.removeItem("meteoRoomCode");
+      // localStorage.removeItem("meteoRoomCode");
       localStorage.removeItem("meteoRoomId");
       // localStorage.removeItem("meteoPlayers");
     };
@@ -240,46 +245,7 @@ const MeteoLandingPage = () => {
       window.removeEventListener("beforeunload", handleUnloadOrBack);
     };
   }, [nickname]);
-  // useEffect(() => {
-  //   const handlePopState = (event) => {
-  //     // confirm 창 띄우기
-  //     const leave = window.confirm("방을 나가시겠습니까?");
-  //     if (leave) {
-  //       // "확인" 눌렀을 때만 나가기 로직 실행
-  //       const savedRoomId = localStorage.getItem("meteoRoomId");
-  //       const savedNickname = nickname;
-  //       if (savedRoomId && savedNickname) {
-  //         exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
-  //       }
-  //       localStorage.removeItem("meteoRoomCode");
-  //       localStorage.removeItem("meteoRoomId");
-  //       navigate("/main");
-  //     } else {
-  //       // "취소" 눌렀을 때, history 스택 복원
-  //       window.history.pushState(
-  //         { page: "meteo" },
-  //         "",
-  //         window.location.pathname
-  //       );
 
-  //       const savedPlayers = JSON.parse(
-  //         localStorage.getItem("meteoPlayers") || "[]"
-  //       );
-  //       if (savedPlayers.length > 0) {
-  //         console.log("savedPlayers", savedPlayers);
-  //         updateUsersFromPlayers(savedPlayers);
-  //       }
-  //     }
-  //   };
-
-  //   // 현재 상태로 히스토리 한번 채워놓고
-  //   window.history.pushState({ page: "meteo" }, "", window.location.pathname);
-  //   window.addEventListener("popstate", handlePopState);
-  //   return () => window.removeEventListener("popstate", handlePopState);
-  // }, [nickname, navigate]);
-  //       localStorage.removeItem("meteoRoomCode");
-  //       localStorage.removeItem("meteoRoomId");
-  //       navigate("/main");
 
   useEffect(() => {
     const handlePopState = (event) => {
@@ -313,7 +279,7 @@ const MeteoLandingPage = () => {
     const socket = getSocket();
 
     const handleMatchRandom = (roomData) => {
-      console.log("🛰️ [matchRandom 수신 - LandingPage]", roomData);
+      // console.log("🛰️ [matchRandom 수신 - LandingPage]", roomData);
       localStorage.setItem("meteoPlayers", JSON.stringify(roomData.players));
       updateUsersFromPlayers(roomData.players);
       // ✅ 마지막 들어온 유저 추적해서 system 메시지 출력
@@ -348,7 +314,7 @@ const MeteoLandingPage = () => {
 
   useEffect(() => {
     onMeteoGameStart((gameData) => {
-      // console.log("🎮 [gameStart 수신] 게임 데이터:", gameData);
+      console.log("🎮 [gameStart 수신] 게임 데이터:", gameData);
 
       // ✅ 카운트다운 먼저 시작
       setCountdown(3);
@@ -359,18 +325,27 @@ const MeteoLandingPage = () => {
         if (count === 0) {
           clearInterval(countdownInterval);
 
-          // ✅ roomId, roomCode, nickname 저장 보정
-          localStorage.setItem("roomId", gameData.roomId);
-          if (!localStorage.getItem("roomCode"))
-            localStorage.setItem("roomCode", "");
-          if (!localStorage.getItem("nickname")) {
-            const matched = gameData.players.find(
-              (p) => p.sessionId === getSocket()?.id
-            );
-            if (matched?.nickname) {
-              localStorage.setItem("nickname", matched.nickname);
-            }
+        // ✅ roomId, roomCode, nickname 저장 보정
+        localStorage.setItem("roomId", gameData.roomId);
+        localStorage.setItem("meteoRoomId", gameData.roomId); // ✅ 명확히 같이 저장
+
+        if (gameData.roomCode) {
+          localStorage.setItem("roomCode", gameData.roomCode);
+          localStorage.setItem("meteoRoomCode", gameData.roomCode); // ✅ 확실하게
+          console.log("✅ roomCode 저장됨:", gameData.roomCode);
+        } else {
+          // console.warn("❗ gameData.roomCode 없음 → 저장 생략");
+        }
+
+        if (!localStorage.getItem("nickname")) {
+          const matched = gameData.players.find(
+            (p) => p.sessionId === getSocket()?.id
+          );
+          if (matched?.nickname) {
+            localStorage.setItem("nickname", matched.nickname);
           }
+        }
+
 
           // ✅ 페이지 이동
           navigate("/meteo/game", { state: { ...gameData } }, 3000);
@@ -393,6 +368,7 @@ const MeteoLandingPage = () => {
 
     if (savedRoomId && savedNickname) {
       exitMeteoRoom({ roomId: savedRoomId, nickname: savedNickname });
+      // onExitMeteoGame({ roomId: savedRoomId, nickname: savedNickname });
     } else {
       console.error("❌ [방 나가기] roomId 또는 nickname 없음", {
         savedRoomId,
@@ -437,6 +413,33 @@ const MeteoLandingPage = () => {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  // MeteoLandingPage.jsx
+
+useEffect(() => {
+  const handleGoWaitingRoom = (data) => {
+    console.log("📥 [LandingPage] waitingRoomGo 수신:", data);
+
+    const myNickname = localStorage.getItem("nickname");
+    const isMeIncluded = data.players.some(
+      (player) => player.nickname === myNickname
+    );
+
+    if (!isMeIncluded) {
+      console.warn("❗ 내 닉네임이 포함되지 않음 → 수신 무시");
+      return;
+    }
+
+    updateUsersFromPlayers(data.players);
+    localStorage.setItem("meteoPlayers", JSON.stringify(data.players));
+  };
+
+  onGoWaitingRoom(handleGoWaitingRoom);
+  return () => {
+    offGoWaitingRoom();
+  };
+}, []);
+
 
   return (
     <div
@@ -605,7 +608,7 @@ const MeteoLandingPage = () => {
                 style={{ borderColor: "#01FFFE" }}
               >
                 <p className="text-xl mb-1">방코드</p>
-                <p className="text-3xl">{currentRoomCode || "-"}</p>
+                <p className="text-3xl">{!currentRoomCode || currentRoomCode === "undefined" ? "-" : currentRoomCode}</p>
                 {currentRoomCode ? (
                   <button
                     onClick={handleCopy}
