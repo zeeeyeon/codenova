@@ -102,6 +102,8 @@ public class GameServiceImpl implements GameService {
             room.setTotalScoreMap(new ConcurrentHashMap<>());
         }
 
+        log.info("✅ 게임 시작: roomId = {}", request.getRoomId());
+
         // 타이머와 같은 비동기 처리는 동기화 블록 외부에서
         startCountDownTimer(request.getRoomId(), START_COUNT_DOWN);
         delayedTypingStart(request.getRoomId());
@@ -138,14 +140,14 @@ public class GameServiceImpl implements GameService {
         if (room == null) {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
-        log.info("roomId : " + roomId);
+        log.info("🖋️ Typing Start 준비 완료: roomId = {}", roomId);
 
         TypingStartBroadcast typingStart = new TypingStartBroadcast(
                 roomId,
                 LocalDateTime.now(),
                 getGameContent(room.getLanguage()) // 게임 본문 가져오기
         );
-        log.info("typingStart : " + typingStart);
+        log.info("📤 typing_start 이벤트 전송: {}", typingStart);
 
         getServer().getRoomOperations(roomId)
                 .sendEvent("typing_start", typingStart);
@@ -195,14 +197,24 @@ public class GameServiceImpl implements GameService {
 
     @Async
     public void startCountDownTimer(String roomId, int seconds) {
+
+        log.info("🕒 타이머 시작: roomId = {}, seconds = {}", roomId, seconds);
+
+        int clientCount = getServer().getRoomOperations(roomId).getClients().size();
+        log.info("📡 연결된 클라이언트 수: {}", clientCount);
+
         try {
             for (int i = seconds; i >= 1; i--) {
+
+                log.info("⏳ count_down {}초 전송", i);
+
                 CountDownBroadcast countDown = new CountDownBroadcast(roomId, i);
                 getServer().getRoomOperations(roomId)
                         .sendEvent("count_down", countDown);
                 Thread.sleep(1000); // 1초 간격
             }
             if(seconds == END_COUNT_DOWN) {
+                log.info("⏰ 타이머 종료. 라운드 종료 트리거 실행.");
                 endRound(roomId); // ⏰ 10초 후 라운드 종료 (단 한 번만)
             }
         } catch (InterruptedException e) {
