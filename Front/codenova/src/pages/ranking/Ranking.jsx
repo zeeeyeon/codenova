@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom'
 import { getRanking, getMemberRanking } from '../../api/rankingApi'
 import Header from '../../components/common/Header'
 import TutoModal from "../../components/common/TutoModal"
+import SettingModal from "../../components/modal/SettingModal"
 
 
 const Ranking = () => {
@@ -29,6 +30,7 @@ const Ranking = () => {
     const btn_class = 'cursor-pointer scale-75 transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'
 
     const [userType ,setUserType] = useState(null);
+    const [showSettingModal, setShowSettingModal] = useState(false);
 
     useEffect(() => {
         const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
@@ -94,8 +96,16 @@ const Ranking = () => {
             <TutoModal onClose={() => setShowTutoModal(false)} />
             </div>
         )}
+        {showSettingModal && (
+            <div className="z-[9999]">
+            <SettingModal onClose={() => setShowSettingModal(false)} />
+            </div>
+        )}
 
-            <Header onShowTuto={() => setShowTutoModal(true)} />
+            <Header 
+                onShowTuto={() => setShowTutoModal(true)} 
+                onShowSetting={() => setShowSettingModal(true)}    
+            />
               
             <Board2Container>
             <div className="absolute top-[0%] -right-[6%] -translate-x-1/2 z-20">

@@ -21,6 +21,7 @@ const MyPage= () => {
     const navigate = useNavigate();
     const btn_class = 'cursor-pointer scale-75 transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'
     const [showTutoModal, setShowTutoModal] = useState(false)
+    const [showSettingModal, setShowSettingModal] = useState(false)    
     const [currentLangIndex, setCurrentLangIndex] = useState(0);
     const [showAlert, setShowAlert] = useState(false);
     const [alertText, setAlertText] = useState("");
@@ -165,7 +166,10 @@ const MyPage= () => {
             {showAlert && (
                 <CustomAlert message={alertText} onConfirm={() => setShowAlert(false)} />
             )}
-            <Header onShowTuto={() => setShowTutoModal(true)}/>
+            <Header 
+                onShowTuto={() => setShowTutoModal(true)}
+                onShowSetting={() => setShowSettingModal(true)} 
+            />
             <BoardContainer>
                 {/* 타이틀 텍스트 */}
                 <div className="absolute top-[1%] left-1/2 -translate-x-1/2 text-3xl drop-shadow-md z-10"
