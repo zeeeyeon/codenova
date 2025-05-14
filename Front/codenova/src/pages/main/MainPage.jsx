@@ -17,11 +17,14 @@ import TutoModal from "../../components/common/TutoModal";
 import { getSocket } from "../../sockets/socketClient";
 import randomBtn from "../../assets/images/gorandom_button.png";
 import { onRandomMatch, onRandomMatchResponse, offRandomMatch } from "../../sockets/meteoSocket";
+import SettingModal from "../../components/modal/SettingModal";
+
 const MainPage = () => {
   const navigate = useNavigate()
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [showTutoModal, setShowTutoModal] = useState(false);
   const [socketReady, setSocketReady] = useState(false);
+  const [showSettingModal, setShowSettingModal] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -111,7 +114,10 @@ const MainPage = () => {
       className="h-screen w-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
       style={{ backgroundImage: `url(${multibg})` }}
     >
-      <Header onShowTuto={() => setShowTutoModal(true)} />
+      <Header 
+        onShowTuto={() => setShowTutoModal(true)} 
+        onShowSetting={() => setShowSettingModal(true)}  
+      />
 
       {/* 보드 2개 (배틀모드 / 협력모드) */}
       <div className="flex justify-center items-center gap-20 mt-44 z-30">
@@ -193,6 +199,7 @@ const MainPage = () => {
       </div>
       {showRoomModal && <RoomCodeModal onClose={() => setShowRoomModal(false)} />}
       {showTutoModal && <TutoModal onClose={() => setShowTutoModal(false)} />}
+      {showSettingModal && <SettingModal onClose={() => setShowSettingModal(false)} />}
     </div>
 
 );

@@ -6,19 +6,22 @@ import helpIcon2 from "../../assets/images/help_icon2.png";
 import mypageIcon2 from "../../assets/images/mypage_icon2.png";
 import rankingIcon2 from "../../assets/images/ranking_icon2.png";
 import logoutIcon from "../../assets/images/logout_button.png";
+import settingIcon from "../../assets/images/setting_btn.png";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import { disconnectSocket } from "../../sockets/socketClient";
 import { useEffect, useState } from "react";
 import TutoModal from "./TutoModal";
+import SettingModal from "../modal/SettingModal";
 
-const Header = ({onShowTuto}) => {
+const Header = ({onShowTuto, onShowSetting}) => {
 
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout);
   const [userType ,setUserType] = useState(null);
   // const [nickname ,setNickname] = useState(null);
   const [showTuto, setShowTuto] = useState(false);
+  const [isSetting, setIsSetting] = useState(false)
 
   useEffect(() => {
     const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
@@ -77,6 +80,12 @@ const Header = ({onShowTuto}) => {
           className="w-16 h-16 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"
           onClick={onShowTuto}
         />
+        <img
+          src={settingIcon}
+          alt="setting"
+          className="w-16 h-16 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"
+          onClick={onShowSetting}
+        />
         <img 
           src={logoutIcon} 
           alt="로그아웃" 
@@ -88,6 +97,7 @@ const Header = ({onShowTuto}) => {
         </button> */}
       </div>
       {showTuto && <TutoModal onClose={() => setShowTuto(false)} />}
+      {isSetting && <SettingModal onClose={() => setIsSetting(false)} />}
     </header>
   );
 };

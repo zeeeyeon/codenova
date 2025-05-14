@@ -21,6 +21,7 @@ import { calculateCPM, getProgress, processCode, compareInputWithLineEnter, comp
 import FinishPage from '../single/modal/FinishPage';
 
 import { singleLangCode, getLangCode, verifiedRecord, postRecord } from '../../api/singleApi'
+import { userColorStore } from '../../store/userSettingStore';
 
 // 등록
 hljs.registerLanguage('java', java);
@@ -75,12 +76,16 @@ const SinglePage = () => {
 
     const [logCount, setLogCount] = useState(0);
     const keyLogsRef = useRef([]);
-    const hasVerifiedRef = useRef(false); //중복호출 막을려고고
+    const hasVerifiedRef = useRef(false); //중복호출 막을려고
+
+
+    const initColors = userColorStore((state) => state.initColors);
 
 
     useEffect(() => {
         const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
         setUserType(auth?.state?.user?.userType);
+        initColors(); 
 
         if (inputAreaRef.current) {
             inputAreaRef.current.focus();

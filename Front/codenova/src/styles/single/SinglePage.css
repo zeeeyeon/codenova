@@ -1,3 +1,9 @@
+:root {
+    --typed-color: #98c379;
+    --wrong-color: #e06c75;
+    --pending-color: #ffffff;
+}
+
 .hljs {
     padding: 0 !important;
     margin: 0 !important;
@@ -12,19 +18,20 @@
 }
 
 .typed {
-    color: #98c379; /* 초록색 (맞은 글자) */
+    color: var(--typed-color); /* 초록색 (맞은 글자) */
 }
 
 .wrong {
-    color: #e06c75; /* 빨간색 (틀린 글자) */
+    color: var(--wrong-color); /* 빨간색 (틀린 글자) */
 }
 
 .pending {
-    color: #ffffff; /* 회색 (아직 안 친 글자) */
+    color: var(--pending-color); /* 회색 (아직 안 친 글자) */
     opacity: 0.6;
 }
 
 .currentLine {
+  color: var(--pending-color);
   opacity: 1 !important; /* 현재 타이핑 중인 줄은 opacity 1 */
 }
 
@@ -47,7 +54,7 @@
   display: inline-block;
   width: 1px;
   height: 20px;
-  background-color: #ffffff; /* 커서 색상 - 원하는 색상으로 변경 가능 */
+  background-color: var(--pending-color); /* 커서 색상 - 원하는 색상으로 변경 가능 */
   /* margin-left: -1px; */
   animation: blink 1s step-end infinite;
 }
