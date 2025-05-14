@@ -20,7 +20,6 @@ import kr.codenova.backend.multi.exception.UserNotFoundException;
 import kr.codenova.backend.multi.room.Room;
 import kr.codenova.backend.multi.room.RoomService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -36,6 +35,9 @@ import static kr.codenova.backend.multi.dto.broadcast.GameResultBroadcast.*;
 @Service
 @RequiredArgsConstructor
 public class GameServiceImpl implements GameService {
+
+    private static final  int START_COUNT_DOWN = 5;
+    private static final int END_COUNT_DOWN = 10;
 
     private final RoomService roomService;
     private final CodeRepository codeRepository;
@@ -57,27 +59,31 @@ public class GameServiceImpl implements GameService {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
 
-        // ✅ 준비 상태 토글
-        Room.UserStatus userStatus = room.getUserStatusMap().get(request.getNickname());
-        if (userStatus == null) {
-            throw new UserNotFoundException("해당 유저는 방에 존재하지 않습니다.");
-        }
+        synchronized (room) {
+            // 준비 상태 토글
+            Room.UserStatus userStatus = room.getUserStatusMap().get(request.getNickname());
+            if (userStatus == null) {
+                throw new UserNotFoundException("해당 유저는 방에 존재하지 않습니다.");
+            }
 
+            userStatus.setReady(!userStatus.isReady());
 
+            // 모두 준비 완료됐는지 체크 (동기화 블록 내에서 검사)
+            boolean allReady = room.getUserStatusMap().values().stream().allMatch(Room.UserStatus::isReady);
 
-        userStatus.setReady(!userStatus.isReady());
+            // 브로드캐스트 객체 생성
+            ReadyGameBroadcast broadcast = buildReadyBroadcast(request.getRoomId());
 
-        ReadyGameBroadcast broadcast = buildReadyBroadcast(request.getRoomId());
-        getServer().getRoomOperations(request.getRoomId())
-                .sendEvent("ready_status_update", broadcast);
-
-        // ✅ 모두 준비 완료됐는지 체크
-        boolean allReady = room.getUserStatusMap().values().stream().allMatch(Room.UserStatus::isReady);
-
-        if (allReady) {
-            // ✅ 모두 준비 완료 -> ready_all 브로드캐스트
+            // 브로드캐스트 전송은 블록 외부로 빼는 것이 좋지만
+            // allReady 상태에 따른 추가 브로드캐스트가 있어 내부에 유지
             getServer().getRoomOperations(request.getRoomId())
-                    .sendEvent("ready_all", new ReadyAllBroadcast("모든 참가자가 준비를 완료했습니다!"));
+                    .sendEvent("ready_status_update", broadcast);
+
+            if (allReady) {
+                // 모두 준비 완료 -> ready_all 브로드캐스트
+                getServer().getRoomOperations(request.getRoomId())
+                        .sendEvent("ready_all", new ReadyAllBroadcast("모든 참가자가 준비를 완료했습니다!"));
+            }
         }
     }
 
@@ -86,25 +92,21 @@ public class GameServiceImpl implements GameService {
         Room room = roomService.getRoom(request.getRoomId());
         validateStartGame(request.getRoomId(), request.getNickname());
 
-        // ✅ 시작 직전에 참가자 수 저장
-        setRoomUserCount(request.getRoomId(), room.getCurrentCount());
+        synchronized (room) {
+            // 시작 직전에 참가자 수 저장
+            setRoomUserCount(request.getRoomId(), room.getCurrentCount());
 
-        GameCountdownBroadcast countdown = new GameCountdownBroadcast(
-                request.getRoomId(),
-                "모두 준비되었습니다. 곧 시작합니다.",
-                3
-        );
-        room.setIsStarted(true);
-        room.setRoundNumber(1);
-        resetRoundData(room);
-        room.setTotalScoreMap(new ConcurrentHashMap<>());
+            room.setIsStarted(true);
+            room.setRoundNumber(1);
+            resetRoundData(room);
+            room.setTotalScoreMap(new ConcurrentHashMap<>());
+        }
 
-        getServer().getRoomOperations(request.getRoomId())
-                .sendEvent("game_started", countdown);
-
+        // 타이머와 같은 비동기 처리는 동기화 블록 외부에서
+        startCountDownTimer(request.getRoomId(), START_COUNT_DOWN);
         delayedTypingStart(request.getRoomId());
-
     }
+
     // 게임 시작 전 검증 (방장 여부 + 모든 준비 완료)
     public void validateStartGame(String roomId, String nickname) {
         Room room = roomService.getRoom(roomId);
@@ -162,46 +164,47 @@ public class GameServiceImpl implements GameService {
 
         String nickname = request.getNickname();
         int progress = request.getProgressPercent();
-        Integer time = request.getTime(); // 밀리초 기준
+        Integer time = request.getTime();
 
-        // ✅ 현재 진행 상황 브로드캐스트
+        // 진행 상황 브로드캐스트 (동기화 외부에서 처리 가능)
         getServer().getRoomOperations(request.getRoomId())
                 .sendEvent("progress_update", request);
 
-        // ✅ 유효한 시간인지 검사 (null 또는 0 이하 방지)
         if (progress >= 100 && time != null && time > 0) {
             double seconds = time / 1000.0;
 
-            // ✅ 1등 유저라면 기록 + 종료 타이머 시작
-            if (!room.hasFirstFinisher()) {
-                room.setFirstFinisher(nickname, time);
-                room.getFinishTimeMap().putIfAbsent(nickname, seconds);
+            // 첫 완주자와 관련된 로직은 동기화 블록으로 보호
+            synchronized (room) {
+                if (!room.hasFirstFinisher()) {
+                    room.setFirstFinisher(nickname, time);
+                    room.getFinishTimeMap().putIfAbsent(nickname, seconds);
 
-                FinishNoticeBroadcast broadcast = new FinishNoticeBroadcast(request.getRoomId(), nickname);
-                getServer().getRoomOperations(request.getRoomId())
-                        .sendEvent("finish_notice", broadcast);
+                    FinishNoticeBroadcast broadcast = new FinishNoticeBroadcast(request.getRoomId(), nickname);
+                    getServer().getRoomOperations(request.getRoomId())
+                            .sendEvent("finish_notice", broadcast);
 
-                startCountDownTimer(request.getRoomId());
-            } else {
-                // ✅ 이미 1등이 있으면 도착 시간만 기록
-                room.getFinishTimeMap().putIfAbsent(nickname, seconds);
+                    // 카운트다운 시작은 동기화 블록 내에서 호출해도 됨
+                    // 비동기 메서드이므로 블록 외부로 빼는 것도 고려
+                    startCountDownTimer(request.getRoomId(), END_COUNT_DOWN);
+                } else {
+                    room.getFinishTimeMap().putIfAbsent(nickname, seconds);
+                }
             }
         }
-
-
     }
 
     @Async
-    public void startCountDownTimer(String roomId) {
+    public void startCountDownTimer(String roomId, int seconds) {
         try {
-            for (int i = 10; i >= 1; i--) {
+            for (int i = seconds; i >= 1; i--) {
                 CountDownBroadcast countDown = new CountDownBroadcast(roomId, i);
                 getServer().getRoomOperations(roomId)
                         .sendEvent("count_down", countDown);
                 Thread.sleep(1000); // 1초 간격
             }
-
-            endRound(roomId); // ⏰ 10초 후 라운드 종료 (단 한 번만)
+            if(seconds == END_COUNT_DOWN) {
+                endRound(roomId); // ⏰ 10초 후 라운드 종료 (단 한 번만)
+            }
         } catch (InterruptedException e) {
             log.error("카운트다운 중단됨", e);
             Thread.currentThread().interrupt();
@@ -279,7 +282,6 @@ public class GameServiceImpl implements GameService {
 
 
     public void startRound(RoundStartRequest request) throws IsNotHostException {
-
         Room room = roomService.getRoom(request.getRoomId());
         if (room == null) {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
@@ -289,19 +291,24 @@ public class GameServiceImpl implements GameService {
             throw new InvalidGameStartException("방장만 게임을 시작할 수 있습니다.");
         }
 
-        calculateScores(room);
+        synchronized (room) {
+            calculateScores(room);
 
-        TypingStartBroadcast broadcast = new TypingStartBroadcast(
-                request.getRoomId(),
-                LocalDateTime.now(),
-                getGameContent(room.getLanguage()) // 게임 본문 가져오기
-        );
+            // 방 상태 리셋 및 다음 라운드 설정
+            room.setRoundNumber(room.getRoundNumber()+1);
+            resetRoundData(room);
 
-        getServer().getRoomOperations(request.getRoomId())
-                .sendEvent("typing_start", broadcast);
+            // 이벤트 발송은 동기화 블록 외부로 빼는 것이 좋으나,
+            // 여기서는 게임 콘텐츠를 가져오는 로직이 함께 있어 내부에 유지
+            TypingStartBroadcast broadcast = new TypingStartBroadcast(
+                    request.getRoomId(),
+                    LocalDateTime.now(),
+                    getGameContent(room.getLanguage())
+            );
 
-        room.setRoundNumber(room.getRoundNumber()+1);
-        resetRoundData(room);
+            getServer().getRoomOperations(request.getRoomId())
+                    .sendEvent("typing_start", broadcast);
+        }
     }
 
     // 9. 오타 발생
@@ -311,14 +318,16 @@ public class GameServiceImpl implements GameService {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
         }
 
-        Map<String, Integer> typoCountMap = room.getTypoCountMap();
-        if (typoCountMap == null) {
-            log.warn("[addTypo] typoCountMap이 null입니다. 초기화 누락 가능성");
-            return;
-        }
+        synchronized (room) {
+            Map<String, Integer> typoCountMap = room.getTypoCountMap();
+            if (typoCountMap == null) {
+                log.warn("[addTypo] typoCountMap이 null입니다. 초기화 누락 가능성");
+                return;
+            }
 
-        typoCountMap.merge(nickname, 1, Integer::sum);
-        log.info("[addTypo] {}의 오타 횟수: {}", nickname, typoCountMap.get(nickname));
+            typoCountMap.merge(nickname, 1, Integer::sum);
+            log.info("[addTypo] {}의 오타 횟수: {}", nickname, typoCountMap.get(nickname));
+        }
     }
 
     // 2. 현재 방 준비 상태 정보 생성
