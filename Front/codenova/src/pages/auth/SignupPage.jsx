@@ -69,30 +69,35 @@ const SignupPage = () => {
     }
   };
   const handleSignup = async () => {
+    if (!password.trim() || !confirmPassword.trim()) {
+      alert("비밀번호를 입력해주세요!");
+      return;
+    }
+  
     if (password !== confirmPassword) {
       alert("비밀번호가 일치하지 않습니다!");
       return;
-
-    }if (idCheck !== true) {
+    }
+  
+    if (idCheck !== true) {
       alert("ID 중복 확인을 완료해주세요!");
       return;
     }
-    
+  
     if (nicknameCheck !== true) {
       alert("닉네임 중복 확인을 완료해주세요!");
       return;
     }
-    
-
+  
     try {
       await signupApi({ id, nickname, password });
       alert("회원가입 성공!");
       navigate("/auth/login");
     } catch (err) {
-      // console.error(err);
       alert("회원가입 실패!");
     }
   };
+  
 
   return (
     <div
@@ -129,7 +134,7 @@ const SignupPage = () => {
                   // alert("영문자와 숫자만 입력할 수 있습니다.");
                 }
               }}
-              className="flex-1 px-5 py-3 text-sm bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
+              className="single-input flex-1 px-5 py-3 text-sm bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="영문자와 숫자만 입력할 수 있습니다"
             />
             <button
@@ -155,7 +160,7 @@ const SignupPage = () => {
                   setNicknameCheck(null);
                 }
               }}
-              className="flex-1 text-sm px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
+              className="single-input flex-1 text-sm px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="11자 내로 닉네임을 입력하세요"
             />
             <button
@@ -175,7 +180,7 @@ const SignupPage = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
+              className="single-input flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="Enter your password"
             />
           </div>
@@ -187,7 +192,7 @@ const SignupPage = () => {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
+              className="single-input flex-1 px-5 py-3 bg-transparent border-2 border-pink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-pink-300"
               placeholder="Re-enter password"
             />
           </div>
