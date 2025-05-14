@@ -31,7 +31,7 @@
 }
 
 .currentLine {
-  color: var(--pending-color);
+  /* color: var(--pending-color); */
   opacity: 1 !important; /* 현재 타이핑 중인 줄은 opacity 1 */
 }
 
