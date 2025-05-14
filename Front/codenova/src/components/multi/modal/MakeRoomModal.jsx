@@ -1,11 +1,11 @@
 import React, {useState} from "react";
 import modalBg from "../../../assets/images/board1.jpg";
 import makeRoomBtn from "../../../assets/images/make_room_btn.png";
-import cancleBtn from "../../../assets/images/cancle_btn_2.png";
+import cancleBtn from "../../../assets/images/multi_cancel_btn.png";
 import { createRoom } from "../../../sockets/MultiSocket";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../../store/authStore";
-
+import MultiAlertModal from "../modal/MultiAlertModal";
 
 const MakeRoomModal = ({ onClose }) => {
     const [title, setTitle] = useState("");
@@ -17,6 +17,8 @@ const MakeRoomModal = ({ onClose }) => {
     const languages = ["PYTHON", "JAVA", "JS","SQL"]
     const navigate = useNavigate();
     const nickname = useAuthStore((state) => state.user?.nickname);
+
+    const [alertMessage, setAlertMessage] = useState(null);
 
     const handleLangChange = (dir) => {
         const index = languages.indexOf(language);
@@ -31,7 +33,7 @@ const MakeRoomModal = ({ onClose }) => {
 
       const handleCreateRoom = () => {
         if (!title || !people || !language || !nickname) {
-          alert("모든 항목을 입력해주세요");
+          setAlertMessage("모든 항목을 입력해주세요!");
           return;
         }
       
@@ -76,7 +78,7 @@ const MakeRoomModal = ({ onClose }) => {
         {/* 모달 내부 콘텐츠 */}
         {/* 내부 콘텐츠 */}
         <div className="relative z-10 w-full h-full px-12 py-4 flex flex-col text-white">
-        <div className="text-3xl text-center mb-4 text-black">방 만들기</div>
+        <div className="text-3xl text-center mb-4 text-black font-bold">방 만들기</div>
         <div className="flex flex-1 justify-center mt-[5%]">
         <div className="flex flex-col gap-9 w-full max-w-[600px] text-2xl">
     
@@ -198,6 +200,14 @@ const MakeRoomModal = ({ onClose }) => {
           </div>
         </div>
       </div>
+
+      {alertMessage && (
+      <MultiAlertModal
+        message={alertMessage}
+        onConfirm={() => setAlertMessage(null)}
+      />
+    )}
+
     </div>
   );
 };
