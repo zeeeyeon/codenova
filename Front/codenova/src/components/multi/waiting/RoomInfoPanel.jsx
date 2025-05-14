@@ -7,6 +7,8 @@ import unReadyBtn from "../../../assets/images/multi_unready_btn.png";
 import readyBtn from "../../../assets/images/multi_ready_btn.png";  
 import exitBtn from "../../../assets/images/multi_exit_btn.png";  
 import copyBtn from "../../../assets/images/multi_copy_icon.png";
+import CustomAlert from "../../../components/multi/modal/MultiAlertModal";
+import { useState } from "react";
 
 
 const RoomInfoPanel = ({ 
@@ -23,13 +25,15 @@ const RoomInfoPanel = ({
   onStart,
   canstart
 }) => {
+
+  const [alertMessage, setAlertMessage] = useState(null);
     
     const handleCopy = async () => {
         try {
             await navigator.clipboard.writeText(roomCode);
-            alert("방 코드가 복사되었습니다.");
+            setAlertMessage("방 코드가 복사되었습니다.");
         } catch (err) {
-            alert("복사에 실패했습니다.")
+          setAlertMessage("복사에 실패했습니다.")
         }
     }
 
@@ -104,7 +108,12 @@ const RoomInfoPanel = ({
       </button>
     )}
   </div>
-
+    
+      {alertMessage && (
+      <CustomAlert 
+          message={alertMessage} 
+          onConfirm={() => setAlertMessage(null)} />
+        )}
     </div>
   );
 };
