@@ -5,19 +5,15 @@ import randomBtn from "../../assets/images/gorandom_button.png";
 import useAuthStore from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
 import { joinMeteoRoom, offRandomMatch, onRandomMatch, onRandomMatchResponse } from "../../sockets/meteoSocket";
-import CustomAlert from "../common/CustomAlert";
 
 const RoomCodeModal = ({ onClose }) => {
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const nickname = useAuthStore((state) => state.user?.nickname);
   const navigate = useNavigate();
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  
+
   const handleEnterRoom = () => {
     if (!roomCodeInput) {
-      setAlertMessage("방코드를 입력하세요!");
-      setShowAlert(true);
+      alert("방코드를 입력하세요!");
       return;
     }
     if (!nickname) {
@@ -41,11 +37,12 @@ const RoomCodeModal = ({ onClose }) => {
         onClose(); // 모달 닫기
       },
       (errorMessage) => {
-        setAlertMessage("❌ 방 코드가 틀렸습니다.");
-        setShowAlert(true);
+        // console.error("❌ 방 입장 실패:", errorMessage);
+        alert("❌ 방 코드가 틀렸습니다.");
+  
+        // ✅ 실패하면 input 초기화 (선택사항)
         setRoomCodeInput(""); 
       }
-      
     );
   };
   
@@ -88,7 +85,7 @@ const RoomCodeModal = ({ onClose }) => {
 
       {/* 모달 박스 */}
       <div
-        className="relative z-50 w-[40rem] h-autoj px-6 py-8 flex flex-col items-center justify-center"
+        className="relative z-50 w-[42rem] h-[20rem] px-6 py-8 flex flex-col items-center justify-center"
         style={{
           backgroundImage: `url(${modalBg})`,
           backgroundSize: "cover",
@@ -128,14 +125,6 @@ const RoomCodeModal = ({ onClose }) => {
           /> */}
         </div>
       </div>
-      {showAlert && (
-        <CustomAlert
-          message={alertMessage}
-          onConfirm={() => setShowAlert(false)}
-          confirmText="확인"
-        />
-      )}
-
     </div>
   );
 };
