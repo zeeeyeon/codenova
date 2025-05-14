@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import modalBg from "../../../assets/images/board3.png";
-import cancleBtn from "../../../assets/images/cancle_btn_2.png";  //  취소 버튼
-import goRoomBtn from "../../../assets/images/multi_go_room_btn.png"; //  입장 버튼
+import cancleBtn from "../../../assets/images/multi_cancel_btn.png";  //  취소 버튼
+import goRoomBtn from "../../../assets/images/multi_go_game_room.png"; //  입장 버튼
 
 const EnterRoomModal = ({ 
     isPrivate, 
@@ -45,8 +45,8 @@ const EnterRoomModal = ({
           {isPrivate ? (
             <>
               <h2 className="text-3xl  mb-2">Room Code</h2>
-              <p className="text-2xl  mb-2 text-fuchsia-400">[{roomTitle}]</p>
-              <p className="text-m text-gray-300 mb-4">방 코드를 입력해주세요!</p>
+              <p className="text-3xl  mb-2 text-fuchsia-400">[{roomTitle}]</p>
+              <p className="text-m text-gray-300 mb-2">방 코드를 입력해주세요!</p>
 
               <input
                 type="text"
@@ -66,11 +66,11 @@ const EnterRoomModal = ({
                   placeholder="방 코드 입력"
               />
 
-                <div className="flex gap-12 mt-2">
+                <div className="flex gap-16 mt-2">
                 {/* 취소 버튼 */}
                 <button
                   onClick={onClose}
-                  className="w-[100px] h-[40px] hover:brightness-110 hover:scale-95 transition"
+                  className="w-[120px] h-[50px] hover:brightness-110 hover:scale-95 transition"
                 >
                   <img src={cancleBtn} alt="취소" className="w-full h-full object-contain" />
                 </button>
@@ -78,7 +78,7 @@ const EnterRoomModal = ({
                 {/* 입장 버튼 */}
                 <button
                   onClick={handleEnter}
-                  className="w-[105px] h-[40px] hover:brightness-110 hover:scale-95 transition"
+                  className="w-[120px] h-[50px] hover:brightness-110 hover:scale-95 transition"
                 >
                   <img src={goRoomBtn} alt="입장" className="w-full h-full object-contain" />
                 </button>
@@ -88,16 +88,16 @@ const EnterRoomModal = ({
           /* 공개방 (그냥 입장) */
             <>
               <h2 className="text-3xl mb-2">입장하시겠습니까?</h2>
-              <p className="text-2xl mt-6 mb-4 text-fuchsia-400">[{roomTitle}]</p>
+              <p className="text-3xl mt-4 mb-4 text-fuchsia-400">[{roomTitle}]</p>
 
               <p className="text-xl text-gray-300 mb-1">언어: {roomLanguage}</p>
               <p className="text-xl text-gray-300 mb-2">인원: {currentPeople}/{standardPeople}명</p>
 
-              <div className="flex justify-center gap-12 mt-4">
+              <div className="flex justify-center gap-16 mt-3">
                 {/* 취소 버튼 */}
                 <button
                   onClick={onClose}
-                  className="w-[100px] h-[40px] hover:brightness-110 hover:scale-95 transition"
+                  className="w-[120px] h-[50px] hover:brightness-110 hover:scale-95 transition"
                 >
                   <img src={cancleBtn} alt="취소" className="w-full h-full object-contain" />
                 </button>
@@ -105,7 +105,7 @@ const EnterRoomModal = ({
                 {/* 입장 버튼 */}
                 <button
                   onClick={() => onEnter()}
-                  className="w-[100px] h-[40px] hover:brightness-110 hover:scale-95 transition"
+                  className="w-[120px] h-[50px] hover:brightness-110 hover:scale-95 transition"
                 >
                   <img src={goRoomBtn} alt="입장" className="w-full h-full object-contain" />
                 </button>

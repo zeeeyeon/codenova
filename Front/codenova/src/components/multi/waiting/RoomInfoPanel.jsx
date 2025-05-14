@@ -41,7 +41,7 @@ const RoomInfoPanel = ({
 
   
     return (
-    <div className="w-[200px] h-[220px] bg-[#0D0D2B] bg-opacity-70 rounded-2xl flex flex-col items-center p-4 justify-between mt-7">
+    <div className="w-[200px] h-[230px] bg-[#0D0D2B] bg-opacity-70 rounded-2xl flex flex-col items-center p-4 justify-between mt-7">
       
       {/* 상단 정보 */}
       <div className="w-full text-center text-white mb-4 mt-2">
@@ -70,7 +70,7 @@ const RoomInfoPanel = ({
       </div>
 
       {/* 버튼 영역 */}
-<div className="w-full flex flex-col items-center gap-y-1">
+<div className="w-full flex flex-col items-center gap-y-3">
   {/* 나가기 버튼 */}
   <button onClick={onLeave} className="w-[145px] h-[45px] hover:brightness-110 hover:scale-95 transition">
     <img src={exitBtn} alt="Exit" className="w-full h-full object-contain" />
