@@ -11,7 +11,6 @@ const Board2Container = ({children}) => {
                   backgroundRepeat: 'no-repeat'
                 }}
               >
-                
             {children}
         </div>
     )

@@ -13,12 +13,15 @@ import Header from '../../components/common/Header'
 import TutoModal from '../../components/common/TutoModal'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import SettingModal from '../../components/modal/SettingModal'
 
 
 const SingleLanguageSelectPage = () => {
 
   const navigate = useNavigate();
   const [showTutoModal, setShowTutoModal] = useState(false)
+  const [showSettingModal, setShowSettingModal] = useState(false);
+
   return (
     <div className="w-screen h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center"
       style={{backgroundImage: `url(${backgroundImg})`}}
@@ -29,7 +32,13 @@ const SingleLanguageSelectPage = () => {
           <TutoModal onClose={() => setShowTutoModal(false)} />
         </div>
       )}
-      <Header onShowTuto={() => setShowTutoModal(true)}/>
+      {showSettingModal && <SettingModal onClose={() => setShowSettingModal(false)} />}
+      
+      <Header 
+        onShowTuto={() => setShowTutoModal(true)}
+        onShowSetting={() => setShowSettingModal(true)}  
+
+      />
 
       <BoardContainer>
         {/* 타이틀 텍스트 */}
