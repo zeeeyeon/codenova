@@ -37,10 +37,10 @@ public class GameEndService implements WordDropScheduler.GameEndListener {
     public void endGame(String roomId, boolean isSuccess) {
         GameRoom room = roomManager.findById(roomId).orElseThrow();
         synchronized (room.getGameLock()) {
-            if (room.getStatus() == GameStatus.FINISHED) {
-                // 이미 종료된 게임은 다시 처리하지 않음
-                return;
-            }
+//            if (room.getStatus() == GameStatus.WAITING) {
+//                // 이미 종료된 게임은 다시 처리하지 않음
+//                return;
+//            }
             room.finish();
         }
         Map<String,Integer> scoreMap = room.getScoreMap();
@@ -52,7 +52,6 @@ public class GameEndService implements WordDropScheduler.GameEndListener {
         GameOverResponse resp = new GameOverResponse(isSuccess, results);
         server().getRoomOperations(roomId).sendEvent("gameEnd", resp);
 
-        room.resetRetryState();
     }
 }
 

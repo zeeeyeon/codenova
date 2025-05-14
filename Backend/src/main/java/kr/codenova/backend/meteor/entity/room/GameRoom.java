@@ -28,8 +28,9 @@ public class GameRoom {
     // 낙하시킬 단어 리스트
     private final Queue<String> fallingWords = new ConcurrentLinkedQueue<>();
 
-    // 재도전 인원
-    private final Set<String> readyForRetryPlayers = ConcurrentHashMap.newKeySet();
+
+    // 게임 준비 인원
+    private final Set<String> readyPlayers = ConcurrentHashMap.newKeySet();
 
     // 팀 목숨 관리
     private AtomicInteger life = new AtomicInteger();
@@ -67,8 +68,12 @@ public class GameRoom {
                 players.remove(user);
                 return;
             }
+            user.setIsWaiting(false);
+
             players.add(user);
             scoreMap.put(user.getSessionId(), 0);
+            log.info("event=room_join roomId={} roomCode={} sessionId={} nickname={} currentPlayers={}",
+                    roomId, roomCode, user.getSessionId(), user.getNickname(), players.size());
         }
     }
 
@@ -78,6 +83,12 @@ public class GameRoom {
 
             // 플레이어 제거
             players.removeIf(u -> u.getSessionId().equals(sessionId));
+
+            // 준비 상태 제거
+            readyPlayers.remove(sessionId);
+
+            log.info("event=room_leave roomId={} sessionId={} remainingPlayers={}",
+                    roomId, sessionId, players.size());
 
             // 방장이었고 다른 플레이어가 아직 남아있다면 새 방장 지정
             if (isHost && !players.isEmpty()) {
@@ -99,18 +110,23 @@ public class GameRoom {
 
     public void start() {
         synchronized (gameLock) {
-            if (players.size() < maxPlayers) {
-                throw new IllegalStateException("플레이어가 모두 모이지 않았습니다.");
-            }
             this.status = GameStatus.PLAYING;
             this.life.set(INITIAL_LIVES);
-
+            this.readyPlayers.clear();
+            for (UserInfo player : players) {
+                player.setIsReady(false);
+                player.setIsWaiting(false);
+            }
+            scoreMap.clear();
         }
     }
     public void finish() {
         synchronized (gameLock) {
-            this.status = GameStatus.FINISHED;
+            this.status = GameStatus.WAITING;
             this.finishedAt = new Date();
+
+            log.info("event=game_finish roomId={} roomCode={} totalPlayers={} finishedAt={} remainingLife={} scores={}",
+                    roomId, roomCode, players.size(), finishedAt, life.get(), scoreMap.toString());
         }
     }
 
@@ -127,6 +143,15 @@ public class GameRoom {
 
     public int incrementScore(String sessionId) {
         int newScore = scoreMap.merge(sessionId, 1, Integer::sum);
+
+        String nickname = players.stream()
+                .filter(u -> u.getSessionId().equals(sessionId))
+                .map(UserInfo::getNickname)
+                .findFirst()
+                .orElse("unknown");
+
+        log.info("event=word_hit roomId={} userId={} nickname={} newScore={}", roomId, sessionId, nickname, newScore);
+
         return newScore;
     }
     // 게임 종료시 전체 점수 조회
@@ -171,6 +196,10 @@ public class GameRoom {
             synchronized (scoreLock) {
                 activeFallingWords.remove(word);
                 int currentLife = life.decrementAndGet();
+
+                log.info("event=word_miss roomId={} word={} remainingLife={} gameOver={}",
+                        roomId, word, currentLife, currentLife <= 0);
+
                 return currentLife <= 0;
             }
         }
@@ -214,30 +243,46 @@ public class GameRoom {
         return life.get() <= 0;
     }
 
-    // 재도전 준비
-    public synchronized boolean isReady(String sessionId) {
-        synchronized (playersLock) {
-            // 현재 방에 있는 플레이어인지 확인
-            boolean isInRoom = players.stream().anyMatch(u -> u.getSessionId().equals(sessionId));
 
-            if (!isInRoom) {
+
+    public boolean setReady(String sessionId, boolean ready) {
+        synchronized (playersLock) {
+            // 현재 방에 있는 플레이어 찾기
+            UserInfo player = players.stream()
+                    .filter(u -> u.getSessionId().equals(sessionId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (player == null) {
                 return false;
             }
 
-            readyForRetryPlayers.add(sessionId);
+            // 준비 상태 설정
+            player.setIsReady(ready);
 
-            return readyForRetryPlayers.size() == players.size();
 
+            if (ready) {
+                readyPlayers.add(sessionId);
+            }else {
+                readyPlayers.remove(sessionId);
+            }
+
+            // 모든 플레이어가 준비 완료되었는지 확인하여 반환
+            return isAllReady();
         }
     }
 
-    // 재도전 플레이어 수
-    public int retryCount(){
-        return readyForRetryPlayers.size();
-    }
+    public boolean isAllReady() {
+        synchronized (playersLock) {
+            // 플레이어가 없거나 한 명뿐이면 false 반환
+            if (players.size() <= 1) {
+                return false;
+            }
 
-    // 재도전 준비 상태 초기화
-    public void resetRetryState() {
-        readyForRetryPlayers.clear();
+            // 모든 플레이어가 준비 상태인지 확인
+            return players.stream()
+                    .allMatch(player -> player.getIsReady() != null && player.getIsReady());
+
+        }
     }
 }
