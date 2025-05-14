@@ -225,7 +225,7 @@ const MultiPage = () => {
 
       <button
         onClick={() => navigate("/main")}
-        className="absolute bottom-24 right-0 w-[9rem] h-[3rem] bg-contain bg-no-repeat bg-center hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
+        className="absolute bottom-24 right-0 w-[11rem] h-[3rem] bg-contain bg-no-repeat bg-center hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
         style={{ backgroundImage: `url(${goOutBtn})` }}
       >
       </button>
