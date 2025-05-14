@@ -71,6 +71,8 @@ import { useEffect, useState } from 'react'
 const Keyboard = () => {
 
     const [pressKey, setPressKey] = useState(null); // 현재 눌린키
+    const audio = new Audio(clickSound);
+    audio.volume = 0.5;
 
     const keyboardMap = [
         ['tilbe','1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'plus', 'underscore'],
@@ -162,9 +164,6 @@ const Keyboard = () => {
     ];
 
     const playSound = () => {
-
-        const audio = new Audio(clickSound)
-        audio.volume = 0.5;
         audio.play().catch(e => {
             // console.log('오디오 재생 실패', e)
         })
