@@ -1,8 +1,10 @@
 package kr.codenova.backend.member.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import kr.codenova.backend.common.enums.Language;
+import kr.codenova.backend.global.annotation.Loggable;
 import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
@@ -18,6 +20,7 @@ import kr.codenova.backend.member.util.CustomResponseUtil;
 import kr.codenova.backend.single.entity.TypingSpeed;
 import kr.codenova.backend.single.repository.TypingSpeedRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -42,12 +45,20 @@ public class MemberController {
     private static final Logger log = LoggerFactory.getLogger(CustomResponseUtil.class);
 
     // 일반 사용자 회원가입
+    @Loggable(event = "user_signup")
     @PostMapping("/signup")
-    public ResponseEntity<?> signUp(@RequestBody @Valid SignupDto signupDto) {
+    public ResponseEntity<?> signUp(@RequestBody @Valid SignupDto signupDto, HttpServletRequest request) {
         memberService.signUp(signupDto);
+
+        log.info("회원_가입,ID:{},닉네임:{},IP:{}",
+                signupDto.getId(),
+                signupDto.getNickname(),
+                request.getRemoteAddr());
+
         return new ResponseEntity<>(Response.create(SUCCESS_SIGNUP, null), SUCCESS_SIGNUP.getHttpStatus());
     }
 
+    @Loggable(event = "user_visit")
     @GetMapping("/profile")
     public ResponseEntity<?> findUserProfile(@AuthenticationPrincipal CustomMemberDetails memberDetails) {
         String id = memberDetails.getMember().getId();
@@ -102,7 +113,7 @@ public class MemberController {
 
     @GetMapping("/check-nickname/{nickname}")
     public ResponseEntity<?> checkNickname(@PathVariable String nickname) {
-        boolean available = memberService.isNicknameExist(nickname);
+        boolean available = memberService.isNicknameAvailable(nickname);
         ResponseCode code = available ? ResponseCode.AVAILABLE_NICKNAME : ResponseCode.EXISTED_USER_NICKNAME;
         return new ResponseEntity<>(
                 Response.create(code, null),
@@ -110,12 +121,19 @@ public class MemberController {
         );
     }
 
+    @Loggable(event = "user_visit")
     @PostMapping("/guest")
-    public ResponseEntity<?> guestLogin(HttpServletResponse response) {
+    public ResponseEntity<?> guestLogin(HttpServletResponse response, HttpServletRequest request) {
         String guestId = UUID.randomUUID().toString();
         String token = "Bearer " + guestId;
         GuestLoginDto guestInfo = memberService.guestLogin();
         response.addHeader("Authorization", token);
+
+        log.info("비회원 로그인: nickname={}, ip={}, 시간={}",
+                guestInfo.getNickname(),
+                request.getRemoteAddr(),
+                new Date());
+
         return new ResponseEntity<>(Response.create(SUCCESS_LOGIN, guestInfo), SUCCESS_LOGIN.getHttpStatus());
     }
 }

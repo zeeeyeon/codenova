@@ -72,7 +72,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             FilterChain chain, Authentication authResult) throws IOException, ServletException {
 
         CustomMemberDetails userDetails = (CustomMemberDetails) authResult.getPrincipal();
-        log.debug("로그인 성공: memberId={}, id={}, nickname={}",
+        log.info("로그인 성공: memberId={}, id={}, nickname={}",
                 userDetails.getMember().getMemberId(),
                 userDetails.getMember().getId(),
                 userDetails.getMember().getNickname());

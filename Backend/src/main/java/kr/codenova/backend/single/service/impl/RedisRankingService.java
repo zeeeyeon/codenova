@@ -22,13 +22,16 @@ public class RedisRankingService {
         String key = getRankingKey(language);
         String memberIdStr = String.valueOf(memberId);
 
-        redisTemplate.opsForZSet().add(key, memberIdStr, speed);
+        Boolean added = redisTemplate.opsForZSet().add(key, memberIdStr, speed);
         redisTemplate.opsForHash().put("user:nickname", memberIdStr, nickname);
+        log.info("[REDIS 랭킹 저장] key={}, memberId={}, nickname={}, speed={}, ZSet 등록 성공 여부={}", key, memberId, nickname, speed, added);
     }
 
     public RankingResponse getRanking(Language language, Integer memberId) {
         List<RankingResponse.RankingEntry> top10 = getTop10(language);
         RankingResponse.MyRank myRank = (memberId != null) ? getMyRank(language, memberId) : null;
+        log.info("[REDIS 랭킹 조회] language={}, memberId={}, top10.size={}, myRank={}",
+                language, memberId, top10.size(), myRank);
         return new RankingResponse(top10, myRank);
     }
 

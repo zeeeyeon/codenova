@@ -45,7 +45,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public boolean isNicknameExist(String nickname) {
+    public boolean isNicknameAvailable(String nickname) {
         return memberRepository.findByNickname(nickname).isEmpty();
     }
 

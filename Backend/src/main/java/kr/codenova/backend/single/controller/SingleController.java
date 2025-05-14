@@ -15,15 +15,17 @@ import kr.codenova.backend.single.dto.response.SingleBattleCodeResponse;
 import kr.codenova.backend.single.dto.response.SingleTypingResultResponse;
 import kr.codenova.backend.single.service.SingleService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 import static kr.codenova.backend.global.response.ResponseCode.*;
 
-
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/single")
@@ -38,20 +40,21 @@ public class SingleController {
     }
 
     @GetMapping("/code")
-    public ResponseEntity<?> getSingleBattleCodeByLanguage(@RequestParam("language") String language) {
+    public ResponseEntity<?> getSingleBattleCodeByLanguage(@RequestParam("language") String language, @AuthenticationPrincipal CustomMemberDetails memberDetails) {
         SingleBattleCodeResponse code = singleService.getSingleBattleCode(language);
         return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
     }
 
-    @PostMapping("/code/result")
-    public ResponseEntity<?> saveCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody SingleCodeResultRequest request) {
-        boolean isNewRecord = false;
+//    @PostMapping("/code/result")
+//    public ResponseEntity<?> saveCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody SingleCodeResultRequest request) {
+//        boolean isNewRecord = false;
+//
+//        if (memberDetails != null && memberDetails.getMember() != null) isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), request);
+//        SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.speed());
+//        ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SUCCESS;
+//        return new ResponseEntity<>(Response.create(resultCode, response), resultCode.getHttpStatus());
+//    }
 
-        if (memberDetails != null && memberDetails.getMember() != null) isNewRecord = singleService.saveTypingSpeed(memberDetails.getMember().getMemberId(), request);
-        SingleTypingResultResponse response = new SingleTypingResultResponse(isNewRecord, request.speed());
-        ResponseCode resultCode = isNewRecord ? CODE_RESULT_HIGHEST_UPDATE : CODE_RESULT_SUCCESS;
-        return new ResponseEntity<>(Response.create(resultCode, response), resultCode.getHttpStatus());
-    }
 
     @GetMapping("/cs/categories")
     public ResponseEntity<?> getCsCategories() {
@@ -85,9 +88,9 @@ public class SingleController {
         return new ResponseEntity<>(Response.create(ResponseCode.GET_REPORT_DETAIL_SUCCESS, detail), ResponseCode.GET_REPORT_DETAIL_SUCCESS.getHttpStatus());
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<?> test(@RequestParam int codeId) {
-        SingleBattleCodeResponse code = singleService.test(codeId);
-        return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
-    }
+//    @GetMapping("/test")
+//    public ResponseEntity<?> test(@RequestParam int codeId) {
+//        SingleBattleCodeResponse code = singleService.test(codeId);
+//        return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
+//    }
 }
