@@ -17,10 +17,10 @@ const RoomChatBox = ({messages = [], onSendMessage }) => {
   }, [messages]);
 
   return (
-    <div className="w-[73%] h-[220px] bg-[#0D0D2B] bg-opacity-70 rounded-2xl flex flex-col p-4 mt-7">
+    <div className="w-[73%] h-[230px] bg-[#0D0D2B] bg-opacity-70 rounded-2xl flex flex-col p-4 mt-7">
       <div
         ref={messageListRef}
-        className="h-[140px] overflow-y-auto mb-2 custom-scrollbar text-white text-sm space-y-1 px-1"
+        className="h-[150px] overflow-y-auto custom-scrollbar text-white text-sm space-y-1 px-1"
       >
         {messages.map((msg, index) => (
           <div
@@ -37,14 +37,14 @@ const RoomChatBox = ({messages = [], onSendMessage }) => {
         ))}
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 mt-4">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          className="flex-1 px-4 py-2 rounded-md text-black text-sm"
-          placeholder="메시지를 입력하세요"
+          className="flex-1 px-4 py-2 rounded-md text-black text-m"
+          placeholder="메시지를 입력하세요."
         />
         <button
           onClick={handleSend}
