@@ -127,10 +127,10 @@ const MainPage = () => {
 
           {/* 버튼 묶음 */}
           <div className="absolute top-44 w-full flex flex-col items-center gap-6">
-            <img src={singleBtn} alt="Single Mode" className="w-[11rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" 
+            <img src={singleBtn} alt="Single Mode" className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" 
             onClick={() => navigate("/single/select/language")}
             />
-            <img src={multiBtn} alt="Multi Mode" className="w-[11rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" 
+            <img src={multiBtn} alt="Multi Mode" className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" 
             onClick={handleMultiClick}
             />
           </div>
@@ -166,18 +166,18 @@ const MainPage = () => {
               src={makeRoomBtn}
               alt="Make Room"
               onClick={handleCreateMeteoRoom}
-              className="w-[11rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
+              className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             />
             <img
               src={goRoomBtn}
               alt="Enter Room"
               onClick={() => setShowRoomModal(true)}
-              className="w-[11rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
+              className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             />
                       <img
             src={randomBtn}
             alt="랜덤매칭"
-            className="w-[11rem] cursor-pointer hover:brightness-110 hover:scale-105 transition-transform"
+            className="w-[10rem] cursor-pointer hover:brightness-110 hover:scale-105 transition-transform"
             onClick={handleRandomMatch}
           />
           </div>
