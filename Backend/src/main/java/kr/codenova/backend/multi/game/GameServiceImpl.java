@@ -102,6 +102,9 @@ public class GameServiceImpl implements GameService {
             room.setTotalScoreMap(new ConcurrentHashMap<>());
         }
 
+        getServer().getRoomOperations(request.getRoomId())
+                .sendEvent("game_started", "game Start!");
+
         log.info("✅ 게임 시작: roomId = {}", request.getRoomId());
 
         // 타이머와 같은 비동기 처리는 동기화 블록 외부에서
@@ -320,6 +323,9 @@ public class GameServiceImpl implements GameService {
 
             getServer().getRoomOperations(request.getRoomId())
                     .sendEvent("typing_start", broadcast);
+
+            // 타이머와 같은 비동기 처리는 동기화 블록 외부에서
+            startCountDownTimer(request.getRoomId(), START_COUNT_DOWN);
         }
     }
 
