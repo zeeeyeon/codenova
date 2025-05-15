@@ -166,6 +166,7 @@ public class ReadyCheckService {
             );
             getServer().getRoomOperations(roomId)
                     .sendEvent("roomExit", response);
+            log.info("강퇴 완료");
         } else {
             log.info("강퇴 취소 - 이미 준비 완료 또는 방 퇴장: roomId={}, sessionId={}", roomId, sessionId);
             cancelReadyCheck(roomId, sessionId);
