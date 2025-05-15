@@ -17,6 +17,6 @@ public interface SingleService {
     CsKeywordSummaryResponse generateReport(int memberId, List<String> keywords);
     ReportListResponse getReportTitles(int memberId);
     ReportDetailResponse getReportDetail(int memberId, int reportId);
-
+    CodeDescriptionResponse getCodeDescription(int codeId);
 //    SingleBattleCodeResponse test(int codeId);
 }

@@ -17,4 +17,10 @@ public class Code {
 
     @Column(length = 4048)
     private String content;
+
+    @Column(length = 4048)
+    private String descript;
+
+    @Column(length = 4048)
+    private String annotation;
 }

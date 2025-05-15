@@ -45,6 +45,12 @@ public class SingleController {
         return new ResponseEntity<>(Response.create(GET_SINGLE_BATTLE_CODE_BY_LANGUAGE, code), GET_SINGLE_BATTLE_CODE_BY_LANGUAGE.getHttpStatus());
     }
 
+    @GetMapping("/code/{codeId}/description")
+    public ResponseEntity<?> getCodeDescription(@PathVariable("codeId") int codeId, @AuthenticationPrincipal CustomMemberDetails memberDetails) {
+        CodeDescriptionResponse description = singleService.getCodeDescription(codeId);
+        return new ResponseEntity<>(Response.create(GET_CODE_DESCRIPTION, description), GET_CODE_DESCRIPTION.getHttpStatus());
+    }
+
 //    @PostMapping("/code/result")
 //    public ResponseEntity<?> saveCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody SingleCodeResultRequest request) {
 //        boolean isNewRecord = false;
