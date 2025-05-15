@@ -94,11 +94,6 @@ public class GameServiceImpl implements GameService {
 
         synchronized (room) {
 
-            if (!room.isRoundEnded()) {
-                log.warn("⛔ 라운드가 아직 끝나지 않았습니다. 중복 호출 방지");
-                return;
-            }
-
             room.setRoundEnded(false); // 라운드 시작
             // 시작 직전에 참가자 수 저장
             setRoomUserCount(request.getRoomId(), room.getCurrentCount());
