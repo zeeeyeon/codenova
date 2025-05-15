@@ -2,6 +2,7 @@ package kr.codenova.backend.multi.game;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.common.entity.Code;
+import kr.codenova.backend.common.enums.Language;
 import kr.codenova.backend.common.repository.CodeRepository;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
 import kr.codenova.backend.global.exception.CustomException;
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static kr.codenova.backend.common.enums.Language.RANDOM;
 import static kr.codenova.backend.multi.dto.RoundScoreBroadcast.*;
 import static kr.codenova.backend.multi.dto.broadcast.GameResultBroadcast.*;
 
@@ -485,7 +487,10 @@ public class GameServiceImpl implements GameService {
 
     // 12. 게임 본문 가져오기
     public String getGameContent(String language) {
-        Code randomCode = codeRepository.findRandomByLanguage(language).orElseThrow(() -> new CustomException(ResponseCode.CODE_NOT_FOUND));
+        Code randomCode = Objects.equals(language, RANDOM.toString())
+                ? codeRepository.findRandom().orElseThrow(() -> new CustomException(ResponseCode.CODE_NOT_FOUND))
+                : codeRepository.findRandomByLanguage(language).orElseThrow(() -> new CustomException(ResponseCode.CODE_NOT_FOUND));
+
         if (randomCode != null) {
             return randomCode.getContent();
         } else {
