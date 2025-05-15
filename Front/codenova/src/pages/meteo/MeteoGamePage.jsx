@@ -15,6 +15,7 @@ import blackHeart from "../../assets/images/black_heart.png";
 import gameOverLottie from "../../assets/lottie/game_over.json";
 import victoryLottie from "../../assets/lottie/victory.json";
 import bgm from "../../assets/sound/meteoBGM.mp3";
+import explosionLottie from "../../assets/lottie/explosion.json";
 
 const MeteoGamePage = () => {
   const navigate = useNavigate();
@@ -290,11 +291,22 @@ const MeteoGamePage = () => {
     return () => getSocket().off("gameEnd", handleGameEnd);
   }, []);
   
-  
+  const [explosionIndex, setExplosionIndex] = useState(null); // 몇 번째 하트 폭발?
+  const [isShaking, setIsShaking] = useState(false); // 화면 흔들림 트리거
+
   useEffect(() => {
     const handleLostLife = (data) => {
-      // console.log("[onRemoveHeartResponse] lostLife 수신", data);
-      setLifesLeft(data.lifesLeft);
+      const newLifesLeft = data.lifesLeft;
+      const explodingIndex = newLifesLeft; // 5 → 4면 index 4가 터지는 거
+  
+      setExplosionIndex(explodingIndex);  // 먼저 폭발 위치 지정
+      setIsShaking(true);
+  
+      setTimeout(() => {
+        setExplosionIndex(null);          // 폭발 끝
+        setLifesLeft(newLifesLeft);       // 이제 하트 줄이기
+        setIsShaking(false);
+      }, 1000); // 1초 뒤에 하트 줄이기
     };
   
     onRemoveHeartResponse(handleLostLife);
@@ -342,10 +354,13 @@ const MeteoGamePage = () => {
   
 
   return (
-    <div
-      className="w-screen h-screen bg-cover bg-center bg-no-repeat relative overflow-hidden"
-      style={{ backgroundImage: `url(${MeteoGameBg})` }}
-    >
+<div
+  className={`w-screen h-screen bg-cover bg-center bg-no-repeat relative overflow-hidden ${
+    isShaking ? "shake" : ""
+  }`}
+  style={{ backgroundImage: `url(${MeteoGameBg})` }}
+>
+
       <img src={EndGameBtn} alt="end_game_btn" className="absolute top-0 right-3  w-[7rem] overflow-visible z-50 cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
       onClick={() => setShowExitModal(true)} />
     <div
@@ -439,14 +454,31 @@ const MeteoGamePage = () => {
 
       {/* 목숨 하트 UI (오른쪽 상단) */}
       <div className="absolute bottom-10 right-6 z-50 flex gap-2">
-        {Array(5).fill(0).map((_, idx) => (
-          <img
-            key={idx}
-            src={idx < lifesLeft ? redHeart : blackHeart}
-            alt="heart"
-            className="w-14 h-14"
-          />
-        ))}
+      {Array(5).fill(0).map((_, idx) => {
+        const isExploding = explosionIndex === idx;
+        const isAlive = idx < lifesLeft;
+
+        return (
+          <div key={idx} className="relative w-14 h-14">
+            <img
+              src={isAlive ? redHeart : blackHeart}
+              alt="heart"
+              className="w-full h-full"
+            />
+            {isExploding && (
+              <Player
+                autoplay
+                keepLastFrame
+                src={explosionLottie}
+                className="absolute top-[-20%] left-0 w-[120%] h-[120%] pointer-events-none"
+              />
+            )}
+          </div>
+        );
+      })}
+
+
+
       </div>
 
         {showExitModal && (
@@ -533,8 +565,6 @@ const MeteoGamePage = () => {
           />
         </div>
       )}
-
-
 
 
     </div>
