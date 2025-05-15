@@ -5,6 +5,9 @@ import useAuthStore from "../../../store/authStore";
 import '../../../styles/single/SinglePage.css';
 import { Player } from "@lottiefiles/react-lottie-player";
 import codeLoading from "../../../assets/lottie/code_loading.json";
+import { userColorStore } from "../../../store/userSettingStore";
+
+
 
 const TypingBox = ({ 
   roomId, 
@@ -42,6 +45,14 @@ const TypingBox = ({
   const nickname = useAuthStore((state) => state.user?.nickname);
   const currentLineRef = useRef(null);
   const preContainerRef = useRef(null);
+
+  // 텍스트 색깔 지정
+  const initColors = userColorStore((state) => state.initColors);
+    
+  useEffect(() => {
+      inputRef.current?.focus();
+      initColors
+    }, []);
 
 
   useEffect(() => {
@@ -248,14 +259,29 @@ const TypingBox = ({
                             const isCursor = i === normalizedInput.length;
                             let className = '';
 
-                            if (inputChar == null) className = 'pending currentLine';
-                            else if (inputChar === char) className = 'typed currentLine';
-                            else className = 'wrong currentLine';
+                            if (inputChar == null) {
+                              className = 'pending currentLine';
+                            } else if (inputChar === char) {
+                              className = 'typed currentLine';
+                            } else {
+                              // 틀린 경우
+                              if (char === ' ') {
+                                className = 'wrong currentLine bg-red-400'; // 공백인데 틀림
+                              } else {
+                                className = 'wrong currentLine';
+                              }
+                            }
 
                             return (
                               <span key={i} className="cursor-container">
-                                {isCursor && <span className="cursor" />}
-                                <span className={className}>{char === ' ' ? '\u00A0' : char}</span>
+                                {isCursor && (
+                                  <span
+                                    className={`cursor ${char === ' ' && inputChar !== char ? 'bg-red-400' : ''}`}
+                                  />
+                                )}
+                                <span className={className}>
+                                  {char === ' ' ? '\u00A0' : char}
+                                </span>
                               </span>
                             );
                           })}
