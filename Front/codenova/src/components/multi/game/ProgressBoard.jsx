@@ -34,9 +34,11 @@
 // export default ProgressBoard;
 
 import React from "react";
+import useAuthStore from "../../../store/authStore";
 
 const ProgressBoard = ({ users, firstFinisher }) => {
   const justifyClass = users.length <= 2 ? "justify-center" : "justify-evenly";
+  const myNickname = useAuthStore((state) => state.user?.nickname);
 
     // 👑 1등 유저 찾기
     const topUser = users.reduce((prev, curr) =>
@@ -49,15 +51,20 @@ const ProgressBoard = ({ users, firstFinisher }) => {
   {users.map((user, idx) => (
     <div key={idx} className="flex items-center w-full h-[80px] relative">
       {/* 닉네임 + 왕관 */}
-      <div className="w-32 text-right pr-4 text-white text-sm whitespace-nowrap flex items-center justify-end gap-1">
-          {(firstFinisher
+      <div className="w-32 text-right pr-4 text-sm whitespace-nowrap flex items-center justify-end gap-1">
+            {(firstFinisher
               ? user.nickname === firstFinisher // 👑 고정된 1등
               : user.nickname === topUser.nickname // 실시간 1등
-            ) && (
-              <span className="text-yellow-400 text-xl">👑</span>
-            )}
-            {user.nickname}
-      </div>
+            ) && <span className="text-yellow-400 text-xl">👑</span>}
+
+            <span
+              className={`${
+                user.nickname === myNickname ? "text-yellow-300" : "text-white"
+              }`}
+            >
+              {user.nickname}
+            </span>
+          </div>
 
       {/* 트랙 + 로켓 (수직 중앙에 정렬) */}
       <div className="relative flex-1 flex items-center">
