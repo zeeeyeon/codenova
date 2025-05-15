@@ -102,14 +102,17 @@ public class GameServiceImpl implements GameService {
             room.setTotalScoreMap(new ConcurrentHashMap<>());
         }
 
+        RoomIdBroadcast broadcast = new RoomIdBroadcast(request.getRoomId());
+
         getServer().getRoomOperations(request.getRoomId())
-                .sendEvent("game_started", request.getRoomId());
+                .sendEvent("game_started", broadcast);
 
         log.info("✅ 게임 시작: roomId = {}", request.getRoomId());
 
+        delayedTypingStart(request.getRoomId());
         // 타이머와 같은 비동기 처리는 동기화 블록 외부에서
         startCountDownTimer(request.getRoomId(), START_COUNT_DOWN);
-        delayedTypingStart(request.getRoomId());
+
     }
 
     // 게임 시작 전 검증 (방장 여부 + 모든 준비 완료)
