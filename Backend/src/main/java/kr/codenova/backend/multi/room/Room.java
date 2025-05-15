@@ -1,16 +1,20 @@
 package kr.codenova.backend.multi.room;
 
+import kr.codenova.backend.multi.dto.request.FixRoomRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -59,8 +63,26 @@ public class Room {
     private Map<String, Integer> roundScoreMap = new ConcurrentHashMap<>(); // 현재 라운드 점수
 
 
-    public boolean hasFirstFinisher() {
-        return firstFinisherNickname != null;
+    public void changeRoomStatus(FixRoomRequest request) {
+        if(!userStatusMap.get(request.getNickname()).isHost) {
+            log.info("방장이 아니면 방 상태 수정 불가능");
+            return;
+        }
+        this.roomTitle = request.getRoomTitle();
+        this.language = request.getLanguage();
+        this.isLocked = request.getIsLocked();
+        this.maxCount = request.getMaxCount();
+        if(request.getIsLocked()) {
+            if(this.roomCode == null) {
+                this.roomCode = generatedRoomCode();
+            }
+        } else {
+            this.roomCode = null;
+        }
+    }
+
+    public String generatedRoomCode() {
+        return UUID.randomUUID().toString().substring(0,6).toUpperCase();
     }
 
     public void setFirstFinisher(String nickname, Integer time) {
