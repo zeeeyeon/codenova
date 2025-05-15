@@ -270,6 +270,7 @@ public class MeteorEventHandler implements SocketEventHandler {
             return;
         }
         log.info("게임 시작으로 인한 모든 준비 타이머 취소: roomId={}", roomId);
+        cancelHostKickTimer(roomId);
         readyCheckService.cancelAllReadyChecks(roomId);
         room.initFallingwords(fallingWords);
         room.start();
@@ -556,10 +557,14 @@ public class MeteorEventHandler implements SocketEventHandler {
         if (allReady) {
             log.info("모두 준비 완료 - 방장 강퇴 타이머 시작: roomId={}", roomId);
             cancelHostKickTimer(roomId);
+
+            ScheduledFuture<?> warningFuture = taskScheduler.schedule(() -> {
+                sendHostKickWarning(roomId);
+            }, Instant.now().plusSeconds(15));
             ScheduledFuture<?> future = taskScheduler.schedule(() -> {
                 kickHost(roomId);
             }, Instant.now().plusSeconds(20));
-
+            hostKickTimers.put(roomId + "_warning", warningFuture);
             hostKickTimers.put(roomId, future);
         }else {
             log.info("준비 취소 - 방장 강퇴 타이머 취소: roomId={}", roomId);
@@ -580,6 +585,14 @@ public class MeteorEventHandler implements SocketEventHandler {
     }
     // 방장 강퇴 타이머 취소 메소드
     private void cancelHostKickTimer(String roomId) {
+        ScheduledFuture<?> warningFuture = hostKickTimers.get(roomId + "_warning");
+        if (warningFuture != null && !warningFuture.isDone() && !warningFuture.isCancelled()) {
+            warningFuture.cancel(false);
+            hostKickTimers.remove(roomId + "_warning");
+            log.info("방장 강퇴 경고 타이머 취소: roomId={}", roomId);
+        }
+
+
         ScheduledFuture<?> future = hostKickTimers.get(roomId);
         if (future != null && !future.isDone() && !future.isCancelled()) {
             future.cancel(false);
@@ -777,6 +790,46 @@ public class MeteorEventHandler implements SocketEventHandler {
         // 다른 플레이어들에게 알림 (방장이 강퇴되었음을 나타내는 이벤트 이름)
         server().getRoomOperations(roomId)
                 .sendEvent("roomExit", response);
+    }
+
+    // 방장 강퇴 5초 전 경고 메서드
+    private void sendHostKickWarning(String roomId) {
+        log.info("방장 강퇴 5초 전 경고 전송: roomId={}", roomId);
+
+        Optional<GameRoom> optRoom = roomManager.findById(roomId);
+        if (optRoom.isEmpty()) {
+            log.info("경고 취소 - 방 없음: roomId={}", roomId);
+            return;
+        }
+
+        GameRoom room = optRoom.get();
+
+        // 게임 중이면 취소
+        if (room.getStatus() == GameStatus.PLAYING) {
+            log.info("경고 취소 - 게임 중: roomId={}", roomId);
+            cancelHostKickTimer(roomId);
+            return;
+        }
+
+        // 모든 사용자가 준비 상태가 아니면 취소
+        if (!room.isAllReady()) {
+            log.info("경고 취소 - 모든 사용자가 준비 상태가 아님: roomId={}", roomId);
+            cancelHostKickTimer(roomId);
+            return;
+        }
+
+        String hostSessionId = room.getHostSessionId();
+
+        // 방장에게 경고 메시지 전송
+        SocketIOClient hostClient = server().getClient(UUID.fromString(hostSessionId));
+        if (hostClient != null) {
+            log.info("5초전 방장에게 경고");
+            hostClient.sendEvent("hostKickWarning");
+        }else {
+            log.info("방장이 존재하지 않음");
+        }
+
+
     }
 
 

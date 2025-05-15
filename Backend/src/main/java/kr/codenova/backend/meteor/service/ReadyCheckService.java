@@ -136,8 +136,7 @@ public class ReadyCheckService {
             log.info("강퇴 처리: roomId={}, sessionId={}, nickname={}", roomId, sessionId, nickname);
 
             // 강제 퇴장 처리
-            room.removePlayer(sessionId);
-            cancelReadyCheck(roomId, sessionId);
+
 
             // 퇴장당한 사용자에게 알림
             SocketIOClient userClient = getServer().getClient(UUID.fromString(sessionId));
@@ -146,6 +145,8 @@ public class ReadyCheckService {
                         new ErrorResponse("READY_TIMEOUT", "준비 시간이 초과되어 방에서 퇴장되었습니다."));
                 userClient.leaveRoom(roomId);
             }
+            room.removePlayer(sessionId);
+            cancelReadyCheck(roomId, sessionId);
 
             // 방에 남은 유저들에게 알림
             boolean wasHost = sessionId.equals(room.getHostSessionId());
