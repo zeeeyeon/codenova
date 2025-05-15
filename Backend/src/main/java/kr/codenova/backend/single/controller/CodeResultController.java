@@ -26,18 +26,9 @@ public class CodeResultController {
     private final CodeResultService codeResultService;
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody CodeResultRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<?> verifyCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody CodeResultRequest request) {
         Integer memberId = (memberDetails != null) ? memberDetails.getMember().getMemberId() : null;
         VerifyResponseDto response = codeResultService.verifyAndGenerateToken(request, memberId);
-
-        String userType = "회원";
-
-
-        log.info("게임_완료,유형:{},ID:{},닉네임:{},모드:{},언어:{},WPM:{},소요시간:{}ms,IP:{}",
-                userType, memberId, memberDetails.getMember().getNickname(), "single", request.language(),
-                response.typingSpeed(), httpServletRequest.getRemoteAddr());
-
-
         return new ResponseEntity<>(Response.create(CODE_RESULT_SUCCESS, response), CODE_RESULT_SUCCESS.getHttpStatus());
     }
 }
