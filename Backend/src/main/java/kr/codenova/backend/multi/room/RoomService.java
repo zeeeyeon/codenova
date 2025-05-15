@@ -30,7 +30,7 @@ public interface RoomService {
     public Collection<Room> getAllRooms();
 
     // 방 나가기 처리
-    public void leaveRoom(LeaveRoomRequest request, SocketIOClient client) throws UserNotInRoomException;
+    public void leaveRoom(LeaveRoomRequest request, SocketIOClient client, boolean isDisconnected) throws UserNotInRoomException;
 
     // 룸 코드 생성
     public String generatedRoomCode();
