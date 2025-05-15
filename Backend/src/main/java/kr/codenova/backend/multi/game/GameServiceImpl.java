@@ -188,21 +188,25 @@ public class GameServiceImpl implements GameService {
 
             // 첫 완주자와 관련된 로직은 동기화 블록으로 보호
             synchronized (room) {
-                if (!room.hasFirstFinisher()) {
-                    room.setFirstFinisher(nickname, time);
+                if (room.getFirstFinisherNickname() != null) {
+                    // 이미 1등 있음 → 기록만 저장하고 끝
                     room.getFinishTimeMap().putIfAbsent(nickname, seconds);
-
-                    FinishNoticeBroadcast broadcast = new FinishNoticeBroadcast(request.getRoomId(), nickname);
-                    getServer().getRoomOperations(request.getRoomId())
-                            .sendEvent("finish_notice", broadcast);
-
-                    // 카운트다운 시작은 동기화 블록 내에서 호출해도 됨
-                    // 비동기 메서드이므로 블록 외부로 빼는 것도 고려
-                    startCountDownTimer(request.getRoomId(), END_COUNT_DOWN);
-                } else {
-                    room.getFinishTimeMap().putIfAbsent(nickname, seconds);
+                    return;
                 }
+
+                // 1등 처리: 상태 설정
+                room.setFirstFinisher(nickname, time);
+                room.getFinishTimeMap().putIfAbsent(nickname, seconds);
+
             }
+
+            FinishNoticeBroadcast broadcast = new FinishNoticeBroadcast(request.getRoomId(), nickname);
+            getServer().getRoomOperations(request.getRoomId())
+                    .sendEvent("finish_notice", broadcast);
+
+            // 카운트다운 시작은 동기화 블록 내에서 호출해도 됨
+            // 비동기 메서드이므로 블록 외부로 빼는 것도 고려
+            startCountDownTimer(request.getRoomId(), END_COUNT_DOWN);
         }
     }
 
@@ -471,7 +475,6 @@ public class GameServiceImpl implements GameService {
         }
     }
 
-
     private void resetRoundData(Room room) {
         // ✅ 라운드별 Map을 새로운 인스턴스로 교체 (동시성 안전)
         room.setFinishTimeMap(new ConcurrentHashMap<>());
@@ -481,7 +484,6 @@ public class GameServiceImpl implements GameService {
         room.setFirstFinishTime(null);
         room.setFirstFinisherNickname(null);
     }
-
 
     // 11. 방 별 유저 수 저장
     public void setRoomUserCount(String roomId, int userCount) {
