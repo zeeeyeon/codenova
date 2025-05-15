@@ -80,7 +80,7 @@ const TypingBattlePage = () => {
   
     const handleServerCountdown = (data) => {
       const { seconds } = data;
-      console.log("start countdown 서버 카운트다운 🔥 : ", data.seconds)
+      // console.log("start countdown 서버 카운트다운 🔥 : ", data.seconds)
       setServerCountdown(seconds);     // 오버레이에 표시
       setCountdownVisible(true);
   
@@ -151,7 +151,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
 
     const handleTypingStart = (data) => {
-      console.log("🥘 typing_start 수신:", data);
+      // console.log("🥘 typing_start 수신:", data);
       setTargetCode(data.script); // 문제 저장
 
       setUsers((prev) =>
@@ -215,7 +215,7 @@ const TypingBattlePage = () => {
   
     // ✅ 내 타이머만 멈추게 할 새로운 이벤트
     const handleCountDown = (data) => {
-      console.log("⏱ end count_down 수신:", data.seconds); // 10~1까지 수신
+      // console.log("⏱ end count_down 수신:", data.seconds); // 10~1까지 수신
   
       if (data.count === 10) {
         // 최초 10초 카운트 시작 시, 내 타이머 멈춤 + 카운트다운 시작
