@@ -208,18 +208,18 @@ public class GameServiceImpl implements GameService {
 
         int clientCount = getServer().getRoomOperations(roomId).getClients().size();
         log.info("📡 연결된 클라이언트 수: {}", clientCount);
-
+        String eventName = seconds == START_COUNT_DOWN ? "start_count_down" : "end_count_down";
         try {
             for (int i = seconds; i >= 1; i--) {
 
-                log.info("⏳ count_down {}초 전송", i);
+                log.info("⏳ " + eventName + " {}초 전송", i);
 
                 CountDownBroadcast countDown = new CountDownBroadcast(roomId, i);
                 getServer().getRoomOperations(roomId)
-                        .sendEvent("count_down", countDown);
+                        .sendEvent(eventName, countDown);
                 Thread.sleep(1000); // 1초 간격
             }
-            if(seconds == END_COUNT_DOWN) {
+            if(eventName.equals("end_count_down")) {
                 log.info("⏰ 타이머 종료. 라운드 종료 트리거 실행.");
                 endRound(roomId); // ⏰ 10초 후 라운드 종료 (단 한 번만)
             }
