@@ -19,7 +19,11 @@ import AloneAlertModal from "../../components/multi/modal/AloneAlertModal";
 
 const TypingBattlePage = () => {
   const { roomId } = useParams();  // ✅ roomId 읽어오기
-  const [countdown, setCountdown] = useState(5);
+  // const [countdown, setCountdown] = useState(5);
+
+  const [serverCountdown, setServerCountdown] = useState(null);  // 서버에서 게임시작시 5초 카운트다운 동시성 처리 위함함
+  const [countdownVisible, setCountdownVisible] = useState(false);
+
   const [gameStarted, setGameStarted] = useState(false);
 
   const [startTime, setStartTime] = useState(null); // 게임 시작 순간간
@@ -55,23 +59,46 @@ const TypingBattlePage = () => {
     }));
   });
 
-  useEffect(() => {
-    // console.log("🔥 TypingBattlePage 초기 users 상태:", state?.users);
-  }, []);
 
   // 카운트다운
+  // useEffect(() => {
+  //   if (countdown > 0) {
+  //     const timer = setTimeout(() => {
+  //       setCountdown((prev) => prev - 1);
+  //     }, 1000);
+  //     return () => clearTimeout(timer);
+  //   } else {
+  //     setGameStarted(true); // 카운트다운 끝나면 게임 시작
+  //     setTimeRunning(true); // 타이머도 시작!
+  //     setStartTime(Date.now()); // 현재시간 기록
+  //   }
+  // }, [countdown]);
+
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setGameStarted(true); // 카운트다운 끝나면 게임 시작
-      setTimeRunning(true); // 타이머도 시작!
-      setStartTime(Date.now()); // 현재시간 기록
-    }
-  }, [countdown]);
+    const socket = getSocket();
+    if (!socket) return;
+  
+    const handleServerCountdown = (data) => {
+      const { seconds } = data;
+      // console.log("start countdown 서버 카운트다운 🔥 : ", data.seconds)
+      setServerCountdown(seconds);     // 오버레이에 표시
+      setCountdownVisible(true);
+  
+      if (seconds === 1) {
+        // 1초 뒤 게임 시작
+        setTimeout(() => {
+          setCountdownVisible(false);
+          setGameStarted(true); // 카운트다운 끝나면 게임 시작
+          setTimeRunning(true); // 타이머도 시작!
+          setStartTime(Date.now()); // 현재시간 기록
+        }, 1000);
+      }
+    };
+  
+    socket.on("start_count_down", handleServerCountdown);
+    return () => socket.off("start_count_down", handleServerCountdown);
+  }, []);
+  
 
   // 게임 시작 실시간 경과 시간 업뎃
   useEffect(() => {
@@ -188,7 +215,7 @@ const TypingBattlePage = () => {
   
     // ✅ 내 타이머만 멈추게 할 새로운 이벤트
     const handleCountDown = (data) => {
-      // console.log("⏱ count_down 수신:", data.seconds); // 10~1까지 수신
+      // console.log("⏱ end count_down 수신:", data.seconds); // 10~1까지 수신
   
       if (data.count === 10) {
         // 최초 10초 카운트 시작 시, 내 타이머 멈춤 + 카운트다운 시작
@@ -207,11 +234,11 @@ const TypingBattlePage = () => {
       }
     };
     socket.on("finish_notice", handleFinishNotice);
-    socket.on("count_down", handleCountDown);
+    socket.on("end_count_down", handleCountDown);
   
     return () => {
       socket.off("finish_notice", handleFinishNotice);
-      socket.off("count_down", handleCountDown);
+      socket.off("end_count_down", handleCountDown);
     };
   }, []);
   
@@ -238,8 +265,8 @@ const TypingBattlePage = () => {
             setShowRoundScoreModal(false);
   
             if (data.round < 3) {
-              // console.log("🍆 round_start emit");
-              setCountdown(5);
+              console.log("🍆 round_start emit :", data.round);
+              // setCountdown(5);
               setGameStarted(false);
               setRoundEnded(false);
               setFirstFinisher(null);
@@ -378,13 +405,21 @@ const TypingBattlePage = () => {
 
     {/* <h1 className="text-2xl text-center">Typing Battle 시작! (Room ID: {roomId})</h1> */}
     {/* 카운트다운 오버레이  */}
-        {!gameStarted && (
+        {/* {!gameStarted && (
             <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
             <div className="text-9xl font-bold text-white animate-pulse">
                 {countdown > 0 ? countdown : "Start!"}
             </div>
             </div>
-        )}
+        )} */}
+        {countdownVisible &&  !gameStarted && (
+            <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+              <div className="text-9xl font-bold text-white animate-pulse">
+                {serverCountdown > 0 ? serverCountdown : "Start!"}
+              </div>
+            </div>
+          )}
+
     <div className="absolute top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[72rem] max-w-[1300px] aspect-[4/3] bg-contain bg-no-repeat bg-center relative flex flex-col items-center justify-start pt-[6.5%] rounded-2xl">
       <img src={boardBg} alt="board" className="absolute object-cover rounded-2xl z-0" />
 
