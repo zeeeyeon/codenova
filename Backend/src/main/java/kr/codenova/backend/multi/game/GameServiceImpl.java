@@ -93,6 +93,13 @@ public class GameServiceImpl implements GameService {
         validateStartGame(request.getRoomId(), request.getNickname());
 
         synchronized (room) {
+
+            if (!room.isRoundEnded()) {
+                log.warn("⛔ 라운드가 아직 끝나지 않았습니다. 중복 호출 방지");
+                return;
+            }
+
+            room.setRoundEnded(false); // 라운드 시작
             // 시작 직전에 참가자 수 저장
             setRoomUserCount(request.getRoomId(), room.getCurrentCount());
 
@@ -102,10 +109,8 @@ public class GameServiceImpl implements GameService {
             room.setTotalScoreMap(new ConcurrentHashMap<>());
         }
 
-        RoomIdBroadcast broadcast = new RoomIdBroadcast(request.getRoomId());
-
         getServer().getRoomOperations(request.getRoomId())
-                .sendEvent("game_started", broadcast);
+                .sendEvent("game_started", new RoomIdBroadcast(request.getRoomId()));
 
         log.info("✅ 게임 시작: roomId = {}", request.getRoomId());
 
@@ -239,8 +244,10 @@ public class GameServiceImpl implements GameService {
         synchronized (room) {
             // ✅ 중복 호출 방지
             if (room.isRoundEnded()) {
+                log.warn("⛔ 이미 종료된 라운드입니다. 중복 종료 방지: roomId={}", roomId);
                 return;
             }
+
             room.setRoundEnded(true);
 
             calculateScores(room);
@@ -310,6 +317,12 @@ public class GameServiceImpl implements GameService {
         }
 
         synchronized (room) {
+
+            if (!room.isRoundEnded()) {
+                log.warn("⛔ 라운드가 아직 끝나지 않았습니다. 중복 라운드 시작 방지: roomId={}", request.getRoomId());
+                return;
+            }
+            room.setRoundEnded(false);
             calculateScores(room);
 
             // 방 상태 리셋 및 다음 라운드 설정
@@ -467,7 +480,6 @@ public class GameServiceImpl implements GameService {
         // ✅ 첫 도착자 정보 초기화
         room.setFirstFinishTime(null);
         room.setFirstFinisherNickname(null);
-        room.setRoundEnded(false);
     }
 
 
