@@ -280,7 +280,7 @@ public class GameServiceImpl implements GameService {
         synchronized (room) {
             room.setIsStarted(false);
             room.setRoundNumber(0);
-            room.setRoundEnded(false);
+            room.setRoundEnded(true);
             room.setFirstFinisherNickname(null);
             room.setFirstFinishTime(null);
 
