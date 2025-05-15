@@ -9,6 +9,7 @@ import kr.codenova.backend.meteor.dto.request.*;
 import kr.codenova.backend.meteor.dto.request.CreateRoomRequest;
 import kr.codenova.backend.meteor.dto.response.*;
 import kr.codenova.backend.meteor.service.GameEndService;
+import kr.codenova.backend.meteor.service.ReadyCheckService;
 import kr.codenova.backend.meteor.service.WordDropScheduler;
 import kr.codenova.backend.meteor.service.WordService;
 import kr.codenova.backend.meteor.entity.room.GameStatus;
@@ -38,10 +39,7 @@ public class MeteorEventHandler implements SocketEventHandler {
     private final WordDropScheduler wordDropScheduler;
     private final GameEndService gameEndService;
     private final TaskScheduler taskScheduler;
-
-
-
-
+    private final ReadyCheckService readyCheckService;
 
     private SocketIOServer server() {
         return SocketIOServerProvider.getServer();
@@ -174,8 +172,7 @@ public class MeteorEventHandler implements SocketEventHandler {
         room.addPlayer(newUser);
 
         if (!newUser.getIsHost()) {
-            roomManager.recordUserJoinTime(room.getRoomId(), newUser.getSessionId());
-            scheduleReadyCheck(room.getRoomId(), newUser.getSessionId(), nickname);
+            readyCheckService.startReadyCheck(room.getRoomId(), newUser.getSessionId(), nickname);
         }
 
         // 전체 사용자에게 방에 있는 사용자 리스트 브로드캐스트
@@ -211,8 +208,7 @@ public class MeteorEventHandler implements SocketEventHandler {
             UserInfo user = new UserInfo(client.getSessionId().toString(), nickname, false,false,false);
             try {
                 room.addPlayer(user);  // 여기가 유일한 가득 참 체크 지점
-                roomManager.recordUserJoinTime(room.getRoomId(), user.getSessionId());
-                scheduleReadyCheck(room.getRoomId(), user.getSessionId(), nickname);
+                readyCheckService.startReadyCheck(room.getRoomId(), user.getSessionId(), nickname);
             } catch (IllegalStateException e) {
                 // 동시성으로 찬 경우도 여기서 처리
                 client.sendEvent("matchRandom",
@@ -271,7 +267,7 @@ public class MeteorEventHandler implements SocketEventHandler {
             return;
         }
         log.info("게임 시작으로 인한 모든 준비 타이머 취소: roomId={}", roomId);
-        roomManager.cancelAllTimers(roomId);
+        readyCheckService.cancelAllReadyChecks(roomId);
         room.initFallingwords(fallingWords);
         room.start();
 
@@ -313,7 +309,7 @@ public class MeteorEventHandler implements SocketEventHandler {
 
         // 1. 사용자 제거
         room.removePlayer(sessionId);
-        roomManager.removeUserJoinTime(roomId, sessionId);
+        readyCheckService.cancelReadyCheck(roomId, sessionId);
         client.leaveRoom(roomId);
 
         // 만약 모든 사용자가 나갔다면 방 삭제
@@ -379,7 +375,7 @@ public class MeteorEventHandler implements SocketEventHandler {
 
         // 1. 사용자 제거
         room.removePlayer(sessionId);
-        roomManager.removeUserJoinTime(roomId, sessionId);
+        readyCheckService.cancelReadyCheck(roomId, sessionId);
         client.leaveRoom(roomId);
 
         // 만약 모든 사용자가 나갔다면 방 삭제
@@ -555,12 +551,7 @@ public class MeteorEventHandler implements SocketEventHandler {
 
         boolean allReady = room.setReady(sessionId, newReadyState);
 
-        if (newReadyState) {
-            roomManager.removeUserJoinTime(roomId, sessionId);
-        } else if(!player.getIsHost()){
-            roomManager.recordUserJoinTime(roomId, sessionId);
-            scheduleReadyCheck(roomId,sessionId,nickname);
-        }
+        readyCheckService.manageReadyTimer(roomId, sessionId, nickname, newReadyState, player.getIsHost());
 
 
         GameReadyResponse response = GameReadyResponse.builder()
@@ -597,8 +588,7 @@ public class MeteorEventHandler implements SocketEventHandler {
             currentUser.setIsReady(true);
         }else{
             currentUser.setIsReady(false);
-            roomManager.recordUserJoinTime(roomId, sessionId);
-            scheduleReadyCheck(roomId, sessionId,nickname);
+            readyCheckService.startReadyCheck(roomId,sessionId,nickname);
         }
         // 대기 상태인 사용자들만 필터링
         List<UserInfo> waitingPlayers = room.getPlayers().stream()
@@ -631,7 +621,7 @@ public class MeteorEventHandler implements SocketEventHandler {
                         .anyMatch(u -> u.getSessionId().equals(sessionId));
                 if (!wasInRoom) return;
 
-                roomManager.removeUserJoinTime(room.getRoomId(), sessionId);
+                readyCheckService.cancelReadyCheck(room.getRoomId(), sessionId);
 
                 // 2) 나간 사용자 정보 찾아두기
                 UserInfo exitingUser = room.getPlayers().stream()
@@ -674,95 +664,9 @@ public class MeteorEventHandler implements SocketEventHandler {
         return UUID.randomUUID().toString().substring(0, 6).toUpperCase();
     }
 
-    private void scheduleReadyCheck(String roomId, String sessionId, String nickname) {
 
-        log.info("타이머 시작: roomId={}, sessionId={}, nickname={}, 시간={}",
-                roomId, sessionId, nickname, Instant.now());
 
-        // 50초 후 경고 메시지 전송
-        taskScheduler.schedule(() -> {
-            sendReadyWarning(roomId, sessionId, nickname);
-        }, Instant.now().plusSeconds(50));
-    }
 
-    private void sendReadyWarning(String roomId, String sessionId, String nickname) {
-        Optional<GameRoom> optRoom = roomManager.findById(roomId);
-        if (optRoom.isEmpty()) return;
 
-        GameRoom room = optRoom.get();
-
-        if (room.getStatus() == GameStatus.PLAYING) {
-            log.info("경고 메시지 취소 - 게임 중: roomId={}, sessionId={}", roomId, sessionId);
-            return;
-        }
-        Optional<UserInfo> userOpt = room.getPlayers().stream()
-                .filter(u -> u.getSessionId().equals(sessionId))
-                .findFirst();
-
-        // 유저가 아직 방에 있고 준비 상태가 아니면 경고 메시지 전송
-        if (userOpt.isPresent() && !userOpt.get().getIsReady()) {
-            SocketIOClient userClient = server().getClient(UUID.fromString(sessionId));
-            if (userClient != null) {
-                // 경고 메시지 전송
-                userClient.sendEvent("readyWarning",
-                        new ReadyWarningResponse("10초 내에 준비하지 않으면 방에서 퇴장됩니다."));
-
-                // 10초 후 확인 및 강퇴 스케줄링
-                taskScheduler.schedule(() -> {
-                    kickIfNotReady(roomId, sessionId, nickname);
-                }, Instant.now().plusSeconds(10));
-            }
-        } else {
-            roomManager.removeUserJoinTime(roomId, sessionId);
-        }
-    }
-    private void kickIfNotReady(String roomId, String sessionId, String nickname) {
-        Optional<GameRoom> optRoom = roomManager.findById(roomId);
-        if (optRoom.isEmpty()) return;
-
-        GameRoom room = optRoom.get();
-        if (room.getStatus() == GameStatus.PLAYING) {
-            return;
-        }
-        Optional<UserInfo> userOpt = room.getPlayers().stream()
-                .filter(u -> u.getSessionId().equals(sessionId))
-                .findFirst();
-
-        if (userOpt.isPresent() && !userOpt.get().getIsReady()) {
-            // 아직도 준비가 안 된 사용자 찾음
-            UserInfo user = userOpt.get();
-
-            // 강제 퇴장 처리
-            room.removePlayer(sessionId);
-
-            // 퇴장당한 사용자에게 알림
-            SocketIOClient userClient = server().getClient(UUID.fromString(sessionId));
-            if (userClient != null) {
-                userClient.sendEvent("youWereKicked",
-                        new ErrorResponse("READY_TIMEOUT", "준비 시간이 초과되어 방에서 퇴장되었습니다."));
-                userClient.leaveRoom(roomId);
-            }
-
-            // 방에 남은 유저들에게 알림
-            boolean wasHost = sessionId.equals(room.getHostSessionId());
-            UserInfo newHost = null;
-            if (wasHost && !room.getPlayers().isEmpty()) {
-                newHost = room.getPlayers().stream()
-                        .filter(UserInfo::getIsHost)
-                        .findFirst()
-                        .orElse(null);
-            }
-
-            // 퇴장 정보를 방의 다른 사용자들에게 전송
-            ExitRoomResponse response = new ExitRoomResponse(
-                    roomId,
-                    new UserInfo(sessionId, nickname, wasHost, false, false), // 퇴장한 유저 정보
-                    newHost,
-                    room.getPlayers()
-            );
-            server().getRoomOperations(roomId)
-                    .sendEvent("roomExit", response);
-        }
-    }
 
 }
