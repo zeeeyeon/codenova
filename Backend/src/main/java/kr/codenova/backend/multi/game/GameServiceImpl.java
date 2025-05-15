@@ -188,7 +188,8 @@ public class GameServiceImpl implements GameService {
 
             // 첫 완주자와 관련된 로직은 동기화 블록으로 보호
             synchronized (room) {
-                if (!room.hasFirstFinisher()) {
+                if (room.getFirstFinisherNickname() == null) {
+                    // ✅ 원자적으로 설정 (중복 방지)
                     room.setFirstFinisher(nickname, time);
                     room.getFinishTimeMap().putIfAbsent(nickname, seconds);
 
@@ -471,7 +472,6 @@ public class GameServiceImpl implements GameService {
         }
     }
 
-
     private void resetRoundData(Room room) {
         // ✅ 라운드별 Map을 새로운 인스턴스로 교체 (동시성 안전)
         room.setFinishTimeMap(new ConcurrentHashMap<>());
@@ -481,7 +481,6 @@ public class GameServiceImpl implements GameService {
         room.setFirstFinishTime(null);
         room.setFirstFinisherNickname(null);
     }
-
 
     // 11. 방 별 유저 수 저장
     public void setRoomUserCount(String roomId, int userCount) {
