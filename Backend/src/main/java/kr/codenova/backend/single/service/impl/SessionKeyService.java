@@ -16,8 +16,8 @@ public class SessionKeyService {
     private static final long SESSION_KEY_EXPIRE_SECONDS = 3600L;
     private final StringRedisTemplate redisTemplate;
 
-    public SessionKeyResponse generateSessionKey(Integer userId) {
-        String cacheKey = "sessionKey:" + userId;
+    public SessionKeyResponse generateSessionKey(Integer memberId) {
+        String cacheKey = "sessionKey:" + memberId;
         String sessionKey = redisTemplate.opsForValue().get(cacheKey);
 
         if (sessionKey != null) return new SessionKeyResponse(sessionKey, LocalDateTime.now().plusSeconds(SESSION_KEY_EXPIRE_SECONDS));
@@ -28,7 +28,7 @@ public class SessionKeyService {
         return new SessionKeyResponse(sessionKey, LocalDateTime.now().plusSeconds(SESSION_KEY_EXPIRE_SECONDS));
     }
 
-    public String getSessionKey(Integer userId) {
-        return redisTemplate.opsForValue().get("sessionKey:" + userId);
+    public String getSessionKey(Integer memberId) {
+        return redisTemplate.opsForValue().get("sessionKey:" + memberId);
     }
 }

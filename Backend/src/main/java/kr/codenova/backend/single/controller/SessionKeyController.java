@@ -25,8 +25,8 @@ public class SessionKeyController {
     public ResponseEntity<?> getSessionKey(@AuthenticationPrincipal CustomMemberDetails memberDetails) {
         if (memberDetails == null || memberDetails.getMember() == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        Integer userId = memberDetails.getMember().getMemberId();
-        SessionKeyResponse response = sessionKeyService.generateSessionKey(userId);
+        Integer memberId = memberDetails.getMember().getMemberId();
+        SessionKeyResponse response = sessionKeyService.generateSessionKey(memberId);
 
         return new ResponseEntity<>(Response.create(GET_SESSION_KEY, response), GET_SESSION_KEY.getHttpStatus());
     }

@@ -42,6 +42,9 @@ public enum ResponseCode {
     GPT_RESPONSE_FAIL(502, HttpStatus.BAD_GATEWAY, "GPT 응답 처리에 실패했습니다."),
     REPORT_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 리포트를 찾을 수 없습니다."),
     CODE_RESULT_FAIL(500, HttpStatus.INTERNAL_SERVER_ERROR, "점수 저장 실패"),
+    SESSION_KEY_EXPIRED(401, HttpStatus.UNAUTHORIZED, "세션키가 만료되었습니다. 다시 시도해 주세요."),
+    SESSION_KEY_DECRYPT_FAIL(400, HttpStatus.BAD_REQUEST, "데이터 복호화에 실패했습니다. 세션키를 다시 받아주세요."),
+
 
     INVALID_TOKEN_FORMAT(401, HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰 형식입니다."),
     MISSING_MANDATORY_CLAIMS(400, HttpStatus.BAD_REQUEST, "토큰에 필수 클레임이 없습니다."),
