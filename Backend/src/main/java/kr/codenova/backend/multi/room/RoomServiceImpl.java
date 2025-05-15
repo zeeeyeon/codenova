@@ -9,10 +9,7 @@ import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.multi.dto.broadcast.JoinRoomBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.NoticeBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.RoomUpdateBroadcast;
-import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
-import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
-import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
-import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
+import kr.codenova.backend.multi.dto.request.*;
 import kr.codenova.backend.multi.dto.response.CreateRoomResponse;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
 import kr.codenova.backend.multi.dto.response.RoomOnePersonResponse;
@@ -374,4 +371,20 @@ public class RoomServiceImpl implements RoomService {
                 .toList();
     }
 
+    public void updateRoomStataus(FixRoomRequest request, SocketIOClient client) {
+        log.info("updateRoomStatus 시작");
+        Room room = roomMap.get(request.getRoomId());
+        if (room == null) {
+            throw new RoomNotFoundException("방을 찾을 수 없습니다.");
+        }
+
+        // 방 정보 수정 로직
+        room.changeRoomStatus(request);
+
+        RoomStatusResponse response = new RoomStatusResponse(room);
+        client.sendEvent("room_status", response);
+
+        RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
+        getServer().getBroadcastOperations().sendEvent("room_update", broadcast);
+    }
 }

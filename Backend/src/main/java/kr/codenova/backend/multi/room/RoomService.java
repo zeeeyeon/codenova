@@ -2,10 +2,7 @@ package kr.codenova.backend.multi.room;
 
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
-import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
-import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
-import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
-import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
+import kr.codenova.backend.multi.dto.request.*;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
 import kr.codenova.backend.multi.exception.UserNotInRoomException;
 
@@ -40,4 +37,6 @@ public interface RoomService {
     void getRoomStatus(RoomStatusRequest request, SocketIOClient client);
 
     public void onDisconnect(SocketIOClient client);
+
+    void updateRoomStataus(FixRoomRequest request, SocketIOClient client);
 }
