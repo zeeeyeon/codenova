@@ -3,6 +3,7 @@ package kr.codenova.backend.meteor;
 import kr.codenova.backend.meteor.entity.room.GameRoom;
 import kr.codenova.backend.meteor.entity.room.GameStatus;
 import kr.codenova.backend.meteor.entity.user.UserInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -12,10 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@Slf4j
 @Component
 public class RoomManager {
     private final Map<String, GameRoom> roomsById   = new ConcurrentHashMap<>();
     private final Map<String, GameRoom> roomsByCode = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, LocalDateTime>> roomUserJoinTimeMap = new ConcurrentHashMap<>();
 
     public void addRoom(GameRoom room) {
         roomsById.put(room.getRoomId(), room);
@@ -77,6 +80,23 @@ public class RoomManager {
             room.addPlayer(hostFactory.apply(roomId));
             addRoom(room);
             return new RandomRoomResult(room, true);
+        }
+    }
+    public void recordUserJoinTime(String roomId, String sessionId) {
+        log.info("유저 입장 시간 기록: roomId={}, sessionId={}", roomId, sessionId);
+        roomUserJoinTimeMap.computeIfAbsent(roomId, k -> new ConcurrentHashMap<>())
+                .put(sessionId, LocalDateTime.now());
+    }
+
+    public void removeUserJoinTime(String roomId, String sessionId) {
+        if (roomUserJoinTimeMap.containsKey(roomId)) {
+            roomUserJoinTimeMap.get(roomId).remove(sessionId);
+        }
+    }
+
+    public void cancelAllTimers(String roomId) {
+        if (roomUserJoinTimeMap.containsKey(roomId)) {
+            roomUserJoinTimeMap.remove(roomId);
         }
     }
 
