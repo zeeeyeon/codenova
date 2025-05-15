@@ -4,6 +4,9 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
+import kr.codenova.backend.global.exception.CustomException;
+import kr.codenova.backend.global.response.ErrorResponse;
+import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.multi.dto.broadcast.ChangeHostBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.JoinRoomBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.NoticeBroadcast;
@@ -101,6 +104,13 @@ public class RoomServiceImpl implements RoomService {
         String roomId = UUID.randomUUID().toString();
         String roomCode = request.getIsLocked() ? generatedRoomCode() : null;
         String sessionId = client.getSessionId().toString();
+
+        // ✅ 한 유저가 여러 방 생성 방지
+        if (userSessionMap.containsKey(sessionId)) {
+            log.warn("중복 방 생성 시도 - sessionId: {}", sessionId);
+            ackSender.sendAckData(new CustomException(ResponseCode.DUPLICATION_ROOM));
+            return;
+        }
 
         Room room = Room.builder()
                 .roomId(roomId)
