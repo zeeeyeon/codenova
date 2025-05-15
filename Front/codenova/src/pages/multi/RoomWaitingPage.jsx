@@ -331,7 +331,7 @@ useEffect(() => {
   if (!socket) return;
 
   const handleGameStarted = (data) => {
-    console.log("🎮 수신된 이벤트: game_started", data);
+    // console.log("🎮 수신된 이벤트: game_started", data);
     // console.log("📦 navigate 직전 users 상태:", users);
     if (String(data.roomId) === String(roomId)) {
       navigate(`/multi/game/${roomId}`);
