@@ -130,6 +130,16 @@ public class SingleServiceImpl implements SingleService {
         return ReportDetailResponse.of(report, summaries);
     }
 
+    @Override
+    public CodeDescriptionResponse getCodeDescription(int codeId) {
+        Code code = codeRepository.findByCodeId(codeId)
+                .orElseThrow(() -> new CustomException(CODE_NOT_FOUND));
+        CodeDescriptionResponse response = new CodeDescriptionResponse();
+        response.setDescript(code.getDescript());
+        response.setAnnotation(code.getAnnotation());
+
+        return response;
+    }
 
 //    @Override
 //    public SingleBattleCodeResponse test(int codeId) {
