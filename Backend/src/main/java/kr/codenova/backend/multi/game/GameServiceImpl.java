@@ -145,8 +145,6 @@ public class GameServiceImpl implements GameService {
     @Async
     public void delayedTypingStart(String roomId) throws InterruptedException {
 
-        Thread.sleep(3000);
-
         Room room = roomService.getRoom(roomId);
         if (room == null) {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
