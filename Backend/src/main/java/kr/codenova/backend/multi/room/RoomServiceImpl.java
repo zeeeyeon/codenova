@@ -334,7 +334,7 @@ public class RoomServiceImpl implements RoomService {
         }
     }
 
-        public String generatedRoomCode() {
+    public String generatedRoomCode() {
         return UUID.randomUUID().toString().substring(0,6).toUpperCase();
     }
 
