@@ -64,7 +64,7 @@ public class RoomSocketHandler implements SocketEventHandler {
         // 방 퇴장
         server.addEventListener("leave_room", LeaveRoomRequest.class, (client, request, ackSender) -> {
             try {
-                roomService.leaveRoom(request, client);
+                roomService.leaveRoom(request, client, false);
             } catch (Exception e) {
                 client.sendEvent("error", new SocketErrorResponse("방 퇴장 실패"));
             } catch (UserNotInRoomException e) {
@@ -88,6 +88,17 @@ public class RoomSocketHandler implements SocketEventHandler {
                 roomService.onDisconnect(client);
             } catch (Exception e) {
                 log.error("Disconnect event handling failed", e);
+            }
+        });
+
+        // 방 퇴장
+        server.addEventListener("exit_room", LeaveRoomRequest.class, (client, request, ackSender) -> {
+            try {
+                roomService.leaveRoom(request, client, false);
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("방 퇴장 실패"));
+            } catch (UserNotInRoomException e) {
+                throw new RuntimeException(e);
             }
         });
 
