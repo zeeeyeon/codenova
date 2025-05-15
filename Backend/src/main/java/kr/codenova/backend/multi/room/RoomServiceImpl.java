@@ -4,14 +4,12 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
-import kr.codenova.backend.multi.dto.broadcast.ChangeHostBroadcast;
+import kr.codenova.backend.global.exception.CustomException;
+import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.multi.dto.broadcast.JoinRoomBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.NoticeBroadcast;
 import kr.codenova.backend.multi.dto.broadcast.RoomUpdateBroadcast;
-import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
-import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
-import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
-import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
+import kr.codenova.backend.multi.dto.request.*;
 import kr.codenova.backend.multi.dto.response.CreateRoomResponse;
 import kr.codenova.backend.multi.dto.response.RoomListResponse;
 import kr.codenova.backend.multi.dto.response.RoomOnePersonResponse;
@@ -22,9 +20,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -74,7 +70,7 @@ public class RoomServiceImpl implements RoomService {
             leaveRequest.setNickname(nickname);
 
             try {
-                leaveRoom(leaveRequest, client);
+                leaveRoom(leaveRequest, client, true);
                 log.info("Disconnect에 의한 방 퇴장 처리 완료: {}, 방: {}", nickname, roomId);
             } catch (RoomNotFoundException e) {
                 log.error("Disconnect 처리 중 방을 찾을 수 없음: {}", roomId);
@@ -88,6 +84,7 @@ public class RoomServiceImpl implements RoomService {
             }
         }
     }
+
     /**
      * 방 생성
      * 1. 방 생성 시 즉시 방장 지정
@@ -101,6 +98,13 @@ public class RoomServiceImpl implements RoomService {
         String roomId = UUID.randomUUID().toString();
         String roomCode = request.getIsLocked() ? generatedRoomCode() : null;
         String sessionId = client.getSessionId().toString();
+
+        // ✅ 한 유저가 여러 방 생성 방지
+        if (userSessionMap.containsKey(sessionId)) {
+            log.warn("중복 방 생성 시도 - sessionId: {}", sessionId);
+            ackSender.sendAckData(new CustomException(ResponseCode.DUPLICATION_ROOM));
+            return;
+        }
 
         Room room = Room.builder()
                 .roomId(roomId)
@@ -239,7 +243,7 @@ public class RoomServiceImpl implements RoomService {
      * 4. 퇴장하는 유저의 세션-방 매핑 정보를 삭제합니다.
      * 5. 기존 로직대로 퇴장 알림, 방 나가기, 방 업데이트/삭제 처리를 수행합니다.
      */
-    public void leaveRoom(LeaveRoomRequest request, SocketIOClient client) throws UserNotInRoomException {
+    public void leaveRoom(LeaveRoomRequest request, SocketIOClient client, boolean isDisconnected) throws UserNotInRoomException {
         Room room = roomMap.get(request.getRoomId());
         if (room == null) {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
@@ -301,8 +305,10 @@ public class RoomServiceImpl implements RoomService {
         room.getUserStatusMap().remove(request.getNickname());
         room.getUserJoinTimes().remove(request.getNickname());
 
-        // userRoomMap에서 사용자 정보 제거
-        userSessionMap.remove(client.getSessionId().toString());
+        // 🔽 isDisconnected가 true일 때만 세션 맵 제거
+        if (isDisconnected) {
+            userSessionMap.remove(client.getSessionId().toString());
+        }
         // ✅ [추가] 퇴장 알림 - 본인 제외하고 전송
         getServer().getRoomOperations(request.getRoomId())
                 .getClients()
@@ -365,4 +371,20 @@ public class RoomServiceImpl implements RoomService {
                 .toList();
     }
 
+    public void updateRoomStataus(FixRoomRequest request, SocketIOClient client) {
+        log.info("updateRoomStatus 시작");
+        Room room = roomMap.get(request.getRoomId());
+        if (room == null) {
+            throw new RoomNotFoundException("방을 찾을 수 없습니다.");
+        }
+
+        // 방 정보 수정 로직
+        room.changeRoomStatus(request);
+
+        RoomStatusResponse response = new RoomStatusResponse(room);
+        client.sendEvent("room_status", response);
+
+        RoomUpdateBroadcast broadcast = RoomUpdateBroadcast.from(room);
+        getServer().getBroadcastOperations().sendEvent("room_update", broadcast);
+    }
 }

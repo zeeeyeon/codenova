@@ -47,7 +47,7 @@ public enum ResponseCode {
     SUCCESS_CREATE_ROOM(201, HttpStatus.CREATED, "성공적으로 방이 생성되었습니다."),
     EXPIRED_VERIFIED_TOKEN(400, HttpStatus.BAD_REQUEST, "토큰이 만료되었습니다."),
     INVALID_VERIFIED_TOKEN(400, HttpStatus.BAD_REQUEST, "토큰이 유효하지 않습니다."),
-
+    DUPLICATION_ROOM(400, HttpStatus.MULTI_STATUS, "이미 참여 중인 방이 있습니다. 먼저 기존 방에서 나가주세요."),
 
 
     BINDING_ERROR(2000, HttpStatus.BAD_REQUEST, "입력값 중 검증에 실패한 값이 있습니다."),

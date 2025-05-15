@@ -1,15 +1,12 @@
 package kr.codenova.backend.multi.room;
 
 import com.corundumstudio.socketio.SocketIOServer;
-import kr.codenova.backend.multi.dto.request.LeaveRoomRequest;
-import kr.codenova.backend.multi.dto.request.JoinRoomRequest;
-import kr.codenova.backend.multi.dto.request.RoomStatusRequest;
+import kr.codenova.backend.multi.dto.request.*;
 import kr.codenova.backend.multi.dto.response.SocketErrorResponse;
 import kr.codenova.backend.multi.exception.InvalidPasswordException;
 import kr.codenova.backend.multi.exception.RoomFullException;
 import kr.codenova.backend.multi.exception.RoomNotFoundException;
 import kr.codenova.backend.global.socket.SocketEventHandler;
-import kr.codenova.backend.multi.dto.request.CreateRoomRequest;
 import kr.codenova.backend.multi.exception.UserNotInRoomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +61,7 @@ public class RoomSocketHandler implements SocketEventHandler {
         // 방 퇴장
         server.addEventListener("leave_room", LeaveRoomRequest.class, (client, request, ackSender) -> {
             try {
-                roomService.leaveRoom(request, client);
+                roomService.leaveRoom(request, client, false);
             } catch (Exception e) {
                 client.sendEvent("error", new SocketErrorResponse("방 퇴장 실패"));
             } catch (UserNotInRoomException e) {
@@ -88,6 +85,27 @@ public class RoomSocketHandler implements SocketEventHandler {
                 roomService.onDisconnect(client);
             } catch (Exception e) {
                 log.error("Disconnect event handling failed", e);
+            }
+        });
+
+        // 방 퇴장
+        server.addEventListener("exit_room", LeaveRoomRequest.class, (client, request, ackSender) -> {
+            try {
+                roomService.leaveRoom(request, client, false);
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("방 퇴장 실패"));
+            } catch (UserNotInRoomException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        // 방 수정하기
+        server.addEventListener("fix_room", FixRoomRequest.class, (client, request, ackSender) -> {
+            try {
+                log.info("fix_room 시작");
+                roomService.updateRoomStataus(request, client);
+            } catch (Exception e) {
+                client.sendEvent("error", new SocketErrorResponse("방 퇴장 실패"));
             }
         });
 
