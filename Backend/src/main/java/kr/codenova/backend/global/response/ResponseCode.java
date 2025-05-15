@@ -30,6 +30,7 @@ public enum ResponseCode {
     GET_REPORTS_SUCCESS(200, HttpStatus.OK, "리포트 목록 조회에 성공했습니다."),
     GET_REPORT_DETAIL_SUCCESS(200, HttpStatus.OK, "리포트 상세 조회에 성공했습니다."),
     GET_RANKING_SUCCESS(200, HttpStatus.OK, "랭킹 조회에 성공했습니다."),
+    GET_CODE_DESCRIPTION(200, HttpStatus.OK, "선택한 코드의 설명입니다."),
 
 
     KEYLOG_TOO_SHORT(400, HttpStatus.BAD_REQUEST, "입력 기록이 부족합니다."),
