@@ -13,5 +13,4 @@ public class UserInfo {
     private Boolean isHost;
     private Boolean isReady;
     private Boolean isWaiting;
-
 }
