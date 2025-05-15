@@ -42,6 +42,7 @@ public class GameEndService implements WordDropScheduler.GameEndListener {
 //                return;
 //            }
             room.finish();
+            roomManager.cancelAllTimers(roomId);
         }
         Map<String,Integer> scoreMap = room.getScoreMap();
         List<PlayerResult> results = room.getPlayers().stream()
