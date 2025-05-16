@@ -1,5 +1,6 @@
 package kr.codenova.backend.single.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.codenova.backend.global.exception.CustomException;
@@ -16,10 +17,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -40,7 +38,7 @@ public class ChatServiceImpl implements ChatService {
             log.info("ChatBot API 요청 시작: {}", request.getMessage());
 
             // 요청 생성
-            HttpEntity<Map<String, Object>> httpRequest = buildRequest(request.getMessage());
+            HttpEntity<String> httpRequest = buildRequest(request.getMessage());
 
             // 요청 내용 자세히 로깅
             try {
@@ -97,15 +95,16 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private HttpEntity<Map<String, Object>> buildRequest(String message) {
+    private HttpEntity<String> buildRequest(String message) throws JsonProcessingException {
         // 헤더에 KEY 넣어줘야함
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(gmsKey);// GMS Key를 Authorization 헤더에 설정
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + gmsKey);
+        headers.set("Content-Type", "application/json-");
+//        headers.setContentType(MediaType.APPLICATION_JSON);
 
         // 본문에 넣을 Openai 모델
-        Map<String, Object> body = new HashMap<>();
-        body.put("model", "gpt-4o-mini");
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("model", "gpt-4.1");
 
         // 메시지 추가 ( 대답하는 형식과 클라이언트)
         List<Map<String, String>> messages = new ArrayList<>();
@@ -121,9 +120,12 @@ public class ChatServiceImpl implements ChatService {
         ));
 
         body.put("messages", messages);
-        body.put("max_tokens", 500);
+//        body.put("max_tokens", 500);
+//        body.put("temperature", 0.3);
 
-        return new HttpEntity<>(body, headers);
+        String jsonBody = objectMapper.writeValueAsString(body);
+
+        return new HttpEntity<>(jsonBody, headers);
     }
 
     private String extractContent(ResponseEntity<String> response) throws Exception {
