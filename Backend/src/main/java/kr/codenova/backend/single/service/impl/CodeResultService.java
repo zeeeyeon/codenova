@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 
 import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import java.nio.charset.StandardCharsets;
@@ -99,12 +100,16 @@ public class CodeResultService {
         }
 
         try {
+            byte[] keyBytes = sessionKey.getBytes(StandardCharsets.UTF_8);
+            byte[] ivBytes = Base64.getDecoder().decode(encryptedData.iv());
+
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            SecretKeySpec secretKeySpec = new SecretKeySpec(sessionKey.getBytes(StandardCharsets.UTF_8), "AES");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "AES");
+            IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
 
-            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivSpec);
+
             byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedData.data()));
-
             String decryptedJson = new String(decryptedBytes, StandardCharsets.UTF_8);
 
             ObjectMapper objectMapper = new ObjectMapper();
