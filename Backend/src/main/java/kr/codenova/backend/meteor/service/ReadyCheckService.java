@@ -16,8 +16,11 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 @Service
 @Slf4j
@@ -27,6 +30,11 @@ public class ReadyCheckService {
     private final RoomManager roomManager;
     private final TaskScheduler taskScheduler;
 
+    private final Map<String, ScheduledFuture<?>> warningTimers = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledFuture<?>> kickTimers = new ConcurrentHashMap<>();
+    private String getTimerKey(String roomId, String sessionId) {
+        return roomId + ":" + sessionId;
+    }
     // 준비 체크 타이머 시작
     public void startReadyCheck(String roomId, String sessionId, String nickname) {
         log.info("타이머 시작: roomId={}, sessionId={}, nickname={}, 시간={}",
@@ -34,17 +42,43 @@ public class ReadyCheckService {
 
         // 유저 입장 시간 기록
         roomManager.recordUserJoinTime(roomId, sessionId);
-
-        // 50초 후 경고 메시지 전송
-        taskScheduler.schedule(() -> {
+        cancelExistingTimers(roomId, sessionId);
+        // 20초 후 경고 메시지 전송
+        // 20초 후 경고 메시지 전송 - 타이머 객체 저장
+        String timerKey = getTimerKey(roomId, sessionId);
+        ScheduledFuture<?> warningTask = taskScheduler.schedule(() -> {
             sendReadyWarning(roomId, sessionId, nickname);
-        }, Instant.now().plusSeconds(50));
+        }, Instant.now().plusSeconds(20));
+
+        // 타이머 저장
+        warningTimers.put(timerKey, warningTask);
+    }
+
+    private void cancelExistingTimers(String roomId, String sessionId) {
+        String timerKey = getTimerKey(roomId, sessionId);
+
+        // 경고 타이머 취소
+        ScheduledFuture<?> warningTask = warningTimers.remove(timerKey);
+        if (warningTask != null) {
+            boolean cancelResult = warningTask.cancel(true);
+            log.info("경고 타이머 취소: roomId={}, sessionId={}, 결과={}",
+                    roomId, sessionId, cancelResult ? "성공" : "실패");
+        }
+
+        // 강퇴 타이머 취소
+        ScheduledFuture<?> kickTask = kickTimers.remove(timerKey);
+        if (kickTask != null) {
+            boolean cancelResult = kickTask.cancel(true);
+            log.info("강퇴 타이머 취소: roomId={}, sessionId={}, 결과={}",
+                    roomId, sessionId, cancelResult ? "성공" : "실패");
+        }
     }
 
     // 준비 체크 타이머 취소
     public void cancelReadyCheck(String roomId, String sessionId) {
         log.info("타이머 취소: roomId={}, sessionId={}", roomId, sessionId);
         roomManager.removeUserJoinTime(roomId, sessionId);
+        cancelExistingTimers(roomId, sessionId);
     }
 
     // 방의 모든 타이머 취소
@@ -99,9 +133,11 @@ public class ReadyCheckService {
                 // 10초 후 확인 및 강퇴 스케줄링
                 log.info("강퇴 체크 타이머 시작: roomId={}, sessionId={}, nickname={}", roomId, sessionId, nickname);
 
-                taskScheduler.schedule(() -> {
+                String timerKey = getTimerKey(roomId, sessionId);
+                ScheduledFuture<?> kickTask = taskScheduler.schedule(() -> {
                     kickIfNotReady(roomId, sessionId, nickname);
                 }, Instant.now().plusSeconds(10));
+                kickTimers.put(timerKey, kickTask);
             }
         } else {
             log.info("경고 메시지 취소 - 이미 준비 완료 또는 방 퇴장: roomId={}, sessionId={}", roomId, sessionId);
