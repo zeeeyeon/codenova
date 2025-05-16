@@ -24,7 +24,13 @@ import {
   startMeteoGame,
   onGoWaitingRoom,
   offGoWaitingRoom,
-  onExitMeteoGame
+  onExitMeteoGame,
+  onKick,
+  onReadyWarning,
+  offReadyWarning,
+  offKick,
+  onHostKickWarning,
+  offHostKickWarning,
 } from "../../sockets/meteoSocket";
 import Crown from "../../assets/images/crown_icon.png";
 import StartButton from "../../assets/images/start_btn.png";
@@ -52,17 +58,19 @@ const MeteoLandingPage = () => {
   // const allReady = totalUsers.length >= 2 && readyUsers.length === totalUsers.length;
   const [alertMessage, setAlertMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
+  const [showKickAlert, setShowKickAlert] = useState(false);
+  const [kickMessage, setKickMessage] = useState("");
 
-const handleCopy = async () => {
-  try {
-    await navigator.clipboard.writeText(roomCode);
-    setAlertMessage("방 코드가 복사되었습니다.");
-    setShowAlert(true);
-  } catch (err) {
-    setAlertMessage("복사에 실패했습니다.");
-    setShowAlert(true);
-  }
-};
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(roomCode);
+      setAlertMessage("방 코드가 복사되었습니다.");
+      setShowAlert(true);
+    } catch (err) {
+      setAlertMessage("복사에 실패했습니다.");
+      setShowAlert(true);
+    }
+  };
 
   useEffect(() => {
     const socket = getSocket();
@@ -120,7 +128,7 @@ const handleCopy = async () => {
               {
                 nickname: "SYSTEM",
                 message:
-                  "모든 플레이어가 준비되었습니다. 방장님은 게임을 시작할 수 있어요!",
+                  "모든 플레이어가 준비되었습니다. 방장님은 20초 내에 게임을 시작해주세요!",
               },
             ];
       });
@@ -218,7 +226,6 @@ const handleCopy = async () => {
     };
     onRoomExit(handleRoomExit);
 
-
     // 3) cleanup
     return () => {
       socket.off("secretRoomJoin", handleSecretRoomJoin);
@@ -250,7 +257,6 @@ const handleCopy = async () => {
       window.removeEventListener("beforeunload", handleUnloadOrBack);
     };
   }, [nickname]);
-
 
   useEffect(() => {
     const handlePopState = (event) => {
@@ -330,27 +336,26 @@ const handleCopy = async () => {
         if (count === 0) {
           clearInterval(countdownInterval);
 
-        // ✅ roomId, roomCode, nickname 저장 보정
-        localStorage.setItem("roomId", gameData.roomId);
-        localStorage.setItem("meteoRoomId", gameData.roomId); // ✅ 명확히 같이 저장
+          // ✅ roomId, roomCode, nickname 저장 보정
+          localStorage.setItem("roomId", gameData.roomId);
+          localStorage.setItem("meteoRoomId", gameData.roomId); // ✅ 명확히 같이 저장
 
-        if (gameData.roomCode) {
-          localStorage.setItem("roomCode", gameData.roomCode);
-          localStorage.setItem("meteoRoomCode", gameData.roomCode); // ✅ 확실하게
-          console.log("✅ roomCode 저장됨:", gameData.roomCode);
-        } else {
-          // console.warn("❗ gameData.roomCode 없음 → 저장 생략");
-        }
-
-        if (!localStorage.getItem("nickname")) {
-          const matched = gameData.players.find(
-            (p) => p.sessionId === getSocket()?.id
-          );
-          if (matched?.nickname) {
-            localStorage.setItem("nickname", matched.nickname);
+          if (gameData.roomCode) {
+            localStorage.setItem("roomCode", gameData.roomCode);
+            localStorage.setItem("meteoRoomCode", gameData.roomCode); // ✅ 확실하게
+            console.log("✅ roomCode 저장됨:", gameData.roomCode);
+          } else {
+            // console.warn("❗ gameData.roomCode 없음 → 저장 생략");
           }
-        }
 
+          if (!localStorage.getItem("nickname")) {
+            const matched = gameData.players.find(
+              (p) => p.sessionId === getSocket()?.id
+            );
+            if (matched?.nickname) {
+              localStorage.setItem("nickname", matched.nickname);
+            }
+          }
 
           // ✅ 페이지 이동
           navigate("/meteo/game", { state: { ...gameData } }, 3000);
@@ -421,31 +426,100 @@ const handleCopy = async () => {
 
   // MeteoLandingPage.jsx
 
-useEffect(() => {
-  const handleGoWaitingRoom = (data) => {
-    console.log("📥 [LandingPage] waitingRoomGo 수신:", data);
+  useEffect(() => {
+    const handleGoWaitingRoom = (data) => {
+      console.log("📥 [LandingPage] waitingRoomGo 수신:", data);
 
-    const myNickname = localStorage.getItem("nickname");
-    const isMeIncluded = data.players.some(
-      (player) => player.nickname === myNickname
-    );
+      const myNickname = localStorage.getItem("nickname");
+      const isMeIncluded = data.players.some(
+        (player) => player.nickname === myNickname
+      );
 
-    if (!isMeIncluded) {
-      console.warn("❗ 내 닉네임이 포함되지 않음 → 수신 무시");
-      return;
-    }
+      if (!isMeIncluded) {
+        console.warn("❗ 내 닉네임이 포함되지 않음 → 수신 무시");
+        return;
+      }
 
-    updateUsersFromPlayers(data.players);
-    localStorage.setItem("meteoPlayers", JSON.stringify(data.players));
+      updateUsersFromPlayers(data.players);
+      localStorage.setItem("meteoPlayers", JSON.stringify(data.players));
+    };
+
+    onGoWaitingRoom(handleGoWaitingRoom);
+    return () => {
+      offGoWaitingRoom();
+    };
+  }, []);
+
+  useEffect(() => {
+    // 준비 경고 이벤트 처리
+    onReadyWarning((data) => {
+      console.log("⚠️ [onReadyWarning] 경고 수신:", data);
+
+      // 알림 표시 (준비 경고 메시지)
+      setAlertMessage(
+        data.message || "10초 내에 준비하지 않으면 방에서 퇴장됩니다."
+      );
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+
+      // 시스템 메시지 추가
+      setMessages((prev) => [
+        ...prev,
+        {
+          nickname: "SYSTEM",
+          message:
+            "⚠️ " +
+            (data.message || "10초 내에 준비하지 않으면 방에서 퇴장됩니다."),
+        },
+      ]);
+    });
+
+    // 강퇴 이벤트 처리
+    onKick((data) => {
+      console.log("👢 [onKick] 강퇴 수신:", data);
+
+      // 로컬 스토리지 정리
+      localStorage.removeItem("meteoRoomCode");
+      localStorage.removeItem("meteoRoomId");
+      localStorage.removeItem("meteoPlayers");
+
+      // 강퇴 전용 알림 표시
+      setKickMessage(
+        data.message || "준비 시간이 초과되어 방에서 퇴장되었습니다."
+      );
+      setShowKickAlert(true);
+    });
+    
+    // 이벤트 리스너 정리 함수
+    return () => {
+      offReadyWarning(); // 함수로 분리된 이벤트 리스너 제거 함수 호출
+      offKick();
+    };
+  }, [navigate]);
+  
+  const handleKickConfirm = () => {
+    setShowKickAlert(false);
+    navigate("/main");
   };
 
-  onGoWaitingRoom(handleGoWaitingRoom);
-  return () => {
-    offGoWaitingRoom();
-  };
-}, []);
+  useEffect(() => {
+    // 방장 경고 이벤트 (방장에게만 표시)
+    onHostKickWarning((data) => {
+      console.log("⚠️ [onHostKickWarning] 방장 경고 수신:", data);
+
+      // 방장인 경우에만 알림 표시
+      if (users.find((u) => u?.nickname === nickname)?.isHost) {
+        setAlertMessage("5초 내에 게임을 시작해주세요");
+        setShowAlert(true);
+        setTimeout(() => setShowAlert(false), 3000);
+      }
+    });
 
 
+    return () => {
+      offHostKickWarning();
+    };
+  }, [users, nickname]);
   return (
     <div
       className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
@@ -453,7 +527,7 @@ useEffect(() => {
     >
       {showReadyAlert && (
         <div className="absolute top-6 left-1/3 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-full text-lg shadow-xl animate-bounce">
-          방장님은 시작 버튼을 눌러 게임을 시작해주세요!
+          방장님은 20초 내에 시작 버튼을 눌러 게임을 시작해주세요!
         </div>
       )}
 
@@ -613,7 +687,11 @@ useEffect(() => {
                 style={{ borderColor: "#01FFFE" }}
               >
                 <p className="text-xl mb-1">방코드</p>
-                <p className="text-3xl">{!currentRoomCode || currentRoomCode === "undefined" ? "-" : currentRoomCode}</p>
+                <p className="text-3xl">
+                  {!currentRoomCode || currentRoomCode === "undefined"
+                    ? "-"
+                    : currentRoomCode}
+                </p>
                 {currentRoomCode ? (
                   <button
                     onClick={handleCopy}
@@ -685,6 +763,10 @@ useEffect(() => {
           message={alertMessage}
           onConfirm={() => setShowAlert(false)}
         />
+      )}
+
+      {showKickAlert && (
+        <CustomAlert message={kickMessage} onConfirm={handleKickConfirm} />
       )}
     </div>
   );
