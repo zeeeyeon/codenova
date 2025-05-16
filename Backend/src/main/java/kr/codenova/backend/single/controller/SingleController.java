@@ -4,6 +4,7 @@ import kr.codenova.backend.common.enums.CsCategory;
 import kr.codenova.backend.global.response.Response;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
+import kr.codenova.backend.single.dto.request.ChatBotRequest;
 import kr.codenova.backend.single.dto.request.CsKeywordRequest;
 import kr.codenova.backend.single.dto.request.SingleCodeResultRequest;
 import kr.codenova.backend.single.dto.response.*;
@@ -13,9 +14,11 @@ import kr.codenova.backend.single.dto.request.SingleCodeResultRequest;
 import kr.codenova.backend.single.dto.response.LanguageCategory;
 import kr.codenova.backend.single.dto.response.SingleBattleCodeResponse;
 import kr.codenova.backend.single.dto.response.SingleTypingResultResponse;
+import kr.codenova.backend.single.service.ChatService;
 import kr.codenova.backend.single.service.SingleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +35,7 @@ import static kr.codenova.backend.global.response.ResponseCode.*;
 public class SingleController {
 
     private final SingleService singleService;
+    private final ChatService chatService;
 
     @GetMapping("/languages")
     public ResponseEntity<?> getLanguageCategories() {
@@ -92,6 +96,20 @@ public class SingleController {
     public ResponseEntity<?> getReportDetail(@AuthenticationPrincipal CustomMemberDetails memberDetails, @PathVariable int reportId) {
         ReportDetailResponse detail = singleService.getReportDetail(memberDetails.getMember().getMemberId(), reportId);
         return new ResponseEntity<>(Response.create(ResponseCode.GET_REPORT_DETAIL_SUCCESS, detail), ResponseCode.GET_REPORT_DETAIL_SUCCESS.getHttpStatus());
+    }
+
+    @PostMapping("/chat")
+    public ResponseEntity<?> chat(@RequestBody ChatBotRequest request) {
+        try {
+            System.out.println("Chat API 호출 요청: " + request.getMessage());
+            ChatBotResponse response = chatService.generateResponse(request);
+            return new ResponseEntity<>(Response.create(GET_CHATBOT_RESPONSE, response), GET_CHATBOT_RESPONSE.getHttpStatus());
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("컨트롤러 오류: " + e.getMessage());
+            ChatBotResponse errorResponse = new ChatBotResponse("서비스 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            return new ResponseEntity<>(Response.create(INTERNAL_SERVER_ERROR, errorResponse), INTERNAL_SERVER_ERROR.getHttpStatus());
+        }
     }
 
 //    @GetMapping("/test")
