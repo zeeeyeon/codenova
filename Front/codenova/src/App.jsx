@@ -35,21 +35,6 @@ function App() {
   }, [])
 
 
-  const isTokenExpired = (token) => {
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const now = Math.floor(Date.now() / 1000); // 현재 시간(초)
-      return payload.exp < now; // 만료시간보다 현재가 크면 true
-    } catch {
-      return true; // 에러나면 만료 취급
-    }
-  };
-  
-  const token = localStorage.getItem("accessToken");
-  if (!token || isTokenExpired(token)) {
-    logout(); // 강제 로그아웃
-  }
-
 
   return (
     <BrowserRouter>
