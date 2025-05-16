@@ -410,13 +410,13 @@ useEffect(() => {
                   className="absolute object-cover rounded-2xl z-0"
         />
 
-        <div className="relative z-10 flex items-center gap-2 mt-5">
+        <div className="relative z-10 flex items-center gap-1 mt-5">
             <img
               src={roomInfo.isPublic ? unlockImg : lockImg}
               alt={roomInfo.isPublic ? "공개방" : "비공개방"}
-              className="w-6 h-6"
+              className="w-6 h-6 mb-2"
             />
-            <h2 className="text-3xl font-bold">{roomInfo.roomTitle}</h2>
+            <h2 className="text-2xl font-bold">{roomInfo.roomTitle}</h2>
           </div>
           {/* 사용자 리스트 */}
           <div className="w-full flex justify-center mt-10">
