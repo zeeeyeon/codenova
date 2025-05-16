@@ -1,6 +1,10 @@
 import { getSocket } from "./socketClient";
 // 방 생성
-export const createMeteoRoom = ({ isPrivate, nickname }, onSuccess, onError) => {
+export const createMeteoRoom = (
+  { isPrivate, nickname },
+  onSuccess,
+  onError
+) => {
   // console.log("[createMeteoRoom] createRoom emit 보냄", { isPrivate, nickname });
   getSocket().emit("createRoom", { isPrivate, nickname });
 
@@ -13,7 +17,6 @@ export const createMeteoRoom = ({ isPrivate, nickname }, onSuccess, onError) => 
   //   console.error("[createMeteoRoom] error 수신", error);
   //   onError(error.message);
   // });
-  
 };
 
 // 방 참가
@@ -78,7 +81,6 @@ export const offRoomExit = () => {
   }
 };
 
-
 // 게임시작 요청 (방장)
 export const startMeteoGame = (roomId) => {
   const socket = getSocket();
@@ -116,21 +118,24 @@ export const offWordFalling = () => {
 };
 
 // 게임 도중 종료 수신
-export const exitMeteoGame = ({roomId, nickname}) => {
+export const exitMeteoGame = ({ roomId, nickname }) => {
   if (!roomId || !nickname) {
-    console.error("❌ [exitGame] roomId 또는 nickname이 없습니다.", { roomId, nickname });
+    console.error("❌ [exitGame] roomId 또는 nickname이 없습니다.", {
+      roomId,
+      nickname,
+    });
     return;
   }
   getSocket().emit("exitRoom", { roomId, nickname });
-}
+};
 
 // 게임 도중 게임 종료 버튼 클릭으로 게임 나가기
 export const exitGame = ({ roomId, nickname }) => {
   console.log("[exitGame] exitGame emit 보냄", { roomId, nickname });
   getSocket().emit("exitGame", { roomId, nickname });
-}
+};
 
-// 방 나갔을 때 브로드캐스트 수신 
+// 방 나갔을 때 브로드캐스트 수신
 export const onExitMeteoGame = (callback) => {
   getSocket().on("gameLeave", (data) => {
     console.log("[onExitMeteoGame] gameLeave 수신", data);
@@ -181,14 +186,12 @@ export const onRandomMatchResponse = (callback) => {
   });
 };
 
-
 // 랜덤매칭 해제
 export const offRandomMatch = () => {
   getSocket().off("matchRandom");
 };
 
-
-// 대기방 채팅 
+// 대기방 채팅
 export const onChatMessage = ({ roomId, nickname, message }) => {
   getSocket().emit("sendChat", { roomId, nickname, message });
 };
@@ -200,7 +203,6 @@ export const onChatMessageResponse = (callback) => {
     callback(data);
   });
 };
-
 
 // 사용자 입력값 실시간으로 보여지게 하기
 export const onUserInput = ({ roomId, nickname, text }) => {
@@ -214,7 +216,7 @@ export const onUserInputResponse = (callback) => {
     // console.log("[onUserInputResponse] userInput 수신", data);
     callback(data);
   });
-};  
+};
 
 // 사용자 입력값 실시간으로 보여지게 하기 해제
 export const offUserInput = () => {
@@ -229,7 +231,7 @@ export const onGameLeave = (callback) => {
   });
 };
 
-// 게임 ready 
+// 게임 ready
 export const GameReady = ({ roomId, nickname }) => {
   getSocket().emit("gameReady", { roomId, nickname });
 };
@@ -238,17 +240,16 @@ export const GameReady = ({ roomId, nickname }) => {
 export const onGameReady = (callback) => {
   getSocket().on("readyGame", (data) => {
     // console.log("[onGameReady] ready 수신", data);
-  //   {
-  //     "nickname" : "가람"
-  //     "readyCount" : 3
-  //  }
+    //   {
+    //     "nickname" : "가람"
+    //     "readyCount" : 3
+    //  }
     callback(data);
   });
 };
 
-
-// 대기방 
-export const goWaitingRoom = ({nickname, roomId}) => {
+// 대기방
+export const goWaitingRoom = ({ nickname, roomId }) => {
   getSocket().emit("goWaitingRoom", { nickname, roomId });
   console.log("[goWaitingRoom] goWaitingRoom emit 보냄", { nickname, roomId });
 };
@@ -261,10 +262,54 @@ export const onGoWaitingRoom = (callback) => {
   });
 };
 
-
 // 대기방 off
 export const offGoWaitingRoom = () => {
   getSocket().off("waitingRoomGo");
 };
 
+export const onReadyWarning = (callback) => {
+  getSocket().on("readyWarning", (data) => {
+    console.log("[onReadyWarning] readyWarning 수신", data);
+    callback(data);
+  });
+};
+export const offReadyWarning = () => {
+  const socket = getSocket();
+  if (socket) {
+    socket.off("readyWarning");
+  }
+};
 
+export const onKick = (callback) => {
+  const socket = getSocket();
+  if (!socket) return;
+
+  // 이벤트 핸들러 제거 후 재등록
+  socket.off("youWereKicked");
+
+  socket.on("youWereKicked", (data) => {
+    console.log("[onKick] youWereKicked 이벤트 수신:", data);
+    callback(data);
+  });
+};
+
+export const offKick = () => {
+  const socket = getSocket();
+  if (socket) {
+    socket.off("youWereKicked");
+  }
+};
+
+export const onHostKickWarning = (callback) => {
+  getSocket().on("hostKickWarning", (data) => {
+    console.log("[onHostKickWarning] 방장 경고 수신:", data);
+    callback(data);
+  });
+};
+
+export const offHostKickWarning = () => {
+  const socket = getSocket();
+  if (socket) {
+    socket.off("hostKickWarning");
+  }
+}
