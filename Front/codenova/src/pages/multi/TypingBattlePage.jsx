@@ -15,6 +15,8 @@ import RoundScoreModal from "../../components/multi/modal/RoundScoreModal";
 import FinalResultModal from "../../components/multi/modal/FinalResultModal";
 import useAuthStore from "../../store/authStore";
 import AloneAlertModal from "../../components/multi/modal/AloneAlertModal";
+import gameEndBtn from "../../assets/images/multi_game_end_btn.png";
+import MultiAlertModal from "../../components/multi/modal/MultiAlertModal";
 
 
 const TypingBattlePage = () => {
@@ -42,6 +44,8 @@ const TypingBattlePage = () => {
   const [finalResults, setFinalResults] = useState([]);
   const [showFinalModal, setShowFinalModal] = useState(false);
   const [oneLeftRoomInfo, setOneLeftRoomInfo] = useState(null);  // 배틀시 한명남았을때
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);  // 비상탈출 확인 alert창창
+
   const navigate = useNavigate();
 
   const [roomInfo, setRoomInfo] = useState(null);
@@ -453,8 +457,13 @@ const TypingBattlePage = () => {
         <div className="h-[26%] flex items-center justify-start">
           <ProgressBoard users={users} firstFinisher={firstFinisher} />
         </div>
-  
       </div>
+      <button
+          className="absolute bottom-24 right-0 w-[12rem] h-[3.5rem] bg-contain bg-no-repeat bg-center hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition z-30"
+          style={{ backgroundImage: `url(${gameEndBtn})` }}
+          onClick={() => setShowLeaveConfirm(true)}
+        >
+        </button>
     </div>
     {/* 라운드 종료 점수 모달 */}
       <RoundScoreModal
@@ -471,6 +480,25 @@ const TypingBattlePage = () => {
       onClose={() => setShowFinalModal(false)}
       roomInfo={roomInfo}
     />
+
+      {showLeaveConfirm && (
+        <MultiAlertModal
+          message="⚠️ 정말 게임에서 나가시겠습니까?"
+          onConfirm={() => {
+            const socket = getSocket();
+            if (socket && roomId && nickname) {
+              socket.emit("exit_room", {roomId,nickname})
+            }
+
+            setShowLeaveConfirm(false);
+            navigate("/multi"); // 메인페이지로 이동동
+          }}
+          onCancel={() => setShowLeaveConfirm(false)}
+          showCancel={true} // 이럴 때만 취소 버튼 보여짐
+        />
+      )}
+
+
   </div>
 
   
