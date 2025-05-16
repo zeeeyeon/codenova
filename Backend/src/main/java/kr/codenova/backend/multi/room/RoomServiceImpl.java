@@ -305,10 +305,10 @@ public class RoomServiceImpl implements RoomService {
         room.getUserStatusMap().remove(request.getNickname());
         room.getUserJoinTimes().remove(request.getNickname());
 
-        // 🔽 isDisconnected가 true일 때만 세션 맵 제거
         if (isDisconnected) {
-            userSessionMap.remove(client.getSessionId().toString());
+            // TODO => 빡종일 때만 실행되어야 하는 로직이 있을까?
         }
+        userSessionMap.remove(client.getSessionId().toString());
         // ✅ [추가] 퇴장 알림 - 본인 제외하고 전송
         getServer().getRoomOperations(request.getRoomId())
                 .getClients()
