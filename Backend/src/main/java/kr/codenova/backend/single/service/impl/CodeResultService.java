@@ -103,7 +103,7 @@ public class CodeResultService {
             SecretKeySpec secretKeySpec = new SecretKeySpec(sessionKey.getBytes(StandardCharsets.UTF_8), "AES");
 
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
-            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(String.valueOf(encryptedData)));
+            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedData.data()));
 
             String decryptedJson = new String(decryptedBytes, StandardCharsets.UTF_8);
 
