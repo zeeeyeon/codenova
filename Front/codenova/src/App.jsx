@@ -12,7 +12,6 @@ import RankingRoutes from "./routes/RankingRoutes";
 import { connectSocket, disconnectSocket } from "./sockets/socketClient";
 import { useEffect} from "react";
 import PrivateRoute from "./routes/PrivateRoute";
-import ErrorBoundary from "./components/ErrorBoundary";
 import { preventDevTool } from "./components/common/preDevTool";
 import { useSessionStore } from "./store/useSessionStore";
 
