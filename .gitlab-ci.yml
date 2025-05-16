@@ -1,0 +1,90 @@
+stages:
+  - build
+  - push
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+
+before_script:
+  - echo "$SSH_KEY" > K12E103T.pem
+  - chmod 400 K12E103T.pem
+
+frontend-build-and-push:
+  stage: build
+  tags:
+    - deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      when: always
+  script:
+    - echo "ECR 로그인"
+    - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
+
+    - echo "프론트 빌드"
+    - docker build -t $ECR_FRONTEND_REPO:latest ./Front/codenova
+    - docker push $ECR_FRONTEND_REPO:latest
+
+backend-build-and-push:
+  stage: build
+  tags:
+    - deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop-be"'
+      when: always
+  script:
+    - echo "ECR 로그인"
+    - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
+
+    - echo "백엔드 빌드"
+    - docker build -t $ECR_BACKEND_REPO:latest ./Backend
+    - docker push $ECR_BACKEND_REPO:latest
+
+deploy-dev-frontend:
+  stage: deploy
+  tags:
+    - deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      when: always
+  script:
+    - echo "EC2 SSH 접속 후 Pull & Run (Frontend-Dev)"
+    - |
+      ssh -o StrictHostKeyChecking=no -i K12E103T.pem ubuntu@$EC2_HOST << EOF
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_FRONTEND_REPO
+
+        docker stop frontend-dev || true && docker rm frontend-dev || true
+        docker network create codenova-dev-network || true
+
+        docker run -d --name frontend-dev -p 3101:3000 \
+          --network codenova-dev-network \
+          $ECR_FRONTEND_REPO:latest
+      EOF
+
+
+deploy-dev-backend:
+  stage: deploy
+  tags:
+    - deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop-be"'
+      when: always
+  script:
+    - echo "EC2 SSH 접속 후 Pull & Run (Backend-Dev)"
+    - |
+      ssh -o StrictHostKeyChecking=no -i K12E103T.pem ubuntu@$EC2_HOST << EOF
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_BACKEND_REPO
+
+        docker stop backend-dev || true && docker rm backend-dev || true
+        docker network create codenova-dev-network || true
+
+        mkdir -p ~/config-dev
+        echo "$APPLICATION_DEV_YML" > ~/config-dev/application.yml
+
+        docker run -d --name backend-dev -p 8181:8080 -p 9191:9191 \
+          --network codenova-dev-network \
+          --add-host=host.docker.internal:host-gateway \
+          -v ~/config-dev/application.yml:/app/config/application.yml \
+          -e SPRING_CONFIG_LOCATION=file:/app/config/application.yml \
+          $ECR_BACKEND_REPO:latest
+      EOF
