@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -20,13 +22,23 @@ public class SessionKeyService {
         String cacheKey = "sessionKey:" + memberId;
         String sessionKey = redisTemplate.opsForValue().get(cacheKey);
 
-        if (sessionKey != null) return new SessionKeyResponse(sessionKey, LocalDateTime.now().plusSeconds(SESSION_KEY_EXPIRE_SECONDS));
+        if (sessionKey != null) {
+            byte[] decoded = Base64.getDecoder().decode(sessionKey);
+            if (decoded.length != 16) {
+                redisTemplate.delete(cacheKey);
+                sessionKey = null;
+            } else {
+                return new SessionKeyResponse(sessionKey, LocalDateTime.now().plusSeconds(SESSION_KEY_EXPIRE_SECONDS));
+            }
+        }
 
-        sessionKey = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        redisTemplate.opsForValue().set(cacheKey, sessionKey, SESSION_KEY_EXPIRE_SECONDS, TimeUnit.SECONDS);
+        String rawKey = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        String encodedKey = Base64.getEncoder().encodeToString(rawKey.getBytes(StandardCharsets.UTF_8));
+        redisTemplate.opsForValue().set(cacheKey, encodedKey, SESSION_KEY_EXPIRE_SECONDS, TimeUnit.SECONDS);
 
-        return new SessionKeyResponse(sessionKey, LocalDateTime.now().plusSeconds(SESSION_KEY_EXPIRE_SECONDS));
+        return new SessionKeyResponse(encodedKey, LocalDateTime.now().plusSeconds(SESSION_KEY_EXPIRE_SECONDS));
     }
+
 
     public String getSessionKey(Integer memberId) {
         return redisTemplate.opsForValue().get("sessionKey:" + memberId);
