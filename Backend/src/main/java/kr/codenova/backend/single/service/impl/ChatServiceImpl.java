@@ -44,7 +44,7 @@ public class ChatServiceImpl implements ChatService {
             try {
                 log.info("API URL: {}", GPT_API_URL);
                 log.info("API 요청 헤더: {}", httpRequest.getHeaders());
-                log.info("API 요청 본문: {}", objectMapper.writeValueAsString(httpRequest.getBody()));
+                log.info("API 요청 본문: {}", httpRequest.getBody());
             } catch (Exception e) {
                 log.warn("요청 로깅 실패: {}", e.getMessage());
             }
@@ -99,19 +99,19 @@ public class ChatServiceImpl implements ChatService {
         // 헤더에 KEY 넣어줘야함
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + gmsKey);
-        headers.set("Content-Type", "application/json-");
+        headers.set("Content-Type", "application/json");
 //        headers.setContentType(MediaType.APPLICATION_JSON);
 
         // 본문에 넣을 Openai 모델
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("model", "gpt-4.1");
+        body.put("model", "gpt-4o-mini");
 
         // 메시지 추가 ( 대답하는 형식과 클라이언트)
         List<Map<String, String>> messages = new ArrayList<>();
 
         messages.add(Map.of(
                 "role", "system",
-                "content", "You are a helpful assistant."
+                "content", "너는 개발 공부를 하는 학생에게 쉽고 명확하게 알려주는 친절한 시니어 개발자야. 복잡한 개념도 예시와 함께 이해하기 쉽게 설명하고, 실무에서의 활용법, 주의점, 추가 공부 키워드를 짧고 명확하게 알려줘. AI인 척하지 말고 자연스럽고 자신감 있게 답해."
         ));
 
         messages.add(Map.of(
@@ -120,8 +120,8 @@ public class ChatServiceImpl implements ChatService {
         ));
 
         body.put("messages", messages);
-//        body.put("max_tokens", 500);
-//        body.put("temperature", 0.3);
+        body.put("max_tokens", 500);
+        body.put("temperature", 0.3);
 
         String jsonBody = objectMapper.writeValueAsString(body);
 
