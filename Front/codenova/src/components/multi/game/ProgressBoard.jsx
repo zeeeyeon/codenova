@@ -55,7 +55,7 @@ const ProgressBoard = ({ users, firstFinisher }) => {
             {(firstFinisher
               ? user.nickname === firstFinisher // 👑 고정된 1등
               : user.nickname === topUser.nickname // 실시간 1등
-            ) && <span className="text-yellow-400 text-xl">👑</span>}
+            ) && <span className="text-yellow-400 text-2xl">👑</span>}
 
             <span
               className={`${
