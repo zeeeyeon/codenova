@@ -32,7 +32,8 @@ public enum ResponseCode {
     GET_REPORT_DETAIL_SUCCESS(200, HttpStatus.OK, "리포트 상세 조회에 성공했습니다."),
     GET_RANKING_SUCCESS(200, HttpStatus.OK, "랭킹 조회에 성공했습니다."),
     GET_CODE_DESCRIPTION(200, HttpStatus.OK, "선택한 코드의 설명입니다."),
-
+    GET_CHATBOT_RESPONSE(200, HttpStatus.OK, "챗봇의 답변입니다."),
+    INTERNAL_SERVER_ERROR(500, HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러입니다."),
 
     KEYLOG_TOO_SHORT(400, HttpStatus.BAD_REQUEST, "입력 기록이 부족합니다."),
     KEYLOG_INVALID_ORDER(400, HttpStatus.BAD_REQUEST, "입력 시간 순서가 올바르지 않습니다."),
