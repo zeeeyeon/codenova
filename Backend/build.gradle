@@ -28,6 +28,10 @@ dependencies {
     implementation 'com.auth0:java-jwt:4.4.0'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+    compileOnly 'dev.paseto:jpaseto-api:0.6.0'
+    runtimeOnly 'dev.paseto:jpaseto-impl:0.6.0'
+    runtimeOnly 'dev.paseto:jpaseto-jackson:0.6.0'
+
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 

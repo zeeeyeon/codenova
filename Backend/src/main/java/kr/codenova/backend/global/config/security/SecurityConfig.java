@@ -3,6 +3,8 @@ package kr.codenova.backend.global.config.security;
 import kr.codenova.backend.member.auth.CustomMemberDetailsService;
 import kr.codenova.backend.member.jwt.JwtAuthenticationFilter;
 import kr.codenova.backend.member.jwt.JwtAuthorizationFilter;
+import kr.codenova.backend.member.paesto.PasetoAuthenticationFilter;
+import kr.codenova.backend.member.paesto.PasetoAuthorizationFilter;
 import kr.codenova.backend.member.repository.MemberRepository;
 import kr.codenova.backend.member.util.CustomResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -43,8 +46,8 @@ public class SecurityConfig {
     public static class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity> {
         public void configure(HttpSecurity builder) throws Exception {
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
-            builder.addFilter(new JwtAuthenticationFilter(authenticationManager));
-            builder.addFilter(new JwtAuthorizationFilter(authenticationManager));
+            builder.addFilter(new PasetoAuthenticationFilter(authenticationManager));
+            builder.addFilterBefore(new PasetoAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
             super.configure(builder);
         }
     }
@@ -78,7 +81,6 @@ public class SecurityConfig {
                                     "/actuator/**")
                             .permitAll()
                             .anyRequest().authenticated();
-
                 })
                 .exceptionHandling(exception -> {
                     exception
@@ -117,4 +119,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
+
 }
