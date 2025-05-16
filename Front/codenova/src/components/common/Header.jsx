@@ -13,6 +13,7 @@ import { disconnectSocket } from "../../sockets/socketClient";
 import { useEffect, useState } from "react";
 import TutoModal from "./TutoModal";
 import SettingModal from "../modal/SettingModal";
+import { useSessionStore } from "../../store/useSessionStore";
 
 const Header = ({onShowTuto, onShowSetting}) => {
 
@@ -36,7 +37,9 @@ const Header = ({onShowTuto, onShowSetting}) => {
   
     // Zustand 상태 초기화
     logout();
-  
+
+    useSessionStore.getState().clearSession();
+
     // ✅ localStorage 항목 제거
     localStorage.removeItem("nickname");
     localStorage.removeItem("meteoRoomId");

@@ -9,6 +9,7 @@ import useAuthStore from "../../store/authStore";
 import { connectSocket } from "../../sockets/socketClient";
 import signupButton from "../../assets/images/signup_button.png";
 import goLanding from "../../assets/images/golanding.png";
+import { useSessionStore } from "../../store/useSessionStore";
 const LoginPage = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
@@ -40,7 +41,10 @@ const LoginPage = () => {
       login({
         nickname,
         token: accessToken,
-      });
+      });    
+      
+      useSessionStore.getState().setSession(); //sessionKey 달라고 요청
+      
       connectSocket();
       navigate("/main")
     } catch (err) {
