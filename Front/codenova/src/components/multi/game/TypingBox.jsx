@@ -85,7 +85,7 @@ const TypingBox = ({
           roomId,
           nickname
         });
-        console.log("👿 typo_occurred_emit", roomId, nickname);
+        // console.log("👿 typo_occurred_emit", roomId, nickname);
       }
     }
 
@@ -131,7 +131,7 @@ const TypingBox = ({
       const lineElements = preContainerRef.current.querySelectorAll('.codeLine');
   
       if (lineElements[currentLine]) {
-        const lineHeight = lineElements[currentLine].getBoundingClientRect().height || 28;
+        const lineHeight = lineElements[currentLine].getBoundingClientRect().height || 32;
         const offset = lineHeight * currentLine;
   
         preContainerRef.current.scrollTop = offset;  // 줄 위치에 맞춰 스크롤
@@ -326,7 +326,7 @@ const TypingBox = ({
           disabled={disabled}
           onFocus={(e) => (e.target.placeholder = "")}
           onBlur={(e) => (e.target.placeholder = "Start Typing Code Here.")}
-          className={`input w-full px-4 py-2 rounded-md text-black focus:outline-none 
+          className={`single-input w-full px-4 py-2 rounded-md text-black focus:outline-none 
             ${isCorrect ? "border-4 border-green-400" : "border-4 border-red-400"}
             ${shake ? "animate-shake" : ""}`}
         />

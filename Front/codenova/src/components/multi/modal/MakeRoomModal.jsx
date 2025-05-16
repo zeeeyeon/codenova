@@ -99,7 +99,7 @@ const MakeRoomModal = ({ onClose }) => {
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-[470px] px-4 py-2 text-black font-bold rounded-md"
                 placeholder="다함께 코드노바~"
-                maxLength={15}
+                maxLength={10}
               />
             </div>
 
