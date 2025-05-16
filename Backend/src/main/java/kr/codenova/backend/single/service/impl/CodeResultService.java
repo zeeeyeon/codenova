@@ -24,6 +24,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 
 import static kr.codenova.backend.global.response.ResponseCode.*;
@@ -100,8 +101,15 @@ public class CodeResultService {
         }
 
         try {
-            byte[] keyBytes = sessionKey.getBytes(StandardCharsets.UTF_8);
-            byte[] ivBytes = Base64.getDecoder().decode(encryptedData.iv());
+            byte[] keyBytes = Base64.getDecoder().decode(sessionKey);  // 세션키 Base64 디코딩
+            byte[] combined = Base64.getDecoder().decode(encryptedData.data());
+
+            if (combined.length <= 16) {
+                throw new IllegalArgumentException("Invalid encrypted data format: too short to contain IV + ciphertext.");
+            }
+
+            byte[] ivBytes = Arrays.copyOfRange(combined, 0, 16);
+            byte[] cipherBytes = Arrays.copyOfRange(combined, 16, combined.length);
 
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "AES");
@@ -109,7 +117,7 @@ public class CodeResultService {
 
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivSpec);
 
-            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedData.data()));
+            byte[] decryptedBytes = cipher.doFinal(cipherBytes);
             String decryptedJson = new String(decryptedBytes, StandardCharsets.UTF_8);
 
             ObjectMapper objectMapper = new ObjectMapper();
