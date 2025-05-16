@@ -99,7 +99,7 @@ public class CodeResultService {
         }
 
         try {
-            Cipher cipher = Cipher.getInstance("AES");
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             SecretKeySpec secretKeySpec = new SecretKeySpec(sessionKey.getBytes(StandardCharsets.UTF_8), "AES");
 
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
