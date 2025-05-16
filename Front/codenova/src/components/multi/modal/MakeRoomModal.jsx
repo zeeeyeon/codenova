@@ -14,7 +14,7 @@ const MakeRoomModal = ({ onClose }) => {
     const [isPublic, setIsPublic] = useState(true);
     const [activeArrow, setActiveArrow] = useState(null);
 
-    const languages = ["PYTHON", "JAVA", "JS","SQL"]
+    const languages = ["PYTHON", "JAVA", "JS","SQL","RANDOM"]
     const navigate = useNavigate();
     const nickname = useAuthStore((state) => state.user?.nickname);
 
@@ -51,7 +51,7 @@ const MakeRoomModal = ({ onClose }) => {
         };
       
         createRoom(payload, (res) => {
-          setIsCreating(false);
+          // setIsCreating(false);
 
           if (!res || !res.roomId) {
             alert("방 생성 실패");
