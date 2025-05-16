@@ -49,10 +49,13 @@ export const postRecord = async (token, uuid) => {
     }
 }
 
-export const verifiedRecord = async (data) => {
+export const verifiedRecord = async (encryptedData) => {
     try {
-        const response = await authApi.post('/api/single/code/verify', data);
-        // console.log(response.data);
+        console.log(encryptedData)
+        const response = await authApi.post('/api/single/code/verify',  {
+            data : encryptedData
+        });
+        console.log(response.data);
         return response.data;
     } catch (e) {
         // console.error("기록저장 API 요청 실패",e);

@@ -22,6 +22,7 @@ import FinishPage from '../single/modal/FinishPage';
 
 import { singleLangCode, getLangCode, verifiedRecord, postRecord } from '../../api/singleApi'
 import { userColorStore } from '../../store/userSettingStore';
+import { encryptWithSessionKey } from '../../utils/cryptoUtils';
 
 // 등록
 hljs.registerLanguage('java', java);
@@ -237,7 +238,8 @@ const SinglePage = () => {
         }
         try {
             // console.log(keyLogsRef.current)
-            const response = await verifiedRecord(data);
+            const encryptedData = encryptWithSessionKey(data);
+            const response = await verifiedRecord(encryptedData);
             const {code, message} = response.status;
             if (code === 200){
                 setCpm(response.content.typingSpeed)
