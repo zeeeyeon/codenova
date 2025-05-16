@@ -269,7 +269,7 @@ const TypingBattlePage = () => {
             setShowRoundScoreModal(false);
   
             if (data.round < 3) {
-              console.log("🍆 round_start emit :", data.round);
+              // console.log("🍆 round_start emit :", data.round);
               // setCountdown(5);
               setGameStarted(false);
               setRoundEnded(false);
