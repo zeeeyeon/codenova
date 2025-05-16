@@ -35,7 +35,7 @@ const LoginPage = () => {
       const accessToken = rawToken.split(' ')[1]
       const nickname = response.data.content.nickname
       // console.log(nickname)
-      document.cookie = `accessToken=${accessToken}; path=/; max-age=86400;`;
+      document.cookie = `accessToken=${accessToken}; path=/; max-age=604800;`;
 
       login({
         nickname,
@@ -46,6 +46,11 @@ const LoginPage = () => {
     } catch (err) {
       // console.error(err)
       alert("로그인 실패!")
+      // localStorage.removeItem("nickname");
+      // localStorage.removeItem("meteoRoomId");
+      // localStorage.removeItem("meteoRoomCode");
+      // localStorage.removeItem("auth-storage"); // ← 이것도 초기화하고 싶다면!
+      // localStorage.removeItem("codenova_patch_note");
     }
   }
   

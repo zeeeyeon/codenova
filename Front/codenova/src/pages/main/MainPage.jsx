@@ -18,13 +18,27 @@ import { getSocket } from "../../sockets/socketClient";
 import randomBtn from "../../assets/images/gorandom_button.png";
 import { onRandomMatch, onRandomMatchResponse, offRandomMatch } from "../../sockets/meteoSocket";
 import SettingModal from "../../components/modal/SettingModal";
-
+import PatchNoteModal from "../../components/PatchNoteModal";
+const PATCH_VERSION = "1.0.3";
 const MainPage = () => {
   const navigate = useNavigate()
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [showTutoModal, setShowTutoModal] = useState(false);
   const [socketReady, setSocketReady] = useState(false);
   const [showSettingModal, setShowSettingModal] = useState(false);
+  const [showPatchNote, setShowPatchNote] = useState(false);
+
+  useEffect(() => {
+    const lastSeenVersion = localStorage.getItem("codenova_patch_note");
+    if (lastSeenVersion !== PATCH_VERSION) {
+      setShowPatchNote(true);
+    }
+  }, []);
+
+  const handleClosePatchNote = () => {
+    localStorage.setItem("codenova_patch_note", PATCH_VERSION);
+    setShowPatchNote(false);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -108,12 +122,16 @@ const MainPage = () => {
       
     });
   };
-  
+
+
+
   return (
-    <div
-      className="h-screen w-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
-      style={{ backgroundImage: `url(${multibg})` }}
-    >
+    <>
+      {showPatchNote && <PatchNoteModal onClose={handleClosePatchNote} />}
+      <div
+        className="h-screen w-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
+        style={{ backgroundImage: `url(${multibg})` }}
+      >
       <Header 
         onShowTuto={() => setShowTutoModal(true)} 
         onShowSetting={() => setShowSettingModal(true)}  
@@ -201,8 +219,8 @@ const MainPage = () => {
       {showTutoModal && <TutoModal onClose={() => setShowTutoModal(false)} />}
       {showSettingModal && <SettingModal onClose={() => setShowSettingModal(false)} />}
     </div>
-
-);
+    </>
+  );
 };
 
 export default MainPage;
