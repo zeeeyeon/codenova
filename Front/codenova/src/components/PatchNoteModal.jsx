@@ -6,7 +6,7 @@ const PatchNoteModal = ({ onClose }) => {
     <div className="fixed inset-0 z-50 backdrop-blur-sm bg-black/50 flex items-center justify-center animate-fade-in">
       <div className="bg-gradient-to-br from-[#0f0f1f] to-[#1a1a2e] text-white rounded-2xl p-8 w-[50%] shadow-[0_0_20px_rgba(255,255,255,0.1)] border border-white/10 animate-slide-up">
         <h2 className="text-4xl font-bold mb-6 text-center text-pink-400  tracking-wide animate-pulse">
-          🚀 CodeNova v1.0.3 업데이트
+          🚀 CodeNova v1.2.3 업데이트
         </h2>
 
         <div className="space-y-3 text-[17px] leading-relaxed">
