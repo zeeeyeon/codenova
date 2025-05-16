@@ -28,7 +28,7 @@ public class GptClientImpl implements GptClient {
     @Value("${openai.api.key}")
     private String apiKey;
 
-    private static final String GPT_API_URL = "https://api.openai.com/v1/chat/completions";
+    private static final String GPT_API_URL = "https://gms.p.ssafy.io/gmsapi/api.openai.com/v1/chat/completions";
 
     @Override
     public String summarizeKeyword(String prompt) {
@@ -48,7 +48,7 @@ public class GptClientImpl implements GptClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
-        body.put("model", "gpt-4o");
+        body.put("model", "gpt-4.1");
         body.put("messages", List.of(
                 Map.of("role", "user", "content", prompt)
         ));
