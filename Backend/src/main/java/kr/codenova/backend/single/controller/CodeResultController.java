@@ -5,6 +5,7 @@ import kr.codenova.backend.global.response.Response;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
 import kr.codenova.backend.single.dto.VerifyResponseDto;
 import kr.codenova.backend.single.dto.request.CodeResultRequest;
+import kr.codenova.backend.single.dto.request.EncryptedRequest;
 import kr.codenova.backend.single.service.impl.CodeResultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,17 +27,11 @@ public class CodeResultController {
     private final CodeResultService codeResultService;
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody CodeResultRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<?> verifyCodeResult(@AuthenticationPrincipal CustomMemberDetails memberDetails, @RequestBody EncryptedRequest request) {
         Integer memberId = (memberDetails != null) ? memberDetails.getMember().getMemberId() : null;
-        VerifyResponseDto response = codeResultService.verifyAndGenerateToken(request, memberId);
 
-        String userType = "회원";
-
-
-        log.info("게임_완료,유형:{},ID:{},닉네임:{},모드:{},언어:{},WPM:{},소요시간:{}ms,IP:{}",
-                userType, memberId, memberDetails.getMember().getNickname(), "single", request.language(),
-                response.typingSpeed(), httpServletRequest.getRemoteAddr());
-
+        CodeResultRequest decryptedRequest = codeResultService.decryptPayload(request, memberId);
+        VerifyResponseDto response = codeResultService.verifyAndGenerateToken(decryptedRequest, memberId);
 
         return new ResponseEntity<>(Response.create(CODE_RESULT_SUCCESS, response), CODE_RESULT_SUCCESS.getHttpStatus());
     }
