@@ -1,10 +1,9 @@
+// utils/tokenUtils.js
 export const getAccessToken = () => {
-    const cookies = document.cookie.split('; ').reduce((acc, cookie) => {
-      const [key, value] = cookie.split('=');
-      acc[key] = value;
-      return acc;
-    }, {});
-  
-    return cookies.accessToken || null;
-  };
-  
+  try {
+    const data = JSON.parse(localStorage.getItem("auth-storage"));
+    return data?.state?.token || null;
+  } catch (e) {
+    return null;
+  }
+};
