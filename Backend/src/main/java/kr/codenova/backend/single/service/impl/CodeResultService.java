@@ -101,11 +101,11 @@ public class CodeResultService {
         }
 
         try {
-            byte[] keyBytes = Base64.getDecoder().decode(sessionKey);  // 세션키 Base64 디코딩
+            byte[] keyBytes = Base64.getDecoder().decode(sessionKey);
             byte[] combined = Base64.getDecoder().decode(encryptedData.data());
 
-            if (combined.length <= 16) {
-                throw new IllegalArgumentException("Invalid encrypted data format: too short to contain IV + ciphertext.");
+            if (keyBytes.length != 16) {
+                throw new CustomException(SESSION_KEY_EXPIRED);
             }
 
             byte[] ivBytes = Arrays.copyOfRange(combined, 0, 16);

@@ -20,15 +20,14 @@ public class SessionKeyService {
 
     public SessionKeyResponse generateSessionKey(Integer memberId) {
         String cacheKey = "sessionKey:" + memberId;
-        String sessionKey = redisTemplate.opsForValue().get(cacheKey);
+        String existingSessionKey = redisTemplate.opsForValue().get(cacheKey);
 
-        if (sessionKey != null) {
-            byte[] decoded = Base64.getDecoder().decode(sessionKey);
+        if (existingSessionKey != null) {
+            byte[] decoded = Base64.getDecoder().decode(existingSessionKey);
             if (decoded.length != 16) {
                 redisTemplate.delete(cacheKey);
-                sessionKey = null;
             } else {
-                return new SessionKeyResponse(sessionKey, LocalDateTime.now().plusSeconds(SESSION_KEY_EXPIRE_SECONDS));
+                return new SessionKeyResponse(existingSessionKey, LocalDateTime.now().plusSeconds(SESSION_KEY_EXPIRE_SECONDS));
             }
         }
 
@@ -38,6 +37,7 @@ public class SessionKeyService {
 
         return new SessionKeyResponse(encodedKey, LocalDateTime.now().plusSeconds(SESSION_KEY_EXPIRE_SECONDS));
     }
+
 
 
     public String getSessionKey(Integer memberId) {
