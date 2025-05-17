@@ -84,7 +84,11 @@ public class CodeResultService {
                 session.isAccuracySuspicious(), session.isHasSimultaneousInput(), session.getBackspaceCount(),
                 keyLogsJson);
 
-        if (session.getWpm() > 200) uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
+        log.info("⚠️ 조건문 진입 여부 확인: WPM = {}", session.getWpm());
+        if (session.getWpm() > 200) {
+            log.info("✅ 조건 통과. uploadLogToS3 실행");
+            uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
+        }
 
         if (isSuspicious) throw new CustomException(CODE_RESULT_INVALID_INPUT);
         if (memberId == null) return new VerifyResponseDto(result.typingSpeed(), null);
@@ -140,8 +144,6 @@ public class CodeResultService {
     }
 
     private void uploadLogToS3(TypingSession session, String requestId, Integer memberId, Integer codeId, Language language) {
-        log.info("🔥 진입");
-
         String s3Key = String.format("keyLog/%s/member-%s-code-%s.json", LocalDate.now(), memberId, codeId);
         String jsonBody = session.createLogToJson(requestId, memberId, codeId, language);
 
