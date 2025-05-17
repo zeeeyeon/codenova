@@ -120,8 +120,8 @@ public class ChatServiceImpl implements ChatService {
         ));
 
         body.put("messages", messages);
-        body.put("max_tokens", 500);
-        body.put("temperature", 0.3);
+//        body.put("max_tokens", 500);
+//        body.put("temperature", 0.3);
 
         String jsonBody = objectMapper.writeValueAsString(body);
 
