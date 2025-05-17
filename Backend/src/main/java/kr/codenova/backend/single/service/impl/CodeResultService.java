@@ -77,6 +77,12 @@ public class CodeResultService {
 
         String keyLogsJson = session.keyLogsToJsonString();
 
+        log.info("⚠️ 조건문 진입 여부 확인: WPM = {}", session.getWpm());
+        if (session.getWpm() > 200) {
+            log.info("✅ 조건 통과. uploadLogToS3 실행");
+            uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
+        }
+
         log.info("event=macro_detection_summary requestId={} memberId={} codeId={} language={} totalKeys={} durationMs={} wpm={} isSuspicious={} tooFast={} tooConsistent={} insaneSpeed={} flawlessFast={} accuracySuspicious={} hasSimultaneousInput={} backspaceCount={} keyLogs={}",
                 requestId, memberId, request.codeId(), request.language(),
                 session.getKeyLogs().size(), session.getTotalMillis(), session.getWpm(), isSuspicious,
@@ -84,14 +90,8 @@ public class CodeResultService {
                 session.isAccuracySuspicious(), session.isHasSimultaneousInput(), session.getBackspaceCount(),
                 keyLogsJson);
 
-        log.info("⚠️ 조건문 진입 여부 확인: WPM = {}", session.getWpm());
-        if (session.getWpm() > 200) {
-            log.info("✅ 조건 통과. uploadLogToS3 실행");
-            uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
-        }
 
         if (memberId == null) return new VerifyResponseDto(result.typingSpeed(), null);
-
 
         VerifiedScorePayload payload = new VerifiedScorePayload(memberId, request.codeId(), request.language(), result.typingSpeed());
         String token = tokenProvider.generateToken(payload);
