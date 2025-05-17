@@ -6,12 +6,14 @@ import { createRoom } from "../../../sockets/MultiSocket";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../../store/authStore";
 import MultiAlertModal from "../modal/MultiAlertModal";
+import changeBtn from "../../../assets/images/multi_room_info_change_btn.png";
+import { getSocket } from "../../../sockets/socketClient";
 
-const MakeRoomModal = ({ onClose }) => {
-    const [title, setTitle] = useState("");
-    const [people, setPeople] = useState();
-    const [language, setLanguage] = useState("PYTHON");
-    const [isPublic, setIsPublic] = useState(true);
+const MakeRoomModal = ({ onClose, isEdit=false, initialData = {} }) => {
+    const [title, setTitle] = useState(initialData.title || "");
+    const [people, setPeople] = useState(initialData.people || undefined);
+    const [language, setLanguage] = useState(initialData.language || "PYTHON");
+    const [isPublic, setIsPublic] = useState(initialData.isPublic ?? true);
     const [activeArrow, setActiveArrow] = useState(null);
 
     const languages = ["PYTHON", "JAVA", "JS","SQL","RANDOM"]
@@ -32,7 +34,7 @@ const MakeRoomModal = ({ onClose }) => {
         setTimeout(() => setActiveArrow(null), 300); 
       };
 
-      const handleCreateRoom = () => {
+      const handleSubmit = () => {
         if (isCreating) return;
 
         if (!title || !people || !language || !nickname) {
@@ -42,35 +44,53 @@ const MakeRoomModal = ({ onClose }) => {
 
         setIsCreating(true); // 중복 생성 방지지
       
-        const payload = {
-          title,
-          nickname,
-          language,        
-          maxNum: people,
-          isLocked: !isPublic,
-        };
-      
-        createRoom(payload, (res) => {
-          // setIsCreating(false);
+        
+        
+        if (isEdit) {
+          // 수정 요청
+          const payload = {
+            roomTitle : title,
+            nickname,
+            language,        
+            maxCount: people,
+            isLocked: !isPublic,
+          };
 
-          if (!res || !res.roomId) {
-            alert("방 생성 실패");
-            return;
+          const socket = getSocket();
+          if (socket) {
+            socket.emit("fix_room", {
+              ...payload,
+              roomId: initialData.roomId, // 반드시 전달되어야 함
+            });
           }
-      
-          navigate(`/multi/room/${res.roomId}`, {
-            state: {
-              roomTitle: title,
-              language,
-              currentPeople: 1,
-              standardPeople: people,
-              isPublic,
-              roomCode: res.roomCode,
-            },
+          onClose(); // 모달 닫기
+        } else {
+          // 방 생성 로직 그대로 유지
+          const payload = {
+            title,
+            nickname,
+            language,        
+            maxNum: people,
+            isLocked: !isPublic,
+          };
+          createRoom({ ...payload }, (res) => {
+            if (!res || !res.roomId) {
+              alert("방 생성 실패");
+              return;
+            }
+            navigate(`/multi/room/${res.roomId}`, {
+              state: {
+                roomTitle: title,
+                language,
+                currentPeople: 1,
+                standardPeople: people,
+                isPublic,
+                roomCode: res.roomCode,
+              },
+            });
+            onClose();
           });
-      
-          onClose();
-        });
+        }
       };
       
   return (
@@ -85,7 +105,9 @@ const MakeRoomModal = ({ onClose }) => {
         {/* 모달 내부 콘텐츠 */}
         {/* 내부 콘텐츠 */}
         <div className="relative z-10 w-full h-full px-12 py-4 flex flex-col text-white">
-        <div className="text-3xl text-center mb-4 text-black font-bold">방 만들기</div>
+        <div className="text-3xl text-center mb-4 text-black font-bold">
+          {isEdit ? "방 정보 수정" : "방 만들기"}
+          </div>
         <div className="flex flex-1 justify-center mt-[5%]">
         <div className="flex flex-col gap-9 w-full max-w-[600px] text-2xl">
     
@@ -106,21 +128,30 @@ const MakeRoomModal = ({ onClose }) => {
             {/* 인원 수 */}
             <div className="flex items-center gap-20">
                 <span className="w-[100px] text-right text-[#51E2F5]">인원수</span>
-                {[2, 3, 4].map((n) => (
-                    <label key={n} className="flex items-center gap-4 cursor-pointer hover:brightness-110 hover:scale-[1.1] active:scale-[0.98]">
-                    <input
-                        type="checkbox"
-                        name="people"
-                        checked={people === n}
-                        onChange={() => setPeople(n)}
-                        className="peer scale-150 accent-fuchsia-600 rounded-sm"
-                    />
-                    <span className="peer-checked:text-fuchsia-400 transition">
-                        {n}명
-                    </span>
-                    </label>
-                ))}
-            </div>
+                {[2, 3, 4].map((n) => {
+                  const isDisabled = Number(initialData.currentPeople || 0) > n;
+
+                  return (
+                    <label
+                      key={n}
+                      className={`flex items-center gap-4 cursor-pointer 
+                        ${isDisabled ? "opacity-50 cursor-not-allowed" : "hover:brightness-110 hover:scale-[1.1] active:scale-[0.98]"}`}
+                          >
+                            <input
+                              type="checkbox"
+                              name="people"
+                              checked={people === n}
+                              onChange={() => setPeople(n)}
+                              disabled={isDisabled}
+                              className="peer scale-150 accent-fuchsia-600 rounded-sm"
+                            />
+                            <span className={`transition ${isDisabled ? "text-gray-400" : "peer-checked:text-fuchsia-400"}`}>
+                              {n}명
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
 
             {/* 언어 */}
             <div className="flex items-center gap-20">
@@ -195,12 +226,12 @@ const MakeRoomModal = ({ onClose }) => {
               </button>
               <button 
                 className="w-[120px] h-[40px] hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] mt-0.5"
-                onClick={handleCreateRoom}
+                onClick={handleSubmit}
                 disabled={isCreating} 
                 >
                 <img
-                src={makeRoomBtn}
-                alt="방만들기"
+                src={isEdit? changeBtn : makeRoomBtn}
+                alt={isEdit? "방 정보 수정" : "방만들기"}
                 />
               </button>
             </div>

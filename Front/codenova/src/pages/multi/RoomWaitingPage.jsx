@@ -10,6 +10,7 @@ import Header from "../../components/common/Header";
 import RoomChatBox from "../../components/multi/waiting/RoomChatBox";
 import RoomInfoPanel from "../../components/multi/waiting/RoomInfoPanel";
 import useAuthStore from "../../store/authStore";
+import MakeRoomModal from "../../components/multi/modal/MakeRoomModal";
 
 
 const RoomWaitingPage = () => {
@@ -26,9 +27,7 @@ const RoomWaitingPage = () => {
     const isReady = myUser?.isReady || false;
     const isHost = myUser?.isHost || false;
 
-    
-    
-
+    const [editModeOpen, setEditModeOpen] = useState(false);
 
     // 나가기
     const handleLeaveRoom = () => {
@@ -47,7 +46,7 @@ const RoomWaitingPage = () => {
         const initialInfo = state?.roomInfo ?? state; // ✅ 두 경우 모두 대응
         return {
           roomTitle: initialInfo?.roomTitle || "",
-          isPublic: initialInfo?.isPublic ?? true,
+          isLocked: initialInfo?.isLocked ?? true, 
           language: initialInfo?.language || "Unknown",
           currentPeople: initialInfo?.currentPeople || 1,
           standardPeople: initialInfo?.standardPeople || 4,
@@ -66,6 +65,7 @@ const RoomWaitingPage = () => {
       if (myRoom) {
         setRoomInfo((prev) => ({
           roomTitle: myRoom.title,
+          isLocked: myRoom.isLocked,
           isPublic: !myRoom.isLocked,
           language: myRoom.language,
           currentPeople: myRoom.currentCount,
@@ -81,6 +81,7 @@ const RoomWaitingPage = () => {
         // console.log("💡 방 업데이트 수신:", updatedRoom);
         setRoomInfo((prev) => ({
           roomTitle: updatedRoom.title,
+          isLocked: updatedRoom.isLocked,
           isPublic: !updatedRoom.isLocked,
           language: updatedRoom.language,
           currentPeople: updatedRoom.currentCount,
@@ -121,6 +122,7 @@ const RoomWaitingPage = () => {
       setRoomInfo((prev) => ({
         ...prev,
         roomTitle: data.roomTitle,
+        isLocked: data.isLocked,
         isPublic: !data.isLocked,
         language: data.language,
         currentPeople: data.currentCount,
@@ -386,8 +388,6 @@ useEffect(() => {
 }, []);
 
 
-
-
     return (
         <div
             className="w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden relative"
@@ -410,14 +410,30 @@ useEffect(() => {
                   className="absolute object-cover rounded-2xl z-0"
         />
 
-        <div className="relative z-10 flex items-center gap-1 mt-5">
+        <div className="relative w-full px-8 mt-5">
+          {/* 제목 & 아이콘: 중앙 정렬 */}
+          <div className="flex justify-center items-center gap-2">
             <img
               src={roomInfo.isPublic ? unlockImg : lockImg}
               alt={roomInfo.isPublic ? "공개방" : "비공개방"}
-              className="w-6 h-6 mb-2"
+              className="w-6 h-6 mb-1"
             />
-            <h2 className="text-2xl font-bold">{roomInfo.roomTitle}</h2>
+            <h2 className="text-3xl">{roomInfo.roomTitle}</h2>
           </div>
+
+          {/* 오른쪽 상단 고정 버튼 */}
+          {isHost && (
+            <button
+            onClick={() => setEditModeOpen(true)}
+            className="absolute -top-4 right-2 px-3 py-1 text-m rounded-lg 
+            bg-gradient-to-r from-purple-500 to-pink-500 text-white 
+            shadow hover:brightness-110 hover:scale-105 
+            transition-transform duration-150"
+        >
+           <span>✏️</span>방 정보 수정
+        </button>
+        )}
+        </div>
           {/* 사용자 리스트 */}
           <div className="w-full flex justify-center mt-10">
             <RoomUserList users={users} />
@@ -450,6 +466,26 @@ useEffect(() => {
             />
           </div>
                 </div>
+                
+              {editModeOpen && (
+                <MakeRoomModal
+                  onClose={() => setEditModeOpen(false)}
+                  isEdit={true}
+                  initialData={{
+                    roomId,
+                    title: roomInfo.roomTitle,
+                    people: roomInfo.standardPeople,
+                    language: roomInfo.language,
+                    isPublic: !roomInfo.isLocked,
+                    currentPeople: roomInfo.currentPeople,
+                    
+                  }}
+                  
+                />
+                
+              )}
+              
+
                 </div>
             );
 };
