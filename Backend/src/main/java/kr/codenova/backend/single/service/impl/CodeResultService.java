@@ -84,7 +84,7 @@ public class CodeResultService {
                 session.isAccuracySuspicious(), session.isHasSimultaneousInput(), session.getBackspaceCount(),
                 keyLogsJson);
 
-        if (isSuspicious || session.getWpm() > 200) uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
+        if (session.getWpm() > 200) uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
 
         if (isSuspicious) throw new CustomException(CODE_RESULT_INVALID_INPUT);
         if (memberId == null) return new VerifyResponseDto(result.typingSpeed(), null);
@@ -148,16 +148,6 @@ public class CodeResultService {
                 .key(s3Key)
                 .contentType("application/json")
                 .build();
-
-        s3AsyncClient.putObject(request, AsyncRequestBody.fromString(jsonBody))
-                .whenComplete((resp, ex) -> {
-                    if (ex != null) {
-                        log.warn("❌ S3 업로드 실패 memberId={} codeId={} error={}", memberId, codeId, ex.getMessage(), ex);
-                    } else {
-                        log.info("✅ S3 업로드 성공 key={} ETag={}", s3Key, resp.eTag());
-                    }
-                });
-
 
         s3AsyncClient.putObject(request, AsyncRequestBody.fromString(jsonBody))
                 .thenAccept(response -> log.info("S3 업로드 완료 key={} ETag={}", s3Key, response.eTag()))
