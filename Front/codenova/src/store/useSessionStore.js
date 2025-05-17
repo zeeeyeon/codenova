@@ -35,7 +35,7 @@ export const useSessionStore = create((set) => {
             scheduleRefresh(expireAt);
 
           } else {
-            console.log("오류메시지 : ", message);
+            // console.log("오류메시지 : ", message);
           }
         } catch (e) {
           console.error("세션션 발급 실패요~~", e);
