@@ -1,5 +1,6 @@
 import api from "./axiosConfig"
 import authApi from "./authAxiosConfig";
+import chatAxiosApi from "./chatAxiosConfig";
 
 export const singleLangCode = async (lang) => {
     try {
@@ -51,11 +52,11 @@ export const postRecord = async (token, uuid) => {
 
 export const verifiedRecord = async (encryptedData) => {
     try {
-        console.log(encryptedData)
+        // console.log(encryptedData)
         const response = await authApi.post('/api/single/code/verify',  {
             data : encryptedData
         });
-        console.log(response.data);
+        // console.log(response.data);
         return response.data;
     } catch (e) {
         // console.error("기록저장 API 요청 실패",e);
@@ -63,3 +64,24 @@ export const verifiedRecord = async (encryptedData) => {
     }
 }
 
+export const codeDescription = async (codeId) => {
+    try {
+        const response = await authApi.get(`/api/single/code/${codeId}/description`)
+        // console.log(response.data);
+        return response.data;
+    } catch (e) {
+        throw e;
+    }
+}
+
+export const chatBotRequest = async (message) => {
+    try {
+        const response = await chatAxiosApi.post('/api/single/chat', {
+            message : message
+        })
+        // console.log(response.data);
+        return response.data;
+    } catch (e) {
+        throw e;
+    }
+}

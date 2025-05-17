@@ -7,9 +7,16 @@ import { formatTime } from '../../../utils/formatTimeUtils'
 import { postRecord } from '../../../api/singleApi'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import codeDescBtn from '../../../assets/images/codeDescriptionBtn.png'
+import codeDescBtn1 from '../../../assets/images/codeDescriptionBtn1.png'
+import codeDescBtn2 from '../../../assets/images/codeDescriptionBtn2.png'
+import codeDescBtn3 from '../../../assets/images/codeDescriptionBtn3.png'
+import codeDescBtn4 from '../../../assets/images/codeDescriptionBtn4.png'
+import mouseImg from '../../../assets/images/mouse.png';
+import CodeDescription from '../../../components/single/CodeDescription'
 // import CsWordSelectPage from './CsWordSelectPage'
 
-const FinishPage = ({ codeId, lang, cpm, elapsedTime}) => {
+const FinishPage = ({ codeId, lang, cpm, elapsedTime, onShowCodeDescription}) => {
 
     const navigate = useNavigate();
 
@@ -17,7 +24,13 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime}) => {
     const [fireworks, setFireworks] = useState([]);
     
     const [isApiLoading, setIsApiLoading] = useState(false);
+
+    const codeBtns = [codeDescBtn ,codeDescBtn1, codeDescBtn2, codeDescBtn3, codeDescBtn4];
+    const [currentButtonIndex, setCurrentButtonIndex] = useState(0);
+
+    const btn_class = 'cursor-pointer scale-75 transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'
     
+
     useEffect(() => {
         const auth = JSON.parse(localStorage.getItem("auth-storage") || "{}");
         setUserType(auth?.state?.user?.userType);
@@ -35,11 +48,17 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime}) => {
           ]);
         }, 80);
 
-    // 30개 생성 후 멈추기
-    setTimeout(() => clearInterval(interval), 40 * 80);
+        const buttonInterval = setInterval(() => {
+            setCurrentButtonIndex((prev) => (prev + 1) % 5); 
+        }, 800);
 
-    return () => clearInterval(interval);
+        // 30개 생성 후 멈추기
+        setTimeout(() => clearInterval(interval), 40 * 80);
 
+        return () => {
+            clearInterval(interval);
+            clearInterval(buttonInterval);
+        }
     }, [])
 
     return (
@@ -48,6 +67,7 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime}) => {
             style={ { backgroundColor : 'rgba(0, 0, 0, 0.7'}}
             // style={ { backgroundColor : 'rgba(217, 217, 217, 0.7'}}
         >
+            
             {/* 폭죽 레이어 */}
             {fireworks.map((fw) => (
               <div
@@ -80,6 +100,19 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime}) => {
                 >
                     미션 성공
                 </div>
+
+                {/* 코드 설명 보러 가기 버튼 */}
+                <div className = {""} >
+                     <img src={codeBtns[currentButtonIndex]} alt={`코드설명버튼${currentButtonIndex + 1}`} 
+                        className= {`w-[35%] cursor-pointer absolute -top-20 -right-2 will-change-transform animate-poke ${btn_class}`}
+                        onClick={onShowCodeDescription}
+                    />
+                    <img src={mouseImg} alt="마우스이미지" 
+                        className='w-[7%] absolute -top-16 -right-4 '
+                    />
+                </div>
+               
+
 
                 {/* 모달 컨텐츠들 */}
                 <div className="text-white flex flex-col items-center justify-center w-full mt-[3vw] ">
@@ -124,15 +157,6 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime}) => {
                 </div>
             
             </div>
-            {/* 
-            {isCsWordSelect && (
-                <div className="absolute inset-0 flex items-center justify-center z-50">
-                    <CsWordSelectPage
-                        category = {category}
-                        word = {words}
-                    />
-                </div>
-            )} */}
         </div>
     )
      
