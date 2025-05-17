@@ -1,5 +1,9 @@
 package kr.codenova.backend.single.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import kr.codenova.backend.common.enums.Language;
 import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.single.dto.CorrectAnswerResult;
@@ -260,6 +264,41 @@ public class TypingSession {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    public String createLogToJson(String requestId, Integer memberId, Integer codeId, Language language) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode logNode = objectMapper.createObjectNode();
+
+        logNode.put("event", "macro_detection_summary");
+        logNode.put("requestId", requestId);
+        logNode.put("memberId", memberId);
+        logNode.put("codeId", codeId);
+        logNode.put("language", language.name());
+        logNode.put("totalKeys", keyLogs.size());
+        logNode.put("durationMs", totalMillis);
+        logNode.put("wpm", wpm);
+        logNode.put("avgIntervalMs", avg);
+        logNode.put("stdDevIntervalMs", stdDev);
+        logNode.put("backspaceCount", backspaceCount);
+        logNode.put("accuracyPercentage", accuracy);
+        logNode.put("simultaneousInputCount", hasSimultaneousInput ? 1 : 0);
+        logNode.put("tooFast", tooFast);
+        logNode.put("tooConsistent", tooConsistent);
+        logNode.put("insaneSpeed", insaneSpeed);
+        logNode.put("flawlessFast", flawlessFast);
+        logNode.put("accuracySuspicious", accuracySuspicious);
+        logNode.put("hasSimultaneousInput", hasSimultaneousInput);
+
+        ArrayNode keyLogsArray = logNode.putArray("keyLogs");
+        keyLogs.forEach(k -> {
+            ObjectNode key = objectMapper.createObjectNode();
+            key.put("key", k.key());
+            key.put("timestamp", k.timestamp());
+            keyLogsArray.add(key);
+        });
+
+        return logNode.toString();
     }
 }
 
