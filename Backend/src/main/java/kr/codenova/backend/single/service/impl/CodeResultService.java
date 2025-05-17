@@ -90,7 +90,6 @@ public class CodeResultService {
             uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
         }
 
-        if (isSuspicious) throw new CustomException(CODE_RESULT_INVALID_INPUT);
         if (memberId == null) return new VerifyResponseDto(result.typingSpeed(), null);
 
 
