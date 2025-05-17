@@ -1,6 +1,7 @@
 package kr.codenova.backend.single.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.codenova.backend.common.enums.Language;
 import kr.codenova.backend.common.repository.CodeRepository;
 import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
@@ -17,6 +18,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 
 import javax.crypto.Cipher;
@@ -24,6 +29,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Base64;
 
@@ -38,6 +44,7 @@ public class CodeResultService {
     private final CodeRepository codeRepository;
     private final VerifiedScoreTokenProvider tokenProvider;
     private final StringRedisTemplate redisTemplate;
+    private final S3AsyncClient s3AsyncClient;
 
     public CodeResultResponse processCodeResult(Integer memberId, CodeResultRequest request) {
         String correctCode = getCorrectCode(request.codeId());
@@ -77,13 +84,11 @@ public class CodeResultService {
                 session.isAccuracySuspicious(), session.isHasSimultaneousInput(), session.getBackspaceCount(),
                 keyLogsJson);
 
-        if (isSuspicious) {
-            throw new CustomException(CODE_RESULT_INVALID_INPUT);
-        }
+        if (isSuspicious || session.getWpm() > 200) uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
 
-        if (memberId == null) {
-            return new VerifyResponseDto(result.typingSpeed(), null);
-        }
+        if (isSuspicious) throw new CustomException(CODE_RESULT_INVALID_INPUT);
+        if (memberId == null) return new VerifyResponseDto(result.typingSpeed(), null);
+
 
         VerifiedScorePayload payload = new VerifiedScorePayload(memberId, request.codeId(), request.language(), result.typingSpeed());
         String token = tokenProvider.generateToken(payload);
@@ -132,5 +137,24 @@ public class CodeResultService {
     private String getCorrectCode(Integer codeId) {
         return codeRepository.findByCodeId(codeId)
                 .orElseThrow(() -> new CustomException(CODE_NOT_FOUND)).getContent();
+    }
+
+    private void uploadLogToS3(TypingSession session, String requestId, Integer memberId, Integer codeId, Language language) {
+        String s3Key = String.format("keyLog/%s/member-%s-code-%s.json", LocalDate.now(), memberId, codeId);
+        String jsonBody = session.createLogToJson(requestId, memberId, codeId, language);
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket("code-nova")
+                .key(s3Key)
+                .contentType("application/json")
+                .build();
+
+        s3AsyncClient.putObject(request, AsyncRequestBody.fromString(jsonBody))
+                .thenAccept(response -> log.info("S3 업로드 완료 key={} ETag={}", s3Key, response.eTag()))
+                .exceptionally(ex -> {
+                    log.warn("S3 업로드 실패 - memberId={} codeId={} error={}",
+                            memberId, codeId, ex.getMessage());
+                    return null;
+                });
     }
 }
