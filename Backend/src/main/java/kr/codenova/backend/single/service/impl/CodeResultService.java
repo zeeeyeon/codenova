@@ -140,6 +140,8 @@ public class CodeResultService {
     }
 
     private void uploadLogToS3(TypingSession session, String requestId, Integer memberId, Integer codeId, Language language) {
+        log.info("🔥 진입");
+
         String s3Key = String.format("keyLog/%s/member-%s-code-%s.json", LocalDate.now(), memberId, codeId);
         String jsonBody = session.createLogToJson(requestId, memberId, codeId, language);
 
@@ -152,8 +154,7 @@ public class CodeResultService {
         s3AsyncClient.putObject(request, AsyncRequestBody.fromString(jsonBody))
                 .thenAccept(response -> log.info("S3 업로드 완료 key={} ETag={}", s3Key, response.eTag()))
                 .exceptionally(ex -> {
-                    log.warn("S3 업로드 실패 - memberId={} codeId={} error={}",
-                            memberId, codeId, ex.getMessage());
+                    log.warn("S3 업로드 실패 - memberId={} codeId={} error={}", memberId, codeId, ex.getMessage());
                     return null;
                 });
     }
