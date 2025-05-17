@@ -64,20 +64,6 @@ const TypingBattlePage = () => {
   });
 
 
-  // 카운트다운
-  // useEffect(() => {
-  //   if (countdown > 0) {
-  //     const timer = setTimeout(() => {
-  //       setCountdown((prev) => prev - 1);
-  //     }, 1000);
-  //     return () => clearTimeout(timer);
-  //   } else {
-  //     setGameStarted(true); // 카운트다운 끝나면 게임 시작
-  //     setTimeRunning(true); // 타이머도 시작!
-  //     setStartTime(Date.now()); // 현재시간 기록
-  //   }
-  // }, [countdown]);
-
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
@@ -258,7 +244,7 @@ const TypingBattlePage = () => {
     const handleRoundScore = (data) => {
       // console.log("📊 round_score 수신:", data);
       setRoundScoreData(data);
-      setCurrentRound(data.round+1);
+      
       setShowRoundScoreModal(true);
       setModalCountdown(5); // 카운트다운 초기화
   
@@ -271,6 +257,7 @@ const TypingBattlePage = () => {
             if (data.round < 3) {
               // console.log("🍆 round_start emit :", data.round);
               // setCountdown(5);
+              setCurrentRound(data.round+1);
               setGameStarted(false);
               setRoundEnded(false);
               setFirstFinisher(null);
