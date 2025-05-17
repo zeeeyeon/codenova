@@ -25,13 +25,20 @@ module.exports = {
           '50%': { transform: 'scale(1.2)', opacity: '1' },
           '100%': { transform: 'scale(1)', opacity: '0' },
         },
+        poke: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(4px)' },
+        },
       },
       animation: {
         shake: 'shake 0.4s ease-in-out',
         'pulse-color': 'pulseColor 2s infinite',
         'ping-scale-fade': 'pingScaleFade 1s ease-in-out',
+        poke: 'poke 1s infinite ease-in-out',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 };

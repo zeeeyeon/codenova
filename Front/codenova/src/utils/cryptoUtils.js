@@ -8,7 +8,7 @@ export const encryptWithSessionKey = (data) => {
 
     const key = CryptoJS.enc.Base64.parse(sessionKey); // 🔑 키는 Base64라고 가정 (필요시 직접 Hex, Utf8로 맞추기)
     const iv = CryptoJS.lib.WordArray.random(16); // 16바이트 IV 생성
-    console.log(key.sigBytes)
+    // console.log(key.sigBytes)
 
     const dataStr = JSON.stringify(data);
 
