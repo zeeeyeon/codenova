@@ -126,7 +126,7 @@ export const compareInputWithLine = (input, lineArray) => {
  */
 export const calculateCurrentLineTypedChars = (input, lineArray) => {
     if (!Array.isArray(lineArray)) {
-        console.error("lineArray is not an array:", lineArray);
+        //console.error("lineArray is not an array:", lineArray);
         return 0;
     }
     let cnt = 0;
