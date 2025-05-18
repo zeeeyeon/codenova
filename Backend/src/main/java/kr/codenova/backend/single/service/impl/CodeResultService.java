@@ -1,5 +1,7 @@
 package kr.codenova.backend.single.service.impl;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.codenova.backend.common.enums.Language;
 import kr.codenova.backend.common.repository.CodeRepository;
@@ -16,18 +18,16 @@ import kr.codenova.backend.single.entity.TypingSession;
 import kr.codenova.backend.single.service.VerifiedScoreTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -44,7 +44,7 @@ public class CodeResultService {
     private final CodeRepository codeRepository;
     private final VerifiedScoreTokenProvider tokenProvider;
     private final StringRedisTemplate redisTemplate;
-    private final S3AsyncClient s3AsyncClient;
+    private final S3LogUploader s3LogUploader;
 
     public CodeResultResponse processCodeResult(Integer memberId, CodeResultRequest request) {
         String correctCode = getCorrectCode(request.codeId());
@@ -77,11 +77,7 @@ public class CodeResultService {
 
         String keyLogsJson = session.keyLogsToJsonString();
 
-        log.info("⚠️ 조건문 진입 여부 확인: WPM = {}", session.getWpm());
-        if (session.getWpm() > 200) {
-            log.info("✅ 조건 통과. uploadLogToS3 실행");
-            uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
-        }
+        if (session.getWpm() > 200) s3LogUploader.uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
 
         log.info("event=macro_detection_summary requestId={} memberId={} codeId={} language={} totalKeys={} durationMs={} wpm={} isSuspicious={} tooFast={} tooConsistent={} insaneSpeed={} flawlessFast={} accuracySuspicious={} hasSimultaneousInput={} backspaceCount={} keyLogs={}",
                 requestId, memberId, request.codeId(), request.language(),
@@ -140,23 +136,5 @@ public class CodeResultService {
     private String getCorrectCode(Integer codeId) {
         return codeRepository.findByCodeId(codeId)
                 .orElseThrow(() -> new CustomException(CODE_NOT_FOUND)).getContent();
-    }
-
-    private void uploadLogToS3(TypingSession session, String requestId, Integer memberId, Integer codeId, Language language) {
-        String s3Key = String.format("keyLog/%s/member-%s-code-%s.json", LocalDate.now(), memberId, codeId);
-        String jsonBody = session.createLogToJson(requestId, memberId, codeId, language);
-
-        PutObjectRequest request = PutObjectRequest.builder()
-                .bucket("code-nova")
-                .key(s3Key)
-                .contentType("application/json")
-                .build();
-
-        s3AsyncClient.putObject(request, AsyncRequestBody.fromString(jsonBody))
-                .thenAccept(response -> log.info("S3 업로드 완료 key={} ETag={}", s3Key, response.eTag()))
-                .exceptionally(ex -> {
-                    log.warn("S3 업로드 실패 - memberId={} codeId={} error={}", memberId, codeId, ex.getMessage());
-                    return null;
-                });
     }
 }
