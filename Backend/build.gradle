@@ -19,10 +19,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.postgresql:postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation platform('software.amazon.awssdk:bom:2.20.141')
-    implementation 'software.amazon.awssdk:s3'
-    implementation 'software.amazon.awssdk:netty-nio-client'
-    implementation 'software.amazon.awssdk:sts'
+    implementation group: 'io.awspring.cloud', name: 'spring-cloud-starter-aws-secrets-manager-config', version: '2.4.4'
 
 
     //JWT
