@@ -298,8 +298,15 @@ public class TypingSession {
             keyLogsArray.add(key);
         });
 
-        return logNode.toString();
+        try {
+            return objectMapper
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(logNode);
+        } catch (Exception e) {
+            throw new RuntimeException("JSON 직렬화 실패", e);
+        }
     }
+
 }
 
 
