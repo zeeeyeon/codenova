@@ -251,13 +251,13 @@ export const onGameReady = (callback) => {
 // 대기방
 export const goWaitingRoom = ({ nickname, roomId }) => {
   getSocket().emit("goWaitingRoom", { nickname, roomId });
-  console.log("[goWaitingRoom] goWaitingRoom emit 보냄", { nickname, roomId });
+  //console.log("[goWaitingRoom] goWaitingRoom emit 보냄", { nickname, roomId });
 };
 
 // 대기방 on
 export const onGoWaitingRoom = (callback) => {
   getSocket().on("waitingRoomGo", (data) => {
-    console.log("[onGoWaitingRoom] goWaitingRoom 수신", data);
+    //console.log("[onGoWaitingRoom] goWaitingRoom 수신", data);
     callback(data);
   });
 };
@@ -269,7 +269,7 @@ export const offGoWaitingRoom = () => {
 
 export const onReadyWarning = (callback) => {
   getSocket().on("readyWarning", (data) => {
-    console.log("[onReadyWarning] readyWarning 수신", data);
+    //console.log("[onReadyWarning] readyWarning 수신", data);
     callback(data);
   });
 };
@@ -288,7 +288,7 @@ export const onKick = (callback) => {
   socket.off("youWereKicked");
 
   socket.on("youWereKicked", (data) => {
-    console.log("[onKick] youWereKicked 이벤트 수신:", data);
+    //console.log("[onKick] youWereKicked 이벤트 수신:", data);
     callback(data);
   });
 };
@@ -302,7 +302,7 @@ export const offKick = () => {
 
 export const onHostKickWarning = (callback) => {
   getSocket().on("hostKickWarning", (data) => {
-    console.log("[onHostKickWarning] 방장 경고 수신:", data);
+    //console.log("[onHostKickWarning] 방장 경고 수신:", data);
     callback(data);
   });
 };

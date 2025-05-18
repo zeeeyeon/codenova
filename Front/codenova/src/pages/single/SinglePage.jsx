@@ -101,6 +101,17 @@ const SinglePage = () => {
     },[])
 
     useEffect(() => {
+        const handleWindowBlur = () => {
+            if (!isFinished) setIsFinished(true);
+        };
+
+        window.addEventListener("blur", handleWindowBlur);
+        return () => {
+            window.removeEventListener("blur", handleWindowBlur);
+        };
+    }, []);
+
+    useEffect(() => {
         const accessToken = getAccessToken();
         // console.log(accessToken)
         if (!accessToken) {
@@ -171,14 +182,6 @@ const SinglePage = () => {
     }
 
     const handleKeyDown = (e) => {
-        const newLog = {
-            key: e.key,
-            timestamp: Date.now(),
-        };
-        keyLogsRef.current.push(newLog)
-        // console.log("입력된 키", newLog.key)
-
-        setLogCount((prev) => prev + 1);
 
         if (!isStarted) {
             setStartTime(Date.now())
@@ -186,6 +189,26 @@ const SinglePage = () => {
         }
 
         const key = e.key;
+
+        // ↓ 입력 길이 제한 확인
+        const isTypingKey = key.length === 1; // 문자, 숫자, 스페이스 등 일반 키
+        const isInputTooLong = currentInput.length >= lines[currentLineIndex]?.length;
+        const ALWAYS_LOG_KEYS = ['Enter', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight'];
+        const PREVENT_KEYS = ['Tab', 'ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft', 'Alt'];
+
+        const shouldLog = !isInputTooLong || 
+                          !isTypingKey || 
+                          ALWAYS_LOG_KEYS.includes(key) //혹시 모르니까 특정키는 무조건 넣게 하기기 
+
+        if (shouldLog) {
+            const newLog = {
+                key: key,
+                timestamp: Date.now(),
+            };
+            keyLogsRef.current.push(newLog);
+            setLogCount((prev) => prev + 1);
+            console.log("입력된 키", newLog.key)
+        }
 
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') { // ctrl+V or commend + V 막기기
             e.preventDefault();
@@ -208,7 +231,7 @@ const SinglePage = () => {
                 setTimeout(() => setShake(false), 500);
             }
         }
-        else if (key === 'Tab') {
+        else if (PREVENT_KEYS.includes(key)) {
             e.preventDefault(); //
             // setCurrentInput((prev) => prev + '\t'); 일단 탭을 막아놓기
         }
@@ -218,6 +241,10 @@ const SinglePage = () => {
                 setCurrentCharIndex((prev) => prev - 1); // 지운 글자만큼 currentCharIndex 감소
             }
         }
+        // else if (key === 'Alt') {
+        //     e.preventDefault(); //
+        //     // setCurrentInput((prev) => prev + '\t'); 일단 탭을 막아놓기
+        // }
     };
 
     useEffect(() => {
@@ -340,7 +367,15 @@ const SinglePage = () => {
 
     const handleInputChange = (e) => {
         const value = e.target.value;
-        setCurrentInput(value);
+        const currentLine = lines[currentLineIndex] || [];
+
+        // 입력이 현재 줄의 길이보다 작거나 같을 때만 반영
+        if (value.length <= currentLine.length) {
+            setCurrentInput(value);
+        } else {
+            // 오버플로우 방지: 입력된 텍스트가 너무 길면 잘라서 반영 (실수 방지용)
+            setCurrentInput(value.slice(0, currentLine.length));
+        }
 
     };
 
@@ -365,9 +400,9 @@ const SinglePage = () => {
         setWrongChar(hasWrongChar);
     }
 
-    // useEffect(() => {
-    //     console.log(keyLogsRef.current)
-    // },[logCount])
+    useEffect(() => {
+        console.log(keyLogsRef.current)
+    },[logCount])
 
 
     return (

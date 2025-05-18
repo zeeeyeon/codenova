@@ -57,7 +57,7 @@ const MyPage= () => {
                 alert(message);
               }
         } catch (err) {
-          console.error(err);
+          //console.error(err);
           alert("서버 에러입니다.");
         }
         
@@ -89,7 +89,7 @@ const MyPage= () => {
                 openAlert(messsage || "닉네임 중복입니다!")
             }
         } catch (e) {
-            console.error(e);
+            //console.error(e);
             alert("서버 에러입니다.");
         }
 
@@ -137,7 +137,7 @@ const MyPage= () => {
                 alert(message)
             }
         } catch (e){
-            console.error(e);
+            //console.error(e);
             openAlert("수정중 오류가 발생했습니다.")
         }
         
