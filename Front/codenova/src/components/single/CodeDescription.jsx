@@ -9,6 +9,7 @@ import { useState, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import chatBtn from '../../assets/images/chat_bot.png'
 import AIChat from './AIChatModal';
+import copyIcon from '../../assets/images/copy_icon.png'
 
 // 등록
 hljs.registerLanguage('java', java);
@@ -22,6 +23,7 @@ const CodeDescription = ({onClose, lang, codeId}) => {
     const [code, setCode] = useState("");
     const [description, setDescription] = useState("");
     const [isAIChat, setIsAIChat] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
             if (codeId){
@@ -42,6 +44,33 @@ const CodeDescription = ({onClose, lang, codeId}) => {
         } catch (e) {
             throw e
         }
+    }
+
+    const handleCopyDescrip = (num) => {
+        
+        // 코드를 복사하고 싶은 경우
+        if (num === 1) {
+            navigator.clipboard.writeText(code)
+                .then(() => {
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 1500)
+                })
+                .catch(e => {
+                    // console.log(e);
+                })
+
+        // 설명을 복사하고 싶은 경우
+        } else {
+            navigator.clipboard.writeText(description)
+                .then(() => {
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 1500)
+                }) 
+                .catch(e => {
+                    // console.log(e);
+                })  
+        }
+        
     }
 
 
@@ -78,13 +107,19 @@ const CodeDescription = ({onClose, lang, codeId}) => {
 
             <div className="w-[99%] h-[98%] rounded-xl flex p-2 items-center justify-between"
             >
-                <div className="w-[50%] h-full border-2 rounded-xl"
+                
+                <div className="w-[50%] h-full border-2 rounded-xl relative"
                     style={{
                         borderColor : "rgba(255, 255, 255, 0.1)",
                         backgroundColor: '#282c34'
                     }}
                 >   
-
+                    {/* 코드 설명 복사 버튼 */}
+                    <img src={copyIcon} 
+                        alt="복사아이콘"
+                        className='absolute w-auto h-auto right-8 top-2 cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'
+                        onClick={() => handleCopyDescrip(1)}    
+                    />
                     {/* 코드 */}
                     <pre className='h-full w-full px-8 py-2'>
                         <code className={`${langFormat} block w-full h-full overflow-y-auto overflow-x-auto custom-scrollbar`}>
@@ -94,7 +129,7 @@ const CodeDescription = ({onClose, lang, codeId}) => {
 
                 </div>
 
-                <div className="w-[50%] h-full border-2 rounded-xl text-white p-4 "
+                <div className="w-[50%] h-full border-2 rounded-xl text-white p-4 relative"
                     style={{
                         borderColor : "rgba(255, 255, 255, 0.1)",
                         backgroundColor: '#1C1C1C'
@@ -102,13 +137,21 @@ const CodeDescription = ({onClose, lang, codeId}) => {
                 >
                     {/* 코드 설명 */}
                     <div className='prose prose-invert max-w-none w-full h-full overflow-y-auto overflow-x-auto custom-scrollbar'>
+
+                        {/* 코드 설명 복사 버튼 */}
+                        <img src={copyIcon} 
+                            alt="복사아이콘"
+                            className='absolute w-auto h-auto right-8 top-2 cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'
+                            onClick={() => handleCopyDescrip(2)}    
+                        />
+                         
                         <ReactMarkdown>{description}</ReactMarkdown>
                     </div>
                 </div>
 
                 {/* AI chat 버튼 */}
                 <button
-                  className="fixed text-3xl bottom-8 right-8 w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 shadow-lg hover:brightness-110 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center text-white text-2xl font-bold animate-float ring-2 ring-indigo-300/50 hover:ring-4"
+                  className="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 shadow-lg hover:brightness-110 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center animate-float ring-2 ring-indigo-300/50 hover:ring-4"
                 >
                     <img 
                         src={chatBtn} 
@@ -119,6 +162,12 @@ const CodeDescription = ({onClose, lang, codeId}) => {
                     />
                 </button>
             </div>
+
+            {copied && (
+                <div className="absolute top-6 bg-black text-white text-sm px-3 py-1 rounded-lg shadow transition-opacity duration-300 z-50">
+                    복사완료
+                </div>
+            )}
 
             <AIChat 
                 isOpen = {isAIChat} 
