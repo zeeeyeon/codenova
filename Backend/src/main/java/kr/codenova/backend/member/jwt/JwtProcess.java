@@ -93,7 +93,7 @@ public class JwtProcess {
 
         } catch (TokenExpiredException e) {
             log.error("토큰이 만료됨. 만료시간: {}", e.getExpiredOn());
-            throw new RuntimeException("만료된 토큰입니다.");
+            throw new CustomException(ResponseCode.INVALID_TOKEN_FORMAT);
 
         } catch (SignatureVerificationException e) {
             log.error("JWT 서명 검증 실패. 원인: {}", e.getMessage());
