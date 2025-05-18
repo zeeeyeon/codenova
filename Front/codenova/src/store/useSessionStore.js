@@ -49,7 +49,10 @@ export const useSessionStore = create((set) => {
 
         setSession : () => getSessionKeyHandler(),
         clearSession : () => {
-            set(() => {
+            if (refreshTimer) clearTimeout(refreshTimer);  // ⛔ 타이머 정리
+            refreshTimer = null;
+            
+                set(() => {
                 localStorage.removeItem('session');
                 return { sessionKey: null, expireAt: null};
             })
@@ -61,6 +64,7 @@ export const useSessionStore = create((set) => {
                 scheduleRefresh(stored.expireAt);
             }
         },
+
         refreshSessionManually: () => getSessionKeyHandler(),
     };
 });

@@ -49,6 +49,7 @@ const Header = ({onShowTuto, onShowSetting}) => {
     localStorage.removeItem("auth-storage"); // ← 이것도 초기화하고 싶다면!
     localStorage.removeItem("codenova_patch_note");
     localStorage.removeItem("chat-storage");
+    localStorage.removeItem("session");
   
     // 소켓 연결 해제
     disconnectSocket();
