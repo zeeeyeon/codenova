@@ -25,7 +25,7 @@ public class S3LogUploader {
 
     public void uploadLogToS3(TypingSession session, String requestId, Integer memberId, Integer codeId, Language language) {
         String today = LocalDate.now().toString();
-        String fileName = String.format("member-%s-code-%s.json", memberId, codeId);
+        String fileName = String.format("member-%s-%s-code-%s.json", memberId, language.name(), codeId);
         String s3Key = String.format("keyLog/%s/logs/%s", today, fileName);
 
         String jsonBody = session.createLogToJson(requestId, memberId, codeId, language);
