@@ -77,7 +77,7 @@ public class CodeResultService {
 
         String keyLogsJson = session.keyLogsToJsonString();
 
-        if (session.getWpm() > 200) s3LogUploader.uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
+        if (session.getWpm() > 400) s3LogUploader.uploadLogToS3(session, requestId, memberId, request.codeId(), request.language());
 
         log.info("event=macro_detection_summary requestId={} memberId={} codeId={} language={} totalKeys={} durationMs={} wpm={} isSuspicious={} tooFast={} tooConsistent={} insaneSpeed={} flawlessFast={} accuracySuspicious={} hasSimultaneousInput={} backspaceCount={} keyLogs={}",
                 requestId, memberId, request.codeId(), request.language(),
