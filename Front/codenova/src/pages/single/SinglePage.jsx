@@ -241,10 +241,6 @@ const SinglePage = () => {
                 setCurrentCharIndex((prev) => prev - 1); // 지운 글자만큼 currentCharIndex 감소
             }
         }
-        // else if (key === 'Alt') {
-        //     e.preventDefault(); //
-        //     // setCurrentInput((prev) => prev + '\t'); 일단 탭을 막아놓기
-        // }
     };
 
     useEffect(() => {
@@ -400,9 +396,9 @@ const SinglePage = () => {
         setWrongChar(hasWrongChar);
     }
 
-    useEffect(() => {
-        console.log(keyLogsRef.current)
-    },[logCount])
+    // useEffect(() => {
+    //     console.log(keyLogsRef.current)
+    // },[logCount])
 
 
     return (
