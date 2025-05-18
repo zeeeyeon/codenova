@@ -2,7 +2,7 @@ package kr.codenova.backend.global.config.aws;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -16,7 +16,7 @@ public class AwsS3Config {
     public S3AsyncClient s3AsyncClient() {
         return S3AsyncClient.builder()
                 .region(Region.AP_NORTHEAST_2)
-                .credentialsProvider(DefaultCredentialsProvider.create())
+                .credentialsProvider(InstanceProfileCredentialsProvider.create())
                 .httpClientBuilder(NettyNioAsyncHttpClient.builder()
                         .maxConcurrency(100)
                         .connectionAcquisitionTimeout(Duration.ofSeconds(5)))
