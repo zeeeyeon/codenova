@@ -1,8 +1,8 @@
 import axios from "axios";
 import { getAccessToken } from "../utils/tokenUtils";
-import  useAuthStore from "../store/authStore";
-import  { useSessionStore } from "../store/useSessionStore";
-import  { useChatStore} from "../store/useChatStore";
+// import  useAuthStore from "../store/authStore";
+// import  { useSessionStore } from "../store/useSessionStore";
+// import  { useChatStore} from "../store/useChatStore";
 
 // 언니오빠들이 쓸 거 
 // import authApi from "./authAxiosConfig"; 
@@ -47,6 +47,6 @@ authApi.interceptors.request.use(
 //   }
 // )
 
-// export default authApi;
+export default authApi;
 
 
