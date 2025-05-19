@@ -179,6 +179,7 @@ const MyPage= () => {
                 </div>
 
                 <img src={xBtn} 
+                    role="button"
                     alt="x" 
                     className= {`cursor-pointer scale-75 absolute top-1 right-2 text-black text-ml font-extrabold w-[4%] ${btn_class}`}
                     onClick={()=> navigate(-1)}
@@ -264,6 +265,7 @@ const MyPage= () => {
 
                     <div className=" w-[60%] mt-2 flex justify-center">
                         <img src={leftBtn2} 
+                            role="button"
                             alt="왼쪽" 
                             className={`cursor-pointer w-[5%] h-auto   ${btn_class}`} 
                             onClick={handlePrev}/>
@@ -273,6 +275,7 @@ const MyPage= () => {
                         
                         <img 
                             src={rightBtn2} 
+                            role="button"
                             alt="오른쪽" 
                             className={`cursor-pointer w-[5%] h-auto ${btn_class}`} 
                             onClick={handleNext}
