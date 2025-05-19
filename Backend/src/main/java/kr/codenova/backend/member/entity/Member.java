@@ -36,9 +36,14 @@ public class Member {
     private int winCount;
     private int playCount;
 
+    private int warningCount = 0;
+    @Column(nullable = true)
+    private boolean isActive = true;
 
     @Builder
-    public Member(Integer memberId, String id, String password, String nickname, int winCount, int playCount, String phoneNum) {
+    public Member(Integer memberId, String id, String password, String nickname,
+                  int winCount, int playCount, String phoneNum,
+                  int warningCount, boolean isActive) {
         this.memberId = memberId;
         this.id = id;
         this.password = password;
@@ -46,6 +51,8 @@ public class Member {
         this.winCount = winCount;
         this.playCount = playCount;
         this.phoneNum = phoneNum;
+        this.warningCount = warningCount;
+        this.isActive = isActive;
     }
 
     public void updateProfile(ProfileUpdateDto dto) {
@@ -57,4 +64,10 @@ public class Member {
         }
     }
 
+    public void addWarning() {
+        this.warningCount++;
+        if (this.warningCount >= 3) {
+            this.isActive = false;
+        }
+    }
 }
