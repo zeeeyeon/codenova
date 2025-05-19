@@ -77,12 +77,12 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 userDetails.getMember().getId(),
                 userDetails.getMember().getNickname());
 
-        String token = JwtProcess.create(userDetails);
+        // **토큰 생성 및 쿠키 설정으로 변경**
+        JwtProcess.createAndSetJwtCookie(response, userDetails);
         LoginResDto dto = new LoginResDto(userDetails.getNickname());
 
         Response<?> responseBody = Response.create(SUCCESS_LOGIN, dto);
 
-        response.addHeader("Authorization", token);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.setStatus(SUCCESS_LOGIN.getHttpStatus().value());

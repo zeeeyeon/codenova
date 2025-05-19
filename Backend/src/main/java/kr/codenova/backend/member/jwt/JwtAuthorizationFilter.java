@@ -3,6 +3,7 @@ package kr.codenova.backend.member.jwt;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
@@ -30,11 +31,11 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             throws IOException, ServletException {
         log.debug("디버그 : JwtAuthorizationFilter doFilterInternal()");
 
-        // 1. 헤더검증 후 헤더가 있다면 토큰 검증 후 임시 세션 생성
-        if (isHeaderVerify(request, response)) { // 토큰이 존재한다.
+        // 1. 쿠키에서 토큰 검증 후 임시 세션 생성
+        if (isCookieVerify(request, response)) { // 토큰이 존재한다.
             log.debug("디버그 : Jwt 토큰 검증 성공");
             // 토큰 파싱하기 (Bearer 없애기)
-            String token = request.getHeader(JwtVO.HEADER);
+            String token = getTokenFromCookie(request);
             CustomMemberDetails loginUser = JwtProcess.verify(token); // 토큰 검증
 
             // 임시 세션 (UserDetails 타입 or username(현재 null이라 넣을 수 없음))
@@ -46,12 +47,27 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         chain.doFilter(request, response);
     }
 
-    private boolean isHeaderVerify(HttpServletRequest request, HttpServletResponse response) {
-        String header = request.getHeader(JwtVO.HEADER);
-        if (header == null || !header.startsWith(JwtVO.TOKEN_PREFIX)) {
-            return false;
-        } else {
-            return true;
+    private boolean isCookieVerify(HttpServletRequest request, HttpServletResponse response) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) return false;
+
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("Authorization") && cookie.getValue().startsWith(JwtVO.TOKEN_PREFIX)) {
+                return true;
+            }
         }
+        return false;
+    }
+
+    private String getTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("Authorization")) {
+                    return cookie.getValue().replace(JwtVO.TOKEN_PREFIX, "");
+                }
+            }
+        }
+        return null;
     }
 }
