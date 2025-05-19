@@ -91,8 +91,8 @@ public class WordDropScheduler {
             // 3. 경과 시간 갱신
             long newElapsed = elapsed.addAndGet(spawnInterval);
             // 20초(20_000 ms) 마다 fallDuration 10% 줄이기
-            if (newElapsed >= 20_000 && newElapsed % 20_000 < spawnInterval) {
-                long next = Math.max(1_000, (long) (fallDuration.get() * 0.85));
+            if (newElapsed >= 10_000 && newElapsed % 10_000 < spawnInterval) {
+                long next = Math.max(1_000, (long) (fallDuration.get() * 0.8));
                 fallDuration.set(next);
             }
         }, spawnInterval);
