@@ -223,12 +223,15 @@ const MultiPage = () => {
           <RoomList rooms={filteredRooms} onEnterClick={handleEnterClick} />
         </div>
 
-      <button
-        onClick={() => navigate("/main")}
-        className="absolute bottom-24 right-0 w-[11rem] h-[3rem] bg-contain bg-no-repeat bg-center hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
-        style={{ backgroundImage: `url(${goOutBtn})` }}
-      >
-      </button>
+        <img
+          src={goOutBtn}
+          alt="나가기"
+          role="button"
+          onClick={() => navigate("/main")}
+          className="absolute bottom-24 right-5 w-[7rem] h-[3rem] hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
+          style={{ cursor: "url('/cursors/click.png') 30 30, pointer" }}
+        />
+
       </div>
 
       {/* 방 입장 모달 */}

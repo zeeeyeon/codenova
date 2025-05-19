@@ -109,6 +109,7 @@ const FinalResultModal = ({ visible, results = [], onClose, roomInfo }) => {
           >
             <img
               src={waitBtn}
+              role="button"
               alt="대기방으로 이동"
               className="w-full rounded-2xl"
             />

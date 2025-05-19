@@ -193,15 +193,17 @@ const SignupPage = () => {
           </div>
 
           {/* 버튼 */}
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-12">
           <img
             src={signupBtn}
+            role="button"
             alt="Sign Up Button"
             className="w-[10rem] -mt-4 cursor-pointer hover:brightness-110 transition-all duration-150 hover:translate-y-[2px] active:translate-y-[4px]"
             onClick={handleSignup}
           />
           <img
             src={goLanding}
+            role="button"
             alt="Sign Up"
             className="w-[9rem] -mt-4 cursor-pointer hover:brightness-110 transition-all duration-150 hover:translate-y-[2px] active:translate-y-[4px]"
             onClick={() => navigate("/")}

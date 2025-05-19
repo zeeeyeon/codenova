@@ -151,10 +151,10 @@ const MainPage = () => {
 
           {/* 버튼 묶음 */}
           <div className="absolute top-44 w-full flex flex-col items-center gap-6">
-            <img src={singleBtn} alt="Single Mode" className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" 
+            <img src={singleBtn} role="button" alt="Single Mode" className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" 
             onClick={() => navigate("/single/select/language")}
             />
-            <img src={multiBtn} alt="Multi Mode" className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" 
+            <img src={multiBtn}  role="button" alt="Multi Mode" className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" 
             onClick={handleMultiClick}
             />
           </div>
@@ -188,18 +188,21 @@ const MainPage = () => {
           <div className="absolute top-28 w-full flex flex-col items-center gap-4">
             <img
               src={makeRoomBtn}
+              role="button"
               alt="Make Room"
               onClick={handleCreateMeteoRoom}
               className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             />
             <img
               src={goRoomBtn}
+              role="button"
               alt="Enter Room"
               onClick={() => setShowRoomModal(true)}
               className="w-[10rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
             />
-                      <img
+            <img
             src={randomBtn}
+            role="button"
             alt="랜덤매칭"
             className="w-[10rem] cursor-pointer hover:brightness-110 hover:scale-105 transition-transform"
             onClick={handleRandomMatch}

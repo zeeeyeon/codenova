@@ -113,6 +113,7 @@ const RoomCodeModal = ({ onClose }) => {
         <div className="flex gap-4 mt-6">
           <img
             src={enterBtn}
+            role="button"
             alt="입장하기"
             className="w-[8rem] cursor-pointer hover:brightness-110 hover:scale-105 transition-transform"
             onClick={handleEnterRoom}
