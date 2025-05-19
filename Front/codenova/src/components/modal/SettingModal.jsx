@@ -22,6 +22,7 @@ const SettingModal = ({ onClose }) => {
                     설정       
                     </div>
                 <img src={xBtn} 
+                    role="button"
                     alt="x" 
                     className= {`cursor-pointer scale-75 absolute top-1 right-2 text-black text-ml font-extrabold w-[4%] ${btn_class}`}
                     onClick={()=> onClose()}
@@ -35,7 +36,7 @@ const SettingModal = ({ onClose }) => {
 
                     <button
                     onClick={() => setShowPatchNote(true)}
-                    className="px-5 py-2 text-[15px] text-pink-300 bg-gradient-to-b from-[#1a1a2e] to-[#2c2c3a] border border-pink-400 rounded-md hover:brightness-110 hover:scale-105 active:scale-95 shadow-md shadow-pink-500/30 transition-all"
+                    className="cursor-[url('/cursors/click.png')_16_16,_pointer] px-5 py-2 text-[15px] text-pink-300 bg-gradient-to-b from-[#1a1a2e] to-[#2c2c3a] border border-pink-400 rounded-md hover:brightness-110 hover:scale-105 active:scale-95 shadow-md shadow-pink-500/30 transition-all"
                     >
                     패치노트 보러가기
                     </button>
