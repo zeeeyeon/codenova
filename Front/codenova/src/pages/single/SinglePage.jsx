@@ -207,7 +207,7 @@ const SinglePage = () => {
             };
             keyLogsRef.current.push(newLog);
             setLogCount((prev) => prev + 1);
-            console.log("입력된 키", newLog.key)
+            //console.log("입력된 키", newLog.key)
         }
 
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') { // ctrl+V or commend + V 막기기
