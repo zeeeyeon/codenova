@@ -7,6 +7,7 @@ import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.single.dto.request.ChatBotRequest;
 import kr.codenova.backend.single.dto.response.ChatBotResponse;
+import kr.codenova.backend.single.repository.ChatRedisRepository;
 import kr.codenova.backend.single.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class ChatServiceImpl implements ChatService {
 
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
+    private final ChatRedisRepository chatRedisRepository;
 
     @Value("${openai.api.key}")
     private String gmsKey;
@@ -35,10 +37,10 @@ public class ChatServiceImpl implements ChatService {
     private static final String GPT_API_URL = "https://gms.p.ssafy.io/gmsapi/api.openai.com/v1/chat/completions";
 
     // 사용자별 대화 이력
-    private final Map<String, List<Map<String, String>>> userConversation = new ConcurrentHashMap<>();
+//    private final Map<String, List<Map<String, String>>> userConversation = new ConcurrentHashMap<>();
 
     // 대화 이력의 최대 길이
-    private static final int MAX_CONVERSATION_LENGTH = 10;
+    private static final int MAX_CONVERSATION_LENGTH = 20;
 
     @Override
     public ChatBotResponse generateResponse(String userId, String message) {
@@ -121,7 +123,7 @@ public class ChatServiceImpl implements ChatService {
 
         // 본문에 넣을 Openai 모델
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("model", "gpt-4o-mini");
+        body.put("model", "gpt-4o");
 
         // 메시지 추가 ( 대답하는 형식과 클라이언트)
         List<Map<String, String>> messages = new ArrayList<>();
@@ -172,10 +174,10 @@ public class ChatServiceImpl implements ChatService {
 
         // 요청 본문 생성
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("model", "gpt-4o-mini");
+        body.put("model", "gpt-4o");
 
-        // 사용자 대화 이력 가져오기
-        List<Map<String, String>> messages = new ArrayList<>(getMessages(userId));
+        // 사용자 대화 이력 가져오기(레디스에서 가져오기)
+        List<Map<String, String>> messages = chatRedisRepository.getConversation(userId);
 
         // 요청 본문에 메시지 추가
         body.put("messages", messages);
@@ -187,52 +189,58 @@ public class ChatServiceImpl implements ChatService {
     }
 
     // 사용자 대화 이력 가져오기
-    private List<Map<String, String>> getMessages(String userId){
-        if(!userConversation.containsKey(userId)){
-            List<Map<String,String>> newMessages = new ArrayList<>();
-
-            Map<String,String> systemMessage = new HashMap<>();
-            systemMessage.put("role", "system");
-            systemMessage.put("content","너는 개발 공부를 하는 학생에게 쉽고 명확하게 알려주는 친절한 시니어 개발자야. 복잡한 개념도 예시와 함께 이해하기 쉽게 설명하고, 실무에서의 활용법, 주의점, 추가 공부 키워드를 짧고 명확하게 알려줘. AI인 척하지 말고 자연스럽고 자신감 있게 답해." );
-            newMessages.add(systemMessage);
-
-            userConversation.put(userId,newMessages);
-        }
-        return userConversation.get(userId);
-    }
+//    private List<Map<String, String>> getMessages(String userId){
+//        if(!userConversation.containsKey(userId)){
+//            List<Map<String,String>> newMessages = new ArrayList<>();
+//
+//            Map<String,String> systemMessage = new HashMap<>();
+//            systemMessage.put("role", "system");
+//            systemMessage.put("content","너는 개발 공부를 하는 학생에게 쉽고 명확하게 알려주는 친절한 시니어 개발자야. 복잡한 개념도 예시와 함께 이해하기 쉽게 설명하고, 실무에서의 활용법, 주의점, 추가 공부 키워드를 짧고 명확하게 알려줘. AI인 척하지 말고 자연스럽고 자신감 있게 답해." );
+//            newMessages.add(systemMessage);
+//
+//            userConversation.put(userId,newMessages);
+//        }
+//        return userConversation.get(userId);
+//    }
 
     // 대화 이력에 메시지 추가
     private void addMessages(String userId, String role, String content){
-        List<Map<String,String>> history = getMessages(userId);
+        List<Map<String, String>> messages = chatRedisRepository.getConversation(userId);
         Map<String,String> message = new HashMap<>();
         message.put("role", role);
         message.put("content", content);
+        messages.add(message);
 
-        history.add(message);
+        chatRedisRepository.saveConversation(userId,messages);
     }
 
     private void manageMessages(String userId){
-        List<Map<String, String>> history = userConversation.get(userId);
-        if(history == null || history.size() <= MAX_CONVERSATION_LENGTH) {
+        List<Map<String, String>> messages = chatRedisRepository.getConversation(userId);
+        if (messages.size() <= MAX_CONVERSATION_LENGTH) {
             return;
         }
-        Map<String,String> message = history.get(0);
 
-        int startIndex = history.size() - MAX_CONVERSATION_LENGTH + 1;
+        // System 메시지 저장 (첫 번째 메시지)
+        Map<String, String> systemMessage = messages.get(0);
 
-        List<Map<String,String>> newHistory = new ArrayList<>();
-        newHistory.add(message);
+        // 최근 대화만 유지하기 위한 인덱스 계산
+        int startIndex = messages.size() - MAX_CONVERSATION_LENGTH + 1;
+
+        // 새로운 메시지 목록 생성
+        List<Map<String, String>> newMessages = new ArrayList<>();
+        newMessages.add(systemMessage); // System 메시지 추가
 
         // 최근 대화 추가
-        for (int i = startIndex; i < history.size(); i++ ) {
-            newHistory.add(history.get(i));
+        for (int i = startIndex; i < messages.size(); i++) {
+            newMessages.add(messages.get(i));
         }
 
-        userConversation.put(userId,newHistory);
+        // Redis에 저장
+        chatRedisRepository.saveConversation(userId, newMessages);
     }
 
     // 사용자 대화 이력 초기화(대화창 닫을 때 마다 초기화)
     public void clearConversation(String userId) {
-        userConversation.remove(userId);
+        chatRedisRepository.clearConversation(userId);
     }
 }
