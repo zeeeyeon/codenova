@@ -17,6 +17,8 @@ export const useSessionStore = create((set) => {
             refreshTimer = setTimeout(() => {
                 getSessionKeyHandler();
             }, delayMs);
+        } else {
+            getSessionKeyHandler();
         }
     };
 
