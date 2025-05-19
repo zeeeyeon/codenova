@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -99,10 +100,12 @@ public class SingleController {
     }
 
     @PostMapping("/chat")
-    public ResponseEntity<?> chat(@RequestBody ChatBotRequest request) {
+    public ResponseEntity<?> chat(@RequestBody ChatBotRequest request, @AuthenticationPrincipal UserDetails userDetails) {
         try {
+
+            String userId = userDetails.getUsername();
             System.out.println("Chat API 호출 요청: " + request.getMessage());
-            ChatBotResponse response = chatService.generateResponse(request);
+            ChatBotResponse response = chatService.generateResponse(userId, request.getMessage());
             return new ResponseEntity<>(Response.create(GET_CHATBOT_RESPONSE, response), GET_CHATBOT_RESPONSE.getHttpStatus());
         } catch (Exception e) {
             e.printStackTrace();
