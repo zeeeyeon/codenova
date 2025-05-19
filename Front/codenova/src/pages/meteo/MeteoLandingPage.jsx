@@ -715,6 +715,7 @@ const MeteoLandingPage = () => {
                     <img
                       src={StartButton}
                       alt="start"
+                      role="button"
                       className="w-full h-full cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95] animate-pulse"
                       onClick={handleStartGame}
                     />
@@ -722,6 +723,7 @@ const MeteoLandingPage = () => {
                     // ✅ 방장이지만 아직 allReady가 false면 흐릿한 버튼
                     <img
                       src={StartButton}
+                      role="button"
                       alt="start-disabled"
                       className="w-full h-full opacity-50"
                     />
@@ -729,6 +731,7 @@ const MeteoLandingPage = () => {
                 ) : (
                   // ✅ 일반 유저는 ready/unready 토글 버튼
                   <img
+                   role="button"
                     src={
                       users.find((u) => u?.nickname === nickname)?.ready
                         ? Unready
@@ -751,10 +754,12 @@ const MeteoLandingPage = () => {
           </div>
           <img
             src={ExitButton}
+            role="button"
             alt="exit"
             onClick={handleExitRoom}
             className="absolute bottom-3 right-[0rem] w-[8rem] cursor-pointer z-30
         transition-all duration-150 hover:brightness-110 hover:scale-105 active:scale-95"
+        style={{ cursor: "url('/cursors/click.png') 30 30, pointer" }}
           />
         </div>
       </div>

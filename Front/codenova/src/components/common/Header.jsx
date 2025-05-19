@@ -60,7 +60,7 @@ const Header = ({onShowTuto, onShowSetting}) => {
   return (
     <header className="fixed top-0 left-0 w-full flex justify-between items-center px-3 py-3">
       {/* 왼쪽 로고 */}
-      <img src={logo} alt="Logo" className="w-40 cursor-pointer hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" onClick={() => navigate("/main")} />
+      <img src={logo} role="button" alt="Logo" className="w-40 cursor-pointer hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]" onClick={() => navigate("/main")} />
 
       {/* 오른쪽 아이콘들 */}
       <div className="flex items-center gap-4">
@@ -70,6 +70,7 @@ const Header = ({onShowTuto, onShowSetting}) => {
         {userType !== "guest" && (
           <img
           src={mypageIcon2}
+          role="button"
           alt="My Page"
           className="w-16 h-16 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"
           onClick={() => navigate("/mypage")}
@@ -78,24 +79,28 @@ const Header = ({onShowTuto, onShowSetting}) => {
         
         <img
           src={rankingIcon2}
+          role="button"
           alt="Ranking"
           className="w-16 h-16 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"
           onClick={() => navigate("/ranking")}
         />
         <img
           src={helpIcon2}
+          role="button"
           alt="Help"
           className="w-16 h-16 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"
           onClick={onShowTuto}
         />
         <img
           src={settingIcon}
+          role="button"
           alt="setting"
           className="w-16 h-16 cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"
           onClick={onShowSetting}
         />
         <img 
           src={logoutIcon} 
+          role="button"
           alt="로그아웃" 
           onClick={handleLogout}
           className="w-20 h-auto cursor-pointer hover:brightness-110 hover:scale-[0.98] active:scale-[0.85] transition"

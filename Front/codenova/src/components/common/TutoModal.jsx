@@ -29,6 +29,7 @@ const TutoModal = ({ onClose }) => {
     {/* 닫기 버튼 */}
     <img
       src={closeIcon}
+      role="button"
       alt="닫기"
       className="absolute top-1 right-1 w-5 h-5 cursor-pointer hover:scale-110 transition"
       onClick={onClose}

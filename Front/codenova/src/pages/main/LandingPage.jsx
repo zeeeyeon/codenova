@@ -57,18 +57,21 @@ const LandingPage = () => {
       <div className="flex justify-center gap-10 mt-8">
         <img
           src={signupButton}
+          role="button"
           alt="Sign Up"
           className="w-[14rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
           onClick={() => navigate("/auth/signup")}
         />
         <img
           src={loginButton}
+          role="button"
           alt="Log In"
           className="w-[14rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
           onClick={() => navigate("/auth/login")} 
         />
         <img
           src={guestButton}
+          role="button"
           alt="GuestLogin"
           className="w-[14rem] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]"
           onClick={ handleGuestLogin } 
