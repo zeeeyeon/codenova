@@ -30,23 +30,23 @@ authApi.interceptors.request.use(
   }
 );
 
-authApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // JWT 만료 등 인증 문제 → 메인으로 이동
-      localStorage.removeItem("auth-storage");
-      localStorage.removeItem("session");
-      localStorage.removeItem("chat-storage");
-      useAuthStore.getState().logout();
-      useSessionStore.getState().clearSession();
-      useChatStore.getState().clearAllChats();
-      window.location.href = "/auth/login";
-    }
-    return Promise.reject(error);
-  }
-)
+// authApi.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response?.status === 401) {
+//       // JWT 만료 등 인증 문제 → 메인으로 이동
+//       localStorage.removeItem("auth-storage");
+//       localStorage.removeItem("session");
+//       localStorage.removeItem("chat-storage");
+//       useAuthStore.getState().logout();
+//       useSessionStore.getState().clearSession();
+//       useChatStore.getState().clearAllChats();
+//       // window.location.href = "/auth/login";
+//     }
+//     return Promise.reject(error);
+//   }
+// )
 
-export default authApi;
+// export default authApi;
 
 
