@@ -28,7 +28,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden; /* 요게 핵심 */
-  cursor: url('/cursors/resize.png') 14 14, auto;
+  cursor: url('/cursors/cl.png') 16 16, auto;
 }
 
 img[role="button"]
