@@ -105,7 +105,7 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, onShowCodeDescription}) =>
                 <div className = {""} >
                      <img src={codeBtns[currentButtonIndex]} alt={`코드설명버튼${currentButtonIndex + 1}`} 
                         className= {`w-[35%] cursor-pointer absolute -top-20 -right-2 will-change-transform animate-poke ${btn_class}`}
-                        onClick={onShowCodeDescription}
+                        onClick={onShowCodeDescription} role="button"
                     />
                     <img src={mouseImg} alt="마우스이미지" 
                         className='w-[7%] absolute -top-16 -right-4 '
@@ -141,6 +141,7 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, onShowCodeDescription}) =>
                 
                         <img
                             src={restartBtn}
+                            role="button"
                             alt="다시하기"
                             className={`w-full max-w-[200px] rounded-3xl transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94] ${isApiLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             onClick={() => window.location.reload()}
@@ -148,6 +149,7 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, onShowCodeDescription}) =>
                         />
                         <img
                             src={stopBtn}
+                            role="button"
                             onClick={() => navigate("/single/select/language")}
                             alt="확인"
                             className={`w-full max-w-[200px] rounded-3xl transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94] ${isApiLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
