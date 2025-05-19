@@ -18,11 +18,13 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
+
 
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
@@ -32,13 +34,24 @@ public class ChatServiceImpl implements ChatService {
 
     private static final String GPT_API_URL = "https://gms.p.ssafy.io/gmsapi/api.openai.com/v1/chat/completions";
 
+    // 사용자별 대화 이력
+    private final Map<String, List<Map<String, String>>> userConversation = new ConcurrentHashMap<>();
+
+    // 대화 이력의 최대 길이
+    private static final int MAX_CONVERSATION_LENGTH = 10;
+
     @Override
-    public ChatBotResponse generateResponse(ChatBotRequest request) {
+    public ChatBotResponse generateResponse(String userId, String message) {
         try {
-            log.info("ChatBot API 요청 시작: {}", request.getMessage());
+            log.info("ChatBot API 요청 시작: {}, {}", userId, message);
+
+
+            addMessages(userId, "user", message);
+
+            manageMessages(userId);
 
             // 요청 생성
-            HttpEntity<String> httpRequest = buildRequest(request.getMessage());
+            HttpEntity<String> httpRequest = buildRequestWithHistory(userId);
 
             // 요청 내용 자세히 로깅
             try {
@@ -74,6 +87,10 @@ public class ChatServiceImpl implements ChatService {
             // 응답 파싱
             String content = extractContent(response);
             log.info("ChatBot 응답 생성 완료");
+
+            addMessages(userId, "assistant", content);
+
+            manageMessages(userId);
 
             return new ChatBotResponse(content);
 
@@ -144,5 +161,78 @@ public class ChatServiceImpl implements ChatService {
             log.error("응답 본문: {}", response.getBody());
             throw e;
         }
+    }
+
+    // 대화 이력을 기반으로 요청 생성하는 메서드
+    private HttpEntity<String> buildRequestWithHistory(String userId) throws JsonProcessingException {
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + gmsKey);
+        headers.set("Content-Type", "application/json");
+
+        // 요청 본문 생성
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("model", "gpt-4o-mini");
+
+        // 사용자 대화 이력 가져오기
+        List<Map<String, String>> messages = new ArrayList<>(getMessages(userId));
+
+        // 요청 본문에 메시지 추가
+        body.put("messages", messages);
+
+        // JSON 변환
+        String jsonBody = objectMapper.writeValueAsString(body);
+
+        return new HttpEntity<>(jsonBody, headers);
+    }
+
+    // 사용자 대화 이력 가져오기
+    private List<Map<String, String>> getMessages(String userId){
+        if(!userConversation.containsKey(userId)){
+            List<Map<String,String>> newMessages = new ArrayList<>();
+
+            Map<String,String> systemMessage = new HashMap<>();
+            systemMessage.put("role", "system");
+            systemMessage.put("content","너는 개발 공부를 하는 학생에게 쉽고 명확하게 알려주는 친절한 시니어 개발자야. 복잡한 개념도 예시와 함께 이해하기 쉽게 설명하고, 실무에서의 활용법, 주의점, 추가 공부 키워드를 짧고 명확하게 알려줘. AI인 척하지 말고 자연스럽고 자신감 있게 답해." );
+            newMessages.add(systemMessage);
+
+            userConversation.put(userId,newMessages);
+        }
+        return userConversation.get(userId);
+    }
+
+    // 대화 이력에 메시지 추가
+    private void addMessages(String userId, String role, String content){
+        List<Map<String,String>> history = getMessages(userId);
+        Map<String,String> message = new HashMap<>();
+        message.put("role", role);
+        message.put("content", content);
+
+        history.add(message);
+    }
+
+    private void manageMessages(String userId){
+        List<Map<String, String>> history = userConversation.get(userId);
+        if(history == null || history.size() <= MAX_CONVERSATION_LENGTH) {
+            return;
+        }
+        Map<String,String> message = history.get(0);
+
+        int startIndex = history.size() - MAX_CONVERSATION_LENGTH + 1;
+
+        List<Map<String,String>> newHistory = new ArrayList<>();
+        newHistory.add(message);
+
+        // 최근 대화 추가
+        for (int i = startIndex; i < history.size(); i++ ) {
+            newHistory.add(history.get(i));
+        }
+
+        userConversation.put(userId,newHistory);
+    }
+
+    // 사용자 대화 이력 초기화(대화창 닫을 때 마다 초기화)
+    public void clearConversation(String userId) {
+        userConversation.remove(userId);
     }
 }
