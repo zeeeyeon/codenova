@@ -128,18 +128,19 @@ const Ranking = () => {
                 <div className="absolute top-[1%] left-1/2 -translate-x-1/2 font-bold text-4xl drop-shadow-md z-10 flex w-[27%] justify-between items-center px-2 "
                  style={{color: '#1C1C1C'}}
                 >
-                    <img src={leftBtn2} alt="왼쪽" className={`cursor-pointer w-[12%] h-[10%] ${btn_class}`} 
+                    <img src={leftBtn2} alt="왼쪽" role="button" className={`cursor-pointer w-[12%] h-[10%] ${btn_class}`} 
                         onClick={handlePrev}/>
                     <div className="flex justify-center">
                         {languages[currentLangIndex]}
                     </div>
-                    <img src={rightBtn2} alt="오른쪽" className={`cursor-pointer w-[12%] h-[10%] ${btn_class}`} 
+                    <img src={rightBtn2} alt="오른쪽" role="button" className={`cursor-pointer w-[12%] h-[10%] ${btn_class}`} 
                         onClick={handleNext}
                     />
                         
                 </div>
 
                 <img src={xBtn} 
+                role="button"
                     alt="x" 
                     className= {`cursor-pointer scale-75 absolute top-1 right-2 text-black text-ml font-extrabold w-[4%] ${btn_class}`}
                     onClick={()=> navigate(-1)}

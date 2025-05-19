@@ -50,10 +50,10 @@ const SingleLanguageSelectPage = () => {
 
         {/* 버튼 이미지들 */}
         <div className='flex flex-wrap justify-center gap-4 w-full px-4 mt-20'>
-          <img src={javaBtn} alt="자바" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/java')}/>
-          <img src={pythonBtn} alt="파이썬" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'onClick={() => navigate('/single/game/python')}/>
-          <img src={sqlBtn} alt="SQL" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/sql')} />
-          <img src={jsBtn} alt="js" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/js')}/>
+          <img src={javaBtn} role="button" alt="자바" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/java')}/>
+          <img src={pythonBtn} role="button" alt="파이썬" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]'onClick={() => navigate('/single/game/python')}/>
+          <img src={sqlBtn} role="button" alt="SQL" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/sql')} />
+          <img src={jsBtn} role="button" alt="js" className='w-[13vw] cursor-pointer transition-all duration-150 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.98] active:scale-[0.95]' onClick={() => navigate('/single/game/js')}/>
           {/* <img src={goBtn} alt="go" className='w-[13vw] cursor-pointer transition-all duration-150 brightness-50 pointer-events-none' onClick={() => navigate('/single/select/go')}/> */}
           <div className="relative group w-[13vw]">
             <img src={goBtn} alt="go" className='w-full cursor-pointer transition-all duration-150 brightness-50 pointer-events-none' onClick={() => navigate('/single/select/go')}/>
@@ -70,7 +70,7 @@ const SingleLanguageSelectPage = () => {
 
         {/* 취소 버튼 */}
         <div className='relative w-[16vw] max-w-[300px] mt-10'>
-          <img src={cancelBtn} alt="취소" className='w-full h-full rounded-3xl cursor-pointer transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]'  onClick={() => navigate('/main')}/>
+          <img src={cancelBtn} role="button" alt="취소" className='w-full h-full rounded-3xl cursor-pointer transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.94]'  onClick={() => navigate('/main')}/>
         </div>
       </BoardContainer>
 

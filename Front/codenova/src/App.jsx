@@ -14,6 +14,7 @@ import { useEffect} from "react";
 import PrivateRoute from "./routes/PrivateRoute";
 import { preventDevTool } from "./components/common/preDevTool";
 import { useSessionStore } from "./store/useSessionStore";
+import FireflakeCursor from "./components/effects/FireflakeCursor";
 
 function App() {
   const userType = useAuthStore((state) => state.user?.userType);
@@ -42,7 +43,8 @@ function App() {
 
 
   return (
-    <BrowserRouter>
+    <BrowserRouter >
+    <FireflakeCursor/>
     {/* <ErrorBoundary> */}
       <Routes>
         <Route path="/" element={<LandingPage />} />

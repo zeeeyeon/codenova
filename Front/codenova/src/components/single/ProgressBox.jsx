@@ -96,7 +96,7 @@ const ProgressBox = ({lang, elapsedTime, cpm, progress}) => {
                     borderColor: "#51E2F5"
                 }}
             >
-                <img src={endBtn} alt="게임 종료 버튼" 
+                <img src={endBtn} role="button" alt="게임 종료 버튼" 
                     className="w-[full] h-[full] transition-all duration-200 hover:brightness-110 hover:translate-y-[2px] hover:scale-[0.97] active:scale-[0.95]"
                     onClick={() => navigate("/single/select/language")}
                 />

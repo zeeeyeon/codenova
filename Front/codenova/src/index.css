@@ -28,7 +28,22 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden; /* 요게 핵심 */
+  cursor: url('/cursors/resize.png') 14 14, auto;
 }
+
+img[role="button"]
+{
+  cursor: url('/cursors/click.png') 16 16, pointer;
+}
+
+button:hover,
+a:hover,
+img[role="button"]:hover,
+input
+{
+  cursor: url('/cursors/click.png') 16 16, pointer;
+}
+
 
 /* custom-scrollbar 클래스용 스크롤바 스타일 */
 /* custom-scrollbar 개선된 버전 */
