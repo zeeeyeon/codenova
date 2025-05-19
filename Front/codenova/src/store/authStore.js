@@ -42,8 +42,8 @@ const useAuthStore = create(
         if (!tokenExp) return false; // 회원 인데 시간 없으면 무조건 false
 
         const now = Math.floor(Date.now() / 1000 );
-        console.log(now.toString());
-        return now + 55 < tokenExp;
+        //console.log(now.toString());
+        return now + 120 < tokenExp;
       }
 
     }),

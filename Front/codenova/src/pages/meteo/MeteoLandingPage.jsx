@@ -428,7 +428,7 @@ const MeteoLandingPage = () => {
 
   useEffect(() => {
     const handleGoWaitingRoom = (data) => {
-      console.log("📥 [LandingPage] waitingRoomGo 수신:", data);
+      // console.log("📥 [LandingPage] waitingRoomGo 수신:", data);
 
       const myNickname = localStorage.getItem("nickname");
       const isMeIncluded = data.players.some(
@@ -453,7 +453,7 @@ const MeteoLandingPage = () => {
   useEffect(() => {
     // 준비 경고 이벤트 처리
     onReadyWarning((data) => {
-      console.log("⚠️ [onReadyWarning] 경고 수신:", data);
+      // console.log("⚠️ [onReadyWarning] 경고 수신:", data);
 
       // 알림 표시 (준비 경고 메시지)
       setAlertMessage(
@@ -476,7 +476,7 @@ const MeteoLandingPage = () => {
 
     // 강퇴 이벤트 처리
     onKick((data) => {
-      console.log("👢 [onKick] 강퇴 수신:", data);
+      // console.log("👢 [onKick] 강퇴 수신:", data);
 
       // 로컬 스토리지 정리
       localStorage.removeItem("meteoRoomCode");
@@ -505,7 +505,7 @@ const MeteoLandingPage = () => {
   useEffect(() => {
     // 방장 경고 이벤트 (방장에게만 표시)
     onHostKickWarning((data) => {
-      console.log("⚠️ [onHostKickWarning] 방장 경고 수신:", data);
+      // console.log("⚠️ [onHostKickWarning] 방장 경고 수신:", data);
 
       // 방장인 경우에만 알림 표시
       if (users.find((u) => u?.nickname === nickname)?.isHost) {
