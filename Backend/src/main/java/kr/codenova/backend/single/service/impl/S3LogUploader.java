@@ -30,7 +30,7 @@ public class S3LogUploader {
     public void uploadLogToS3(TypingSession session, String requestId, Integer memberId, Integer codeId, Language language) {
         String today = LocalDate.now().toString();
         String time = ZonedDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-        String fileName = String.format("member-%s-%s-code-%s-%s-%s.json", memberId, language.name(), codeId, time);
+        String fileName = String.format("member-%s-%s-code-%s-%s.json", memberId, language.name(), codeId, time);
         String s3Key = String.format("keyLog/%s/logs/%s", today, fileName);
 
         String jsonBody = session.createLogToJson(requestId, memberId, codeId, language);
