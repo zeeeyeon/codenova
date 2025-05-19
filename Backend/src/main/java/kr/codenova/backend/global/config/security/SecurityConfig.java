@@ -59,7 +59,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
 
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .cors(cors ->
                         cors.configurationSource(configurationSource())
@@ -111,7 +111,6 @@ public class SecurityConfig {
         configuration.addAllowedMethod("*");
         configuration.addAllowedOriginPattern("*");
         configuration.setAllowCredentials(true);
-        configuration.addExposedHeader("Authorization");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
