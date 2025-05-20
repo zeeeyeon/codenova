@@ -123,7 +123,7 @@ public class ChatServiceImpl implements ChatService {
 
         // 본문에 넣을 Openai 모델
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("model", "gpt-4o");
+        body.put("model", "gpt-4.1");
 
         // 메시지 추가 ( 대답하는 형식과 클라이언트)
         List<Map<String, String>> messages = new ArrayList<>();
@@ -174,7 +174,7 @@ public class ChatServiceImpl implements ChatService {
 
         // 요청 본문 생성
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("model", "gpt-4o");
+        body.put("model", "gpt-4.1");
 
         // 사용자 대화 이력 가져오기(레디스에서 가져오기)
         List<Map<String, String>> messages = chatRedisRepository.getConversation(userId);
