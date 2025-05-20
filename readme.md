@@ -10,7 +10,7 @@
 - [🔧 기술 스택](#-기술-스택)
 - [👥 팀원 소개](#-팀원-소개-및-역할-분담)
 - [📁 프로젝트 산출물](#-프로젝트-산출물)
-- [🖼️ 서비스 화면](#-서비스-화면)
+- [🖥️ 서비스 화면](#-서비스-화면)
 - [😝 프로젝트 회고](#-프로젝트-회고)
 
 ## ✨ 프로젝트 소개
@@ -130,7 +130,7 @@ SSAFY 12기 2학기 자율 프로젝트 <br>
         </td>
         <td align="center">
             <a href="https://github.com/">
-                <img src="./exec/readme_images/younghan.png" width="120" height="150" />
+                <img src="./exec/readme_images/younghan.png" width="120" height="150"      style="object-fit: cover;" />
             </a>
         </td>
         <td align="center">
@@ -228,7 +228,7 @@ SSAFY 12기 2학기 자율 프로젝트 <br>
 ![meteor](/uploads/d11c6c2c1288d19c6b752f9c3ac036ee/meteor.gif)
 
 
-## 📁 프로젝트 회고
+## 😝 프로젝트 회고
 #### 😎 이지연
 
 #### 😎 정영한
