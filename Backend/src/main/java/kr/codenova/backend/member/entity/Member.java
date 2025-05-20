@@ -36,6 +36,10 @@ public class Member {
     private int winCount;
     private int playCount;
 
+    private int warnCount;
+    @Column(columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private boolean isActive;
+
     @Builder
     public Member(Integer memberId, String id, String password, String nickname,
                   int winCount, int playCount, String phoneNum) {
