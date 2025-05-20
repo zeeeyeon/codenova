@@ -54,17 +54,17 @@
     <tbody>
         <td align="center">
             <a href="https://github.com/">
-                <img src="./exec/readme_assets/" width="150" height="150" />
+                <img src="./exec/readme_images/jiyeon.png" width="120" height="150" />
             </a>
         </td>
         <td align="center">
             <a href="https://github.com/">
-                <img src="./exec/readme_assets/" width="150" height="150" />
+                <img src="./exec/readme_images/younghan.png" width="120" height="150" />
             </a>
         </td>
         <td align="center">
             <a href="https://github.com/">
-                <img src="./exec/readme_assets/" width="150" height="150" />
+                <img src="./exec/readme_images/garam.png" width="120" height="150" />
             </a>
         </td>
     </tbody>
@@ -80,17 +80,17 @@
     <tbody>
         <td align="center">
             <a href="https://github.com/">
-                <img src="./exec/readme_assets/" width="150" height="150" />
+                <img src="./exec/readme_images/nayoung.png" width="120" height="150" />
             </a>
         </td>
         <td align="center">
             <a href="https://github.com/">
-                <img src="./exec/readme_assets/" width="150" height="150" />
+                <img src="./exec/readme_images/jiin.png" width="120" height="150" />
             </a>
         </td>
         <td align="center">
             <a href="https://github.com/">
-                <img src="./exec/readme_assets/" width="150" height="150" />
+                <img src="./exec/readme_images/donghyun.png" width="120" height="150" />
             </a>
         </td>
     </tbody>
@@ -138,8 +138,22 @@
 </details>
 
 
-## 🖼️ 서비스 화면
+## 🖥️ 서비스 화면
 
+### 🎮 싱글 모드
+- 혼자서 게임을 즐길 수 있는 모드입니다. 제한 시간 내 최대한 빠르게 입력해 높은 점수를 노려보세요!
+
+
+---
+
+### 👯‍♂️ 멀티 모드
+- 다른 사용자와 실시간으로 대결하는 모드입니다. Socket.IO를 통해 실시간 입력 비교가 이루어집니다!
+
+
+---
+
+### 🌠 유성 모드
+- 빠르게 떨어지는 CS 단어를 입력하여 바닥으로 떨어지는 모드입니다. 긴장감 넘치는 타자 경험을 제공합니다!
 
 
 
