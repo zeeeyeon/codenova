@@ -171,32 +171,28 @@ SSAFY 12기 2학기 자율 프로젝트 <br>
 
 ## 📁 프로젝트 산출물 
 <details>
-  <summary>와이어프레임</summary>
-
-</details>
-<details>
   <summary>ERD</summary>
-  <img src="" >
+  <img src="./exec/readme_images/erd.png" width="1124"  >
 </details>
 <details>
   <summary>API 명세서</summary>
-  <img src="">
+
+  <h3>AUTH API</h3>
+  <img src="./exec/readme_images/AUTH.png">
+  <br>
+
+  <h3>싱글 API</h3> 
+  <img src="./exec/readme_images/싱글.png">
+  <br>
+  
+  <h3>멀티 API</h3>  
+  <img src="./exec/readme_images/멀티.png">
+  <br>
+
+  <h3>유성 API</h3>
+  <img src="./exec/readme_images/유성.png">
   <br>
  
-  <img src="">
-  <br>
-  
-  <img src="">
-  <br>
-  <img src="">
-  <br>
- 
-  <img src="">
-  <br>
-  
-  <img src="">
-  <br>
-  
   <img src="">
 </details>
 <details>
@@ -205,7 +201,11 @@ SSAFY 12기 2학기 자율 프로젝트 <br>
 </details>
 <details>
   <summary>UCC</summary>
-  <a href="">UCC</a>
+  <a href="https://www.youtube.com/watch?v=H6nqYdognwc" target="_blank">
+    <img src="./exec/readme_images/ucc.png" width="1124" height="600">
+  </a>
+  <br>
+  <a href="https://www.youtube.com/watch?v=H6nqYdognwc">UCC 바로가기</a>
 </details>
 
 
