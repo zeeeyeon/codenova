@@ -130,7 +130,7 @@ SSAFY 12기 2학기 자율 프로젝트 <br>
         </td>
         <td align="center">
             <a href="https://github.com/">
-                <img src="./exec/readme_images/younghan.png" width="120" height="150" />
+                <img src="./exec/readme_images/younghan.png" width="120" height="150"      style="object-fit: cover;" />
             </a>
         </td>
         <td align="center">
