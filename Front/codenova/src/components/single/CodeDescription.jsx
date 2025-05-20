@@ -10,6 +10,9 @@ import ReactMarkdown from 'react-markdown';
 import chatBtn from '../../assets/images/chat_bot.png'
 import AIChat from './AIChatModal';
 import copyIcon from '../../assets/images/copy_icon.png'
+import QnA1Img from '../../assets/images/QnA1.png'
+import QnA2Img from '../../assets/images/QnA2.png'
+import QnA3Img from '../../assets/images/QnA3.png'
 
 // 등록
 hljs.registerLanguage('java', java);
@@ -24,6 +27,9 @@ const CodeDescription = ({onClose, lang, codeId}) => {
     const [description, setDescription] = useState("");
     const [isAIChat, setIsAIChat] = useState(false);
     const [copied, setCopied] = useState(false);
+
+    const [qnAcurrnetIndex, setQnACurrentIndex] = useState(0);
+    const QnABtns = [QnA1Img, QnA2Img, QnA3Img];
 
     useEffect(() => {
             if (codeId){
@@ -73,7 +79,15 @@ const CodeDescription = ({onClose, lang, codeId}) => {
         
     }
 
+    useEffect(() =>  {
+        const QnAInterval = setInterval(() => {
+            setQnACurrentIndex((prev) => (prev + 1) % 3); 
+        }, 800);
 
+        return () => {
+            clearInterval(QnAInterval);
+        }
+    }, [])
 
     const langFormat = useMemo(() => {
         if (lang === "JAVA") return "language-java";
@@ -153,6 +167,9 @@ const CodeDescription = ({onClose, lang, codeId}) => {
                 <button
                   className="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 shadow-lg hover:brightness-110 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center animate-float ring-2 ring-indigo-300/50 hover:ring-4"
                 >
+                    <img src={QnABtns[qnAcurrnetIndex]} alt={`코드설명버튼${qnAcurrnetIndex + 1}`} 
+                        className= {`w-full cursor-pointer absolute -top-12 -right-6 will-change-transform animate-poke`}
+                    />
                     <img 
                         src={chatBtn} 
                         alt="챗봇버튼" 
