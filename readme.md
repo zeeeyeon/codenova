@@ -124,17 +124,17 @@ SSAFY 12기 2학기 자율 프로젝트 <br>
     </thead>
     <tbody>
         <td align="center">
-            <a href="https://github.com/">
+            <a href="https://github.com/zeeeyeon">
                 <img src="./exec/readme_images/jiyeon.png" width="120" height="150" />
             </a>
         </td>
         <td align="center">
-            <a href="https://github.com/">
+            <a href="https://github.com/ynghan">
                 <img src="./exec/readme_images/younghan.png" width="120" height="150"      style="object-fit: cover;" />
             </a>
         </td>
         <td align="center">
-            <a href="https://github.com/">
+            <a href="https://github.com/garam0107">
                 <img src="./exec/readme_images/garam.png" width="120" height="150" />
             </a>
         </td>
@@ -150,17 +150,17 @@ SSAFY 12기 2학기 자율 프로젝트 <br>
     </thead>
     <tbody>
         <td align="center">
-            <a href="https://github.com/">
+            <a href="https://github.com/skdud5126">
                 <img src="./exec/readme_images/nayoung.png" width="120" height="150" />
             </a>
         </td>
         <td align="center">
-            <a href="https://github.com/">
+            <a href="https://github.com/Yu-jiin">
                 <img src="./exec/readme_images/jiin.png" width="120" height="150" />
             </a>
         </td>
         <td align="center">
-            <a href="https://github.com/">
+            <a href="https://github.com/dh0728">
                 <img src="./exec/readme_images/donghyun.png" width="120" height="150" />
             </a>
         </td>
@@ -192,8 +192,6 @@ SSAFY 12기 2학기 자율 프로젝트 <br>
   <h3>유성 API</h3>
   <img src="./exec/readme_images/유성.png">
   <br>
- 
-  <img src="">
 </details>
 <details>
   <summary>아키텍처</summary>
