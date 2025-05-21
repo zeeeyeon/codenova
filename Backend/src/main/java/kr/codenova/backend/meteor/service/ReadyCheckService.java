@@ -48,7 +48,7 @@ public class ReadyCheckService {
         String timerKey = getTimerKey(roomId, sessionId);
         ScheduledFuture<?> warningTask = taskScheduler.schedule(() -> {
             sendReadyWarning(roomId, sessionId, nickname);
-        }, Instant.now().plusSeconds(20));
+        }, Instant.now().plusSeconds(50));
 
         // 타이머 저장
         warningTimers.put(timerKey, warningTask);
