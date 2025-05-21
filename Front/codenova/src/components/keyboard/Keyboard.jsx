@@ -65,13 +65,14 @@ import zImg from '../../assets/images/keyboard/Z.png'
 import clickSound from '../../assets/sound/keyboardSound2.mp3'
 
 import { useEffect, useState, useRef} from 'react'
-
+import useVolumeStore from '../../store/useVolumsStore'
 
 
 const Keyboard = () => {
 
     const [pressKey, setPressKey] = useState(null); // 현재 눌린키
 
+    const { effectVolume } = useVolumeStore();
     const audioRef = useRef(null);
 
     const keyboardMap = [
@@ -164,19 +165,20 @@ const Keyboard = () => {
     ];
 
     const playSound = () => {
+
+        if (!audioRef.current) {
+            audioRef.current = new Audio(clickSound);
+        }
+
         if (audioRef.current) {
             audioRef.current.pause();         // 기존 소리 중단
             audioRef.current.currentTime = 0; // 항상 처음부터 재생
+            audioRef.current.volume = effectVolume;
             audioRef.current.play().catch(e => {
                 // console.log('오디오 재생 실패', e)
             });
         }
     }
-
-    useEffect(() => {
-        audioRef.current = new Audio(clickSound);
-        audioRef.current.volume = 0.5;
-    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e) => {
