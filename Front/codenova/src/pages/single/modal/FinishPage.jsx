@@ -86,7 +86,7 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, onShowCodeDescription}) =>
             />
             ))}
 
-            <div className= 'relative w-[50%] h-[70%] max-w-5xl py-12 px-6 flex flex-col items-center gap-6 rounded-3xl'
+            <div className= 'relative w-[40%] h-[60%] max-w-5xl py-12 px-6 flex flex-col justify-center items-center gap-6 rounded-3xl'
                 style={{
                     backgroundImage: `url(${box})`,
                     backgroundSize: '100% 100%',
@@ -115,7 +115,7 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, onShowCodeDescription}) =>
 
 
                 {/* 모달 컨텐츠들 */}
-                <div className="text-white flex flex-col items-center justify-center w-full mt-[3vw] ">
+                <div className="text-white flex flex-col items-center justify-center w-full h-auto  ">
 
                     {/* 컨텐츠 타이틀 */}
                     <div className="title flex item-center gap-3 text-4xl mb-4">

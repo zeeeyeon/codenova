@@ -4,7 +4,7 @@ import authApi from "./authAxiosConfig";
 export const getMyProfile = async () => {
     try {
         const response = await authApi.get('/api/member/profile');
-        // console.log(response.data);
+        console.log(response.data);
         return response.data;
 
     } catch (e) {
