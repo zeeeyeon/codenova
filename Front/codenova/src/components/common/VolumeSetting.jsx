@@ -28,14 +28,14 @@ const VolumsSetting = () => {
             {/* 배경 소리 조절 */}
             <VolumeSlider
                 label="게임음향"
-                value={bgmVolume * 100}
+                value={Math.round(bgmVolume * 100)}
                 onChange={(e) => setBgmVolume(Number(e.target.value) / 100 )}
         />
 
             {/* 유성 소리 조절 */}
             <VolumeSlider
                 label="타건음향"
-                value={effectVolume * 100}
+                value={Math.round(effectVolume * 100)}
                 onChange={(e) => setEffectVolume(Number(e.target.value) / 100 )}
             />
         </div>
