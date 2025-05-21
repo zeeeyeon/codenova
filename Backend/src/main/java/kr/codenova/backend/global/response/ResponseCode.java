@@ -11,6 +11,7 @@ public enum ResponseCode {
     SUCCESS_LOGIN(200, HttpStatus.OK, "로그인이 성공적으로 완료되었습니다."),
     SUCCESS_SIGNUP(200, HttpStatus.OK, "회원가입이 성공적으로 완료되었습니다."),
     FAIL_LOGIN(400, HttpStatus.OK, "로그인에 실패했습니다."),
+    INACTIVE_ACCOUNT(403, HttpStatus.FORBIDDEN, "비활성화된 계정입니다."),
     EXISTED_USER_ID(400, HttpStatus.OK, "아미 존재하는 아이디입니다."),
     EXISTED_USER_NICKNAME(400, HttpStatus.OK, "해당 닉네임은 이미 존재하는 닉네임 입니다."),
     NOT_FOUND_USER(400, HttpStatus.OK, "해당 사용자를 찾지 못하였습니다."),
