@@ -283,11 +283,11 @@ const SinglePage = () => {
                 setCpm(response.content.typingSpeed)
                 await postResult(response.content.verifiedToken)
             } else{
-                alert(" 😅 서버로 기록을 저장할 수 없습니다.")
+                // alert(" 😅 서버로 기록을 저장할 수 없습니다.")
             }
         } 
         catch (e) {
-            alert("서버 오류.");
+            // alert("서버 오류.");
         }
     }
 
