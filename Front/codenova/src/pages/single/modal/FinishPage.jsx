@@ -86,7 +86,7 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, onShowCodeDescription}) =>
             />
             ))}
 
-            <div className= 'relative w-[45vw] h-[30vw] max-w-5xl py-12 px-6 flex flex-col items-center gap-6 rounded-3xl'
+            <div className= 'relative w-[50%] h-[70%] max-w-5xl py-12 px-6 flex flex-col items-center gap-6 rounded-3xl'
                 style={{
                     backgroundImage: `url(${box})`,
                     backgroundSize: '100% 100%',
@@ -136,8 +136,9 @@ const FinishPage = ({ codeId, lang, cpm, elapsedTime, onShowCodeDescription}) =>
                         </div>
                     </div>
 
+                    
                     {/* 버튼 컨테이너  */}
-                    <div className={`mt-10 flex w-[30vw] max-w-[400px] justify-center gap-12`}>
+                    <div className={`mt-10 flex w-[40%] max-w-[400px] justify-center gap-12`}>
                 
                         <img
                             src={restartBtn}
