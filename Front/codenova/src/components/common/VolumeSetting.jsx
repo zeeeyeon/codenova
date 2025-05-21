@@ -1,10 +1,9 @@
 import VolumeSlider from "./VolumsSlider"
-import { useState } from "react";
+import useVolumeStore from "../../store/useVolumsStore";
 
 const VolumsSetting = () => {
 
-    const [bgmVolume, setBgmVolume] = useState(50);
-    const [effectVolume, setEffectVolume] = useState(70);
+    const { bgmVolume, effectVolume, setBgmVolume, setEffectVolume } = useVolumeStore();
 
     return (
         <div className="flex flex-col w-[90%] h-[30%] mb-4 justify-center items-center">
@@ -20,7 +19,7 @@ const VolumsSetting = () => {
                     </span>
                     <div className="absolute top-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-black bg-opacity-90 text-white text-sm px-3 py-2 rounded shadow-md whitespace-nowrap z-30 text-center
                         animate-fade-slide-up">
-                        추후 음악 추가 예정<br />
+                        게임응향: 멀티 AND 유성 BGM설정 <br /> 타건음향: 싱글모드 타건설정
                     </div>
                 </div>
             </div>
@@ -28,16 +27,16 @@ const VolumsSetting = () => {
 
             {/* 배경 소리 조절 */}
             <VolumeSlider
-                label="배경음악"
-                value={bgmVolume}
-                onChange={(e) => setBgmVolume(Number(e.target.value))}
+                label="게임음향"
+                value={bgmVolume * 100}
+                onChange={(e) => setBgmVolume(Number(e.target.value) / 100 )}
         />
 
             {/* 유성 소리 조절 */}
             <VolumeSlider
-                label="게임음악"
-                value={effectVolume}
-                onChange={(e) => setEffectVolume(Number(e.target.value))}
+                label="타건음향"
+                value={effectVolume * 100}
+                onChange={(e) => setEffectVolume(Number(e.target.value) / 100 )}
             />
         </div>
     )
