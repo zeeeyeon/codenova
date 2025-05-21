@@ -1,5 +1,5 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import multiBg from "../../assets/images/multi_background.png";
 import Header from "../../components/common/Header";
 import boardBg from "../../assets/images/board1.jpg";
@@ -17,7 +17,8 @@ import useAuthStore from "../../store/authStore";
 import AloneAlertModal from "../../components/multi/modal/AloneAlertModal";
 import gameEndBtn from "../../assets/images/multi_game_end_btn.png";
 import MultiAlertModal from "../../components/multi/modal/MultiAlertModal";
-
+import useVolumeStore from "../../store/useVolumsStore";
+import bgm from "../../assets/sound/meteoBGM.mp3";
 
 const TypingBattlePage = () => {
   const { roomId } = useParams();  // ✅ roomId 읽어오기
@@ -51,6 +52,8 @@ const TypingBattlePage = () => {
   const [roomInfo, setRoomInfo] = useState(null);
   const nickname = useAuthStore((state) => state.user?.nickname);
 
+  const { bgmVolume } = useVolumeStore();
+  const audioRef = useRef(null);
 
   const [users, setUsers] = useState(() => {
     const initialUsers = state?.users?.filter(u => !u.empty) || [];
@@ -157,6 +160,25 @@ const TypingBattlePage = () => {
     socket.on("typing_start", handleTypingStart);
     return () => socket.off("typing_start", handleTypingStart);
   }, []);
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(bgm);
+      audioRef.current.loop = true;
+      audioRef.current.volume = bgmVolume;
+    }
+
+    if (gameStarted) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((e) => {
+        // console.warn("재생 실패:", e);
+      });
+    } else {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  }, [gameStarted]);
+
   
   useEffect(() => {
     const socket = getSocket();
@@ -295,7 +317,15 @@ const TypingBattlePage = () => {
 
     };
     socket.on("game_result", handleGameResult);
-    return () => socket.off("game_result", handleGameResult);
+    return () => {
+      socket.off("game_result", handleGameResult)
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current = null; // 깔끔한 해제
+      }
+    };
   }, []);
 
   // 게임 종료시 받는 방 상태 정보보

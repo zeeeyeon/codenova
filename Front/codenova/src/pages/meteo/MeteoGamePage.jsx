@@ -16,6 +16,7 @@ import gameOverLottie from "../../assets/lottie/game_over.json";
 import victoryLottie from "../../assets/lottie/victory.json";
 import bgm from "../../assets/sound/meteoBGM.mp3";
 import explosionLottie from "../../assets/lottie/explosion.json";
+import useVolumeStore from "../../store/useVolumsStore";
 
 const MeteoGamePage = () => {
   const navigate = useNavigate();
@@ -30,23 +31,33 @@ const MeteoGamePage = () => {
   const [showGameOver, setShowGameOver] = useState(false);
   const [showVictory, setShowVictory] = useState(false);
 
+  const { bgmVolume } = useVolumeStore();
+  const audioRef = useRef(null);
+
   // input 포커싱
   const inputRef = useRef(null);
   useEffect(() => {
     inputRef.current?.focus();  // 3. 페이지 진입 시 포커스
 
-    const audio = new Audio(bgm);         // 1. 오디오 객체 생성
-    audio.loop = false;                    // 2. 반복 재생 설정
-    audio.volume = 0.3;                   // 3. 볼륨을 30%로 설정
+    const audio = new Audio(bgm);
+    audio.loop = true;
+    audio.volume = bgmVolume;
     audio.play().catch((e) => {           // 4. 자동 재생 시도 + 차단 시 경고 출력
       // console.warn("⚠️ 자동 재생 차단됨:", e);
     });
+    audioRef.current = audio;
 
     return () => {
       audio.pause();                      // 5. 페이지 벗어날 때 음악 멈춤
       audio.currentTime = 0;             // 6. 재생 위치를 처음으로 초기화
     }
     }, []);
+
+    useEffect(() => {
+      if (audioRef.current) {
+        audioRef.current.volume = bgmVolume;
+      }
+    }, [bgmVolume]);
 
   // 닉네임 매핑
   const [playerList, setPlayerList] = useState(players?.map(p => p.nickname) || []);
