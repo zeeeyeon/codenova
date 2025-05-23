@@ -41,7 +41,7 @@ const TypingBattlePage = () => {
   const [roundScoreData, setRoundScoreData] = useState(null);
   const [firstFinisher, setFirstFinisher] = useState(null);  // 첫번째 완주자
   const [currentRound, setCurrentRound] = useState(1);
-  const [modalCountdown, setModalCountdown] = useState(5);
+  const [modalCountdown, setModalCountdown] = useState(null);
   const [finalResults, setFinalResults] = useState([]);
   const [showFinalModal, setShowFinalModal] = useState(false);
   const [oneLeftRoomInfo, setOneLeftRoomInfo] = useState(null);  // 배틀시 한명남았을때
@@ -262,49 +262,61 @@ const TypingBattlePage = () => {
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
-  
+
     const handleRoundScore = (data) => {
       // console.log("📊 round_score 수신:", data);
       setRoundScoreData(data);
-      
+
       setShowRoundScoreModal(true);
-      setModalCountdown(5); // 카운트다운 초기화
-  
-      const interval = setInterval(() => {
-        setModalCountdown((prev) => {
-          if (prev === 1) {
-            clearInterval(interval);
-            setShowRoundScoreModal(false);
-  
-            if (data.round < 3) {
-              // console.log("🍆 round_start emit :", data.round);
-              // setCountdown(5);
-              setCurrentRound(data.round+1);
-              setGameStarted(false);
-              setRoundEnded(false);
-              setFirstFinisher(null);
-              // setTargetCode("");
-              setElapsedTime(0);       // 타이머 초기화
-              setStartTime(null);      // 시작시간 초기화
-              setTimeRunning(false);   // 혹시 모를 타이머 동작 방지
+      // setModalCountdown(5); // 이 줄 제거 - 서버 카운트다운으로 대체
 
-              // console.log("🎙️ round_start emit 시도:", { roomId, nickname});
-              socket.emit("round_start", {
-                roomId,
-                nickname,
-              });
-            
-            }
-
-          }
-          return prev - 1;
-        });
-      }, 1000);
+      // 클라이언트 측 interval 제거하고 서버 이벤트에 의존
+      // const interval = setInterval(() => { ... }); // 이 부분 제거
     };
-    
+
+    // 새로운 이벤트 핸들러: 서버에서 오는 카운트다운 처리
+    const handleRoundCountDown = (data) => {
+      // console.log("⏰ round_count_down 수신:", data);
+
+      // 서버에서 오는 seconds 값으로 카운트다운 설정
+      setModalCountdown(data.seconds);
+
+      // 카운트다운이 끝나면 (1초 또는 0초일 때) 모달 닫고 다음 라운드 시작
+      if (data.seconds <= 1) {
+        setTimeout(() => {
+          setShowRoundScoreModal(false);
+
+          // 라운드 데이터가 있고 3라운드 미만인 경우 다음 라운드 시작
+          if (roundScoreData && roundScoreData.round < 3) {
+            // console.log("🔄 다음 라운드 준비:", roundScoreData.round + 1);
+
+            setCurrentRound(roundScoreData.round + 1);
+            setGameStarted(false);
+            setRoundEnded(false);
+            setFirstFinisher(null);
+            // setTargetCode(""); // 주석 유지
+            setElapsedTime(0);
+            setStartTime(null);
+            setTimeRunning(false);
+
+            // console.log("🎙️ round_start emit 시도:", { roomId, nickname });
+            socket.emit("round_start", {
+              roomId,
+              nickname,
+            });
+          }
+        }, 1000); // 1초 후 실행하여 자연스러운 전환
+      }
+    };
+
     socket.on("round_score", handleRoundScore);
-    return () => socket.off("round_score", handleRoundScore);
-  }, []);
+    socket.on("round_count_down", handleRoundCountDown); // 새 이벤트 리스너 추가
+
+    return () => {
+      socket.off("round_score", handleRoundScore);
+      socket.off("round_count_down", handleRoundCountDown); // 정리
+    };
+  }, [roomId, nickname, roundScoreData]);
 
   useEffect(() => {
     const socket = getSocket();
