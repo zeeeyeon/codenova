@@ -283,7 +283,7 @@ const TypingBattlePage = () => {
               setGameStarted(false);
               setRoundEnded(false);
               setFirstFinisher(null);
-              setTargetCode("");
+              // setTargetCode("");
               setElapsedTime(0);       // 타이머 초기화
               setStartTime(null);      // 시작시간 초기화
               setTimeRunning(false);   // 혹시 모를 타이머 동작 방지
