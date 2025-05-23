@@ -2,7 +2,6 @@ package kr.codenova.backend.multi.game;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import kr.codenova.backend.common.entity.Code;
-import kr.codenova.backend.common.enums.Language;
 import kr.codenova.backend.common.repository.CodeRepository;
 import kr.codenova.backend.global.config.socket.SocketIOServerProvider;
 import kr.codenova.backend.global.exception.CustomException;
@@ -234,7 +233,7 @@ public class GameServiceImpl implements GameService {
     }
 
     // 7. 라운드 종료
-    public void endRound(String roomId) {
+    public void endRound(String roomId) throws InterruptedException {
         Room room = roomService.getRoom(roomId);
         if (room == null) {
             throw new RoomNotFoundException("방을 찾을 수 없습니다.");
@@ -260,6 +259,14 @@ public class GameServiceImpl implements GameService {
                 endGame(roomId); // 🎯 자동 게임 종료
             } else {
                 resetRoundData(room);
+
+                // 5초 동안 count 이벤트("round_count_down")
+                for (int i = 5; i >= 1; i--) {
+                    CountDownBroadcast countDown = new CountDownBroadcast(roomId, i);
+                    getServer().getRoomOperations(roomId)
+                            .sendEvent("round_count_down", countDown);
+                    Thread.sleep(1000); // 1초 간격
+                }
             }
         }
     }

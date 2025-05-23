@@ -46,7 +46,7 @@ public interface GameService {
     public void updateProgress(ProgressUpdateRequest request);
 
     // 7. 라운드 종료
-    void endRound(String roomId);
+    void endRound(String roomId) throws InterruptedException;
 
     // 8. 라운드 시작
     void startRound(RoundStartRequest request) throws IsNotHostException;
