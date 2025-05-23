@@ -18,18 +18,7 @@ const TypingBox = ({
   currentRound,
   disabled = false
 }) => {
-  if (!targetCode) {
-    return (
-      <div className="w-[93%] h-[96%] flex flex-col justify-center items-center bg-[#110429] rounded-2xl border-4 border-cyan-400 text-white text-xl animate-pulse">
-          <Player
-            autoplay
-            loop
-            src={codeLoading}
-            style={{ height: '450px', width: '450px' }}
-          />
-        </div>
-    );
-  }
+
 
   const inputRef = useRef(null);
   const lines = targetCode.split("\n");
@@ -45,10 +34,23 @@ const TypingBox = ({
   const nickname = useAuthStore((state) => state.user?.nickname);
   const currentLineRef = useRef(null);
   const preContainerRef = useRef(null);
+  
+  const [code ,setCode] = useState(targetCode)
 
   // 텍스트 색깔 지정
   const initColors = userColorStore((state) => state.initColors);
     
+  useEffect(() => {
+    console.log("🧪 targetCode 디버깅 로그");
+    console.log("값:", targetCode);
+    console.log("타입:", typeof targetCode);
+    console.log("isFalsy?", !targetCode);
+    console.log("isEmptyString?", targetCode === "");
+    console.log("isNull?", targetCode === null);
+    console.log("isUndefined?", typeof targetCode === "undefined");
+  }, [targetCode]);
+
+
   useEffect(() => {
       inputRef.current?.focus();
       initColors
@@ -232,27 +234,37 @@ const TypingBox = ({
             ⏱ {elapsedTimeFormatted}
           </div>
 
-          <pre ref={preContainerRef} className="overflow-auto w-full h-[90%] p-4 text-xl custom-scrollbar mb-2">
-            <code>
-              {lines.map((line, idx) => {
-                const normalizedInput = userInput.split('');
-                const isCurrent = idx === currentLine;
-                const indent = line.length - line.trimStart().length;
-                const indentSpaces = line.slice(0, indent);
-                const content = line.trimStart();
+          {/*  !targetCode || targetCode.trim().length === 0 => true이면 */}
 
-                return (
-                  <div key={idx} className="codeLine max-h-[28px]"
-                  ref={isCurrent ? currentLineRef : null}
-                  >
-                    {/* 들여쓰기 공백 렌더 */}
-                    <span>
-                      {indentSpaces.split('').map((_, i) => (
-                        <span key={i}>&nbsp;</span>
-                      ))}
-                    </span>
+        {
+          !targetCode || targetCode.trim().length === 0 ? (
+            <div className="w-full h-full flex flex-col justify-center items-center text-white text-xl animate-pulse">
+              <Player
+                autoplay
+                loop
+                src={codeLoading}
+                style={{ height: '450px', width: '450px' }}
+              />
+            </div>
+          ) : (
+            <pre ref={preContainerRef} className="overflow-auto w-full h-[90%] p-4 text-xl custom-scrollbar mb-2">
+              <code>
+                {lines.map((line, idx) => {
+                  const normalizedInput = userInput.split('');
+                  const isCurrent = idx === currentLine;
+                  const indent = line.length - line.trimStart().length;
+                  const indentSpaces = line.slice(0, indent);
+                  const content = line.trimStart();
 
-                    {isCurrent ? (
+                  return (
+                    <div key={idx} className="codeLine max-h-[28px]" ref={isCurrent ? currentLineRef : null}>
+                      <span>
+                        {indentSpaces.split('').map((_, i) => (
+                          <span key={i}>&nbsp;</span>
+                        ))}
+                      </span>
+
+                      {isCurrent ? (
                         <>
                           {content.split('').map((char, i) => {
                             const inputChar = normalizedInput[i];
@@ -264,24 +276,15 @@ const TypingBox = ({
                             } else if (inputChar === char) {
                               className = 'typed currentLine';
                             } else {
-                              // 틀린 경우
-                              if (char === ' ') {
-                                className = 'wrong currentLine bg-red-400'; // 공백인데 틀림
-                              } else {
-                                className = 'wrong currentLine';
-                              }
+                              className = char === ' ' ? 'wrong currentLine bg-red-400' : 'wrong currentLine';
                             }
 
                             return (
                               <span key={i} className="cursor-container">
                                 {isCursor && (
-                                  <span
-                                    className={`cursor ${char === ' ' && inputChar !== char ? 'bg-red-400' : ''}`}
-                                  />
+                                  <span className={`cursor ${char === ' ' && inputChar !== char ? 'bg-red-400' : ''}`} />
                                 )}
-                                <span className={className}>
-                                  {char === ' ' ? '\u00A0' : char}
-                                </span>
+                                <span className={className}>{char === ' ' ? '\u00A0' : char}</span>
                               </span>
                             );
                           })}
@@ -307,10 +310,12 @@ const TypingBox = ({
                         </>
                       )}
                     </div>
-                );
-              })}
-            </code>
-          </pre>
+                  );
+                })}
+              </code>
+            </pre>
+          )
+        }
 
 
         </div>
