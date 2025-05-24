@@ -295,7 +295,7 @@ const TypingBattlePage = () => {
             setGameStarted(false);
             setRoundEnded(false);
             setFirstFinisher(null);
-            // setTargetCode(""); // 주석 유지
+            setTargetCode(""); 
             setElapsedTime(0);
             setStartTime(null);
             setTimeRunning(false);
@@ -472,7 +472,7 @@ const TypingBattlePage = () => {
         {/* 타이핑 박스 */}
         <div className="h-[45%] flex items-center justify-center ">
         <TypingBox
-            // key={currentRound}
+            key={currentRound}
             roomId={roomId}
             gameStarted = {gameStarted} 
             elapsedTime={elapsedTime} 

@@ -8,17 +8,6 @@ import codeLoading from "../../../assets/lottie/code_loading.json";
 import { userColorStore } from "../../../store/userSettingStore";
 
 
-// TypingBox.jsx 최상단
-const DEFAULT_CODE = `public class SumArray {
-  public static void main(String[] args) {
-      int[] nums = {1, 2, 3};
-      int sum = 0;
-      for (int n : nums) sum += n;
-      System.out.println(sum);
-  }
-}`;
-
-
 
 const TypingBox = ({ 
   roomId, 
@@ -30,10 +19,9 @@ const TypingBox = ({
   disabled = false
 }) => {
 
-  const displayCode =
-    targetCode && targetCode.trim().length ? targetCode : DEFAULT_CODE;
+
   const inputRef = useRef(null);
-  const lines = displayCode.split("\n");
+  const lines = targetCode.split("\n");
   const [currentLine, setCurrentLine] = useState(0);
   const [userInput, setUserInput] = useState("");
   const [shake, setShake] = useState(false);
@@ -46,7 +34,7 @@ const TypingBox = ({
   const nickname = useAuthStore((state) => state.user?.nickname);
   const currentLineRef = useRef(null);
   const preContainerRef = useRef(null);
-  
+
   const [code ,setCode] = useState(targetCode)
 
   // 텍스트 색깔 지정
@@ -248,7 +236,7 @@ const TypingBox = ({
 
           {/*  !targetCode || targetCode.trim().length === 0 => true이면 */}
 
-        {/* {
+        {
           !targetCode || targetCode.trim().length === 0 ? (
             <div className="w-full h-full flex flex-col justify-center items-center text-white text-xl animate-pulse">
               <Player
@@ -258,7 +246,7 @@ const TypingBox = ({
                 style={{ height: '450px', width: '450px' }}
               />
             </div>
-          ) : ( */}
+          ) : (
             <pre ref={preContainerRef} className="overflow-auto w-full h-[90%] p-4 text-xl custom-scrollbar mb-2">
               <code>
                 {lines.map((line, idx) => {
@@ -326,8 +314,8 @@ const TypingBox = ({
                 })}
               </code>
             </pre>
-          {/* )
-        } */}
+          )
+        }
 
 
         </div>
