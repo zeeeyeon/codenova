@@ -123,7 +123,7 @@ public class ChatServiceImpl implements ChatService {
 
         // 본문에 넣을 Openai 모델
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("model", "gpt-4.1");
+        body.put("model", "gpt-4.1-mini");
 
         // 메시지 추가 ( 대답하는 형식과 클라이언트)
         List<Map<String, String>> messages = new ArrayList<>();
