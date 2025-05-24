@@ -8,7 +8,16 @@ import codeLoading from "../../../assets/lottie/code_loading.json";
 import { userColorStore } from "../../../store/userSettingStore";
 
 
-const DEFAULT_CODE = 'default test';
+// TypingBox.jsx 최상단
+const DEFAULT_CODE = `public class SumArray {
+  public static void main(String[] args) {
+      int[] nums = {1, 2, 3};
+      int sum = 0;
+      for (int n : nums) sum += n;
+      System.out.println(sum);
+  }
+}`;
+
 
 
 const TypingBox = ({ 
