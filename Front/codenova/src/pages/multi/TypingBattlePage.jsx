@@ -140,6 +140,7 @@ const TypingBattlePage = () => {
 
 
   useEffect(() => {
+    console.log("getSocket() → ", getSocket());
     const socket = getSocket();
     if (!socket) return;
 
