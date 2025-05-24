@@ -38,7 +38,7 @@ public class Member {
 
     private int warnCount;
     @Column(columnDefinition = "BOOLEAN DEFAULT TRUE")
-    private boolean isActive;
+    private boolean isActive = true;
 
     @Builder
     public Member(Integer memberId, String id, String password, String nickname,
