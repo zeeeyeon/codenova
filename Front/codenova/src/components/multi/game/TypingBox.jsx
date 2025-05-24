@@ -8,6 +8,8 @@ import codeLoading from "../../../assets/lottie/code_loading.json";
 import { userColorStore } from "../../../store/userSettingStore";
 
 
+const DEFAULT_CODE = 'default test';
+
 
 const TypingBox = ({ 
   roomId, 
@@ -19,9 +21,10 @@ const TypingBox = ({
   disabled = false
 }) => {
 
-
+  const displayCode =
+    targetCode && targetCode.trim().length ? targetCode : DEFAULT_CODE;
   const inputRef = useRef(null);
-  const lines = targetCode.split("\n");
+  const lines = displayCode.split("\n");
   const [currentLine, setCurrentLine] = useState(0);
   const [userInput, setUserInput] = useState("");
   const [shake, setShake] = useState(false);
@@ -236,7 +239,7 @@ const TypingBox = ({
 
           {/*  !targetCode || targetCode.trim().length === 0 => true이면 */}
 
-        {
+        {/* {
           !targetCode || targetCode.trim().length === 0 ? (
             <div className="w-full h-full flex flex-col justify-center items-center text-white text-xl animate-pulse">
               <Player
@@ -246,7 +249,7 @@ const TypingBox = ({
                 style={{ height: '450px', width: '450px' }}
               />
             </div>
-          ) : (
+          ) : ( */}
             <pre ref={preContainerRef} className="overflow-auto w-full h-[90%] p-4 text-xl custom-scrollbar mb-2">
               <code>
                 {lines.map((line, idx) => {
@@ -314,8 +317,8 @@ const TypingBox = ({
                 })}
               </code>
             </pre>
-          )
-        }
+          {/* )
+        } */}
 
 
         </div>
