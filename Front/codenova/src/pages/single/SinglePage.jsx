@@ -283,11 +283,11 @@ const SinglePage = () => {
                 setCpm(response.content.typingSpeed)
                 await postResult(response.content.verifiedToken)
             } else{
-                // alert(" 😅 서버로 기록을 저장할 수 없습니다.")
+                // console.log(response)
             }
         } 
         catch (e) {
-            // alert("서버 오류.");
+            // console.log(e)
         }
     }
 
@@ -306,7 +306,7 @@ const SinglePage = () => {
                 // console.log("비정상적인 접근입니다.")
             }
         } catch (e) {
-            console.error("postResult error:", e);
+            // console.error("postResult error:", e);
         }
     }
 
