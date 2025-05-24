@@ -144,7 +144,7 @@ const TypingBattlePage = () => {
     if (!socket) return;
 
     const handleTypingStart = (data) => {
-      // console.log("🥘 typing_start 수신:", data);
+      console.log("🥘 typing_start 수신:", data);
       setTargetCode(data.script); // 문제 저장
 
       setUsers((prev) =>
@@ -430,7 +430,7 @@ const TypingBattlePage = () => {
            {currentRound === 3 ? (
             <>🔥 마지막 라운드 종료까지 {roundEndingCountdown}초 남았습니다</>
           ) : (
-            <>Round {currentRound} 종료까지 {roundEndingCountdown}초 남았습니다</>
+            <>게임 종료까지 {roundEndingCountdown}초 남았습니다</>
           )}
         </div>
       )}
@@ -471,7 +471,7 @@ const TypingBattlePage = () => {
         {/* 타이핑 박스 */}
         <div className="h-[45%] flex items-center justify-center ">
         <TypingBox
-            key={currentRound}
+            // key={currentRound}
             roomId={roomId}
             gameStarted = {gameStarted} 
             elapsedTime={elapsedTime} 
