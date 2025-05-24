@@ -92,7 +92,7 @@ const ChatBox = ({codeId}) => {
                 const AIResponse = {
                     sender: "AI",
                     time: new Date().toLocaleString(),
-                    message: "⚠️ 오류: 응답 실패"
+                    message: "다시 한번 물어봐 주세요!!"
                 }
                 replaceLastMessage(codeId, AIResponse);
                 setContent((prev) => [...prev.slice(0, -1), AIResponse]);
@@ -101,7 +101,7 @@ const ChatBox = ({codeId}) => {
             const AIResponse = {
                     sender: "AI",
                     time: new Date().toLocaleString(),
-                    message: "⚠️ 서버 오류 발생"
+                    message: "다시 한번 물어봐 주세요!!"
                 }
                 replaceLastMessage(codeId, AIResponse);
                 setContent((prev) => [...prev.slice(0, -1), AIResponse]);
