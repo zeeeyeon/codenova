@@ -145,7 +145,7 @@ const MakeRoomModal = ({ onClose, isEdit=false, initialData = {} }) => {
                               disabled={isDisabled}
                               className="peer scale-150 accent-fuchsia-600 rounded-sm"
                             />
-                            <span className={`cursor-[url('/cursors/click.png')_16_16,_pointer] transition ${isDisabled ? "text-gray-400" : "peer-checked:text-fuchsia-400"}`}>
+                            <span className={`ransition ${isDisabled ? "text-gray-400" : "peer-checked:text-fuchsia-400"}`}>
                               {n}명
                             </span>
                           </label>
@@ -195,7 +195,7 @@ const MakeRoomModal = ({ onClose, isEdit=false, initialData = {} }) => {
                     onChange={() => setIsPublic(true)}
                     className="peer scale-150 accent-fuchsia-600 rounded-sm"
                 />
-                <span className="cursor-[url('/cursors/click.png')_16_16,_pointer] peer-checked:text-fuchsia-400 transition">
+                <span className="peer-checked:text-fuchsia-400 transition">
                     공개
                 </span>
               </label>
@@ -207,7 +207,7 @@ const MakeRoomModal = ({ onClose, isEdit=false, initialData = {} }) => {
                     onChange={() => setIsPublic(false)}
                     className="peer scale-150 accent-fuchsia-600 rounded-sm"
                 />
-                <span className="cursor-[url('/cursors/click.png')_16_16,_pointer] peer-checked:text-fuchsia-400 transition">
+                <span className=" peer-checked:text-fuchsia-400 transition">
                     비공개
                 </span>
                 </label>

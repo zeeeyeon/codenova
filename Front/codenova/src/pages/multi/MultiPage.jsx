@@ -229,7 +229,7 @@ const MultiPage = () => {
           role="button"
           onClick={() => navigate("/main")}
           className="absolute bottom-24 right-5 w-[7rem] h-[3rem] hover:brightness-110 hover:scale-[0.98] active:scale-[0.95] transition"
-          style={{ cursor: "url('/cursors/click.png') 32 32, pointer" }}
+          // style={{ cursor: "url('/cursors/click.png') 32 32, pointer" }}
         />
 
       </div>
