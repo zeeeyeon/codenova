@@ -140,12 +140,12 @@ const TypingBattlePage = () => {
 
 
   useEffect(() => {
-    console.log("getSocket() → ", getSocket());
+    // console.log("getSocket() → ", getSocket());
     const socket = getSocket();
     if (!socket) return;
 
     const handleTypingStart = (data) => {
-      console.log("🥘 typing_start 수신:", data);
+      // console.log("🥘 typing_start 수신:", data);
       setTargetCode(data.script); // 문제 저장
 
       setUsers((prev) =>
