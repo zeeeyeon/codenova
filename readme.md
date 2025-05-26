@@ -195,7 +195,7 @@ SSAFY 12기 2학기 자율 프로젝트 <br>
 </details>
 <details>
   <summary>아키텍처</summary>
-  <img src="">
+  <img src="./exec/readme_images/arch.png">
 </details>
 <details>
   <summary>UCC</summary>
