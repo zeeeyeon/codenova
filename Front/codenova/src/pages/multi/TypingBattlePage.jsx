@@ -431,7 +431,7 @@ const TypingBattlePage = () => {
            {currentRound === 3 ? (
             <>🔥 마지막 라운드 종료까지 {roundEndingCountdown}초 남았습니다</>
           ) : (
-            <>게임 종료까지 {roundEndingCountdown}초 남았습니다</>
+            <>Round {currentRound} 종료까지 {roundEndingCountdown}초 남았습니다</>
           )}
         </div>
       )}
