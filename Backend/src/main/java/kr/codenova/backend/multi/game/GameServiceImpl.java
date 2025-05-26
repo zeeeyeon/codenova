@@ -256,7 +256,7 @@ public class GameServiceImpl implements GameService {
             getServer().getRoomOperations(roomId)
                     .sendEvent("round_score", broadcast);
             // ✅ 라운드 수에 따라 자동 종료 또는 다음 라운드
-            int MAX_ROUND = 1;
+            int MAX_ROUND = 3;
             if (room.getRoundNumber() >= MAX_ROUND) {
                 endGame(roomId); // 🎯 자동 게임 종료
             } else {
