@@ -34,7 +34,7 @@ public class ChatServiceImpl implements ChatService {
     @Value("${openai.api.key}")
     private String gmsKey;
 
-    private static final String GPT_API_URL = "https://gms.p.ssafy.io/gmsapi/api.openai.com/v1/chat/completions";
+    private static final String GPT_API_URL = "https://api.openai.com/v1/chat/completions";
 
     // 사용자별 대화 이력
 //    private final Map<String, List<Map<String, String>>> userConversation = new ConcurrentHashMap<>();
