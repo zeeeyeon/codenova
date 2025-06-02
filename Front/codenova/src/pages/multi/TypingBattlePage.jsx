@@ -230,11 +230,11 @@ const TypingBattlePage = () => {
     const handleCountDown = (data) => {
       // console.log("⏱ end count_down 수신:", data.seconds); // 10~1까지 수신
   
-      if (data.count === 10) {
+      if (data.count === 5) {
         // 최초 10초 카운트 시작 시, 내 타이머 멈춤 + 카운트다운 시작
         setRoundEnded(true);
         setTimeRunning(false);
-        setRoundEndingCountdown(10);
+        setRoundEndingCountdown(5);
       } else {
         setRoundEndingCountdown(data.seconds);
   
@@ -431,7 +431,7 @@ const TypingBattlePage = () => {
            {currentRound === 3 ? (
             <>🔥 마지막 라운드 종료까지 {roundEndingCountdown}초 남았습니다</>
           ) : (
-            <>Round {currentRound} 종료까지 {roundEndingCountdown}초 남았습니다</>
+            <>게임임 종료까지 {roundEndingCountdown}초 남았습니다</>
           )}
         </div>
       )}
