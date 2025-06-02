@@ -100,16 +100,16 @@ const SinglePage = () => {
         };
     },[])
 
-    useEffect(() => {
-        const handleWindowBlur = () => {
-            if (!isFinished) setIsFinished(true);
-        };
+    // useEffect(() => {
+    //     const handleWindowBlur = () => {
+    //         if (!isFinished) setIsFinished(true);
+    //     };
 
-        window.addEventListener("blur", handleWindowBlur);
-        return () => {
-            window.removeEventListener("blur", handleWindowBlur);
-        };
-    }, []);
+    //     window.addEventListener("blur", handleWindowBlur);
+    //     return () => {
+    //         window.removeEventListener("blur", handleWindowBlur);
+    //     };
+    // }, []);
 
     useEffect(() => {
         const accessToken = getAccessToken();
@@ -207,7 +207,7 @@ const SinglePage = () => {
             };
             keyLogsRef.current.push(newLog);
             setLogCount((prev) => prev + 1);
-            //console.log("입력된 키", newLog.key)
+            // console.log("입력된 키", newLog.key)
         }
 
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') { // ctrl+V or commend + V 막기기
@@ -240,6 +240,63 @@ const SinglePage = () => {
             if (currentCharIndex > 0) {
                 setCurrentCharIndex((prev) => prev - 1); // 지운 글자만큼 currentCharIndex 감소
             }
+        }
+    };
+
+    // 터치용
+    const handleVirtualKeyInput = (key) => {
+
+        if (!isStarted) {
+            setStartTime(Date.now())
+            setIsStarted(true);
+        }
+
+        // ↓ 입력 길이 제한 확인
+        const isTypingKey = key.length === 1; // 문자, 숫자, 스페이스 등 일반 키
+        const isInputTooLong = currentInput.length >= lines[currentLineIndex]?.length;
+        const ALWAYS_LOG_KEYS = ['Enter', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight'];
+        const shouldLog = !isInputTooLong || 
+                          !isTypingKey || 
+                          ALWAYS_LOG_KEYS.includes(key) //혹시 모르니까 특정키는 무조건 넣게 하기기 
+
+        if (shouldLog) {
+            const newLog = {
+                key: key,
+                timestamp: Date.now(),
+            };
+            keyLogsRef.current.push(newLog);
+            setLogCount((prev) => prev + 1);
+            // console.log("입력된 키", newLog.key)
+        }
+        
+        if (key === 'Enter') {
+            const currentLine = lines[currentLineIndex];
+            const normalizedInput = currentInput.split('');
+
+            if (compareInputWithLineEnter(normalizedInput, currentLine)) { //다 맞게 쳤으면
+                setCurrentLineIndex((prev) => prev + 1); // 다음줄로 넘김
+                setCurrentInput('');    // 입력창 리셋
+                setCurrentCharIndex(0); // 현재 입력 위치 리셋셋
+                
+            } else { // 틀렸으면
+                // console.log('현재 줄을 정확히 입력하지 않음')
+                setShake(true);
+                setTimeout(() => setShake(false), 500);
+            }
+        } else if (key === 'Backspace') {
+            if (currentCharIndex > 0) {
+                setCurrentInput((prev) => prev.slice(0, -1))
+                setCurrentCharIndex((prev) => prev - 1); // 지운 글자만큼 currentCharIndex 감소
+            }
+        } else if (isTypingKey) {
+            const updated = currentInput + key;
+            const currentLine = lines[currentLineIndex];
+            console.log(updated)
+            console.log(currentLine)
+            if (updated.length <= currentLine.length) {
+                setCurrentInput(updated)
+                setCurrentCharIndex((prev) => prev + 1);
+            } 
         }
     };
 
@@ -531,7 +588,7 @@ const SinglePage = () => {
                                 borderColor: '#51E2F5'
                             }}
                         >
-                            <Keyboard/>
+                            <Keyboard onVirtualKeyPress={handleVirtualKeyInput}/>
                         
                         </div>
                     </div>

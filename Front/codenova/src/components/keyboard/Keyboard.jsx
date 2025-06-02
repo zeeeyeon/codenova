@@ -68,25 +68,53 @@ import { useEffect, useState, useRef} from 'react'
 import useVolumeStore from '../../store/useVolumsStore'
 
 
-const Keyboard = () => {
+const Keyboard = ({ onVirtualKeyPress }) => {
 
     const [pressKey, setPressKey] = useState(null); // 현재 눌린키
 
     const { effectVolume } = useVolumeStore();
     const audioRef = useRef(null);
 
+    const [isShift, setIsShift] = useState(false);
+    const [isCaps, setIsCaps] = useState(false);
+
     const keyboardMap = [
         ['tilbe','1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'plus', 'underscore'],
-        ['tap','q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'open', 'close', 'pipe'],
-        ['caps', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'colon', 'quote', 'enter'],
-        ['shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', 'lessthan', 'greaterthan', 'question', 'shiftbig', 'arrowup'],
-        ['ctrl', 'window', 'alt', 'space', 'alt', 'ctrl' , 'arrowleft', 'arrowdown', 'arrowright']
+        ['Tap','q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'open', 'close', 'pipe'],
+        ['Caps', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'colon', 'quote', 'enter'],
+        ['Shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', 'lessthan', 'greaterthan', 'question', 'shiftbig', 'arrowup'],
+        ['Ctrl', 'Meta', 'Alt', 'space', 'alt', 'ctrl' , 'arrowleft', 'arrowdown', 'arrowright']
     ]
     // 작은거 너비 19 높이 21
     // TAB ALT 너비 33px
     // caps, ctrl 너비 41px
     // shift, altlarge 너비 49px
     // space 너비 98px
+
+    const shiftSymbolMap = {
+      '1': '!',
+      '2': '@',
+      '3': '#',
+      '4': '$',
+      '5': '%',
+      '6': '^',
+      '7': '&',
+      '8': '*',
+      '9': '(',
+      '0': ')',
+      '-': '_',
+      '=': '+',
+      '[': '{',
+      ']': '}',
+      '\\': '|',
+      ';': ':',
+      "'": '"',
+      ',': '<',
+      '.': '>',
+      '/': '?',
+      '`': '~',
+    };
+
 
     const keyboardLayout = [
         // 첫번째 줄
@@ -103,10 +131,10 @@ const Keyboard = () => {
         { id: '0', top: 0, left: 250, sprite: num0Img },
         { id: '-', top: 0, left: 275, sprite: underscopeImg },
         { id: '=', top: 0, left: 300, sprite: plusImg },
-        { id: 'backspace', top: 0, left: 325, sprite: backSpaceImg },
+        { id: 'Backspace', top: 0, left: 325, sprite: backSpaceImg },
 
         // 두번째줄
-        { id: 'tab', top: 25, left: 0, sprite: tapImg},
+        { id: 'Tab', top: 25, left: 0, sprite: tapImg},
         { id: 'q', top: 25, left: 38, sprite: qImg },
         { id: 'w', top: 25, left: 63, sprite: wImg },
         { id: 'e', top: 25, left: 88, sprite: eImg },
@@ -119,10 +147,10 @@ const Keyboard = () => {
         { id: 'p', top: 25, left: 263, sprite: pImg },
         { id: '\\', top: 25, left: 288, sprite: pipeImg },
         { id: '[', top: 25, left: 313, sprite: opencurlyImg },
-        { id: 'enter', top: 25, left: 338, sprite: enterImg },
+        { id: 'Enter', top: 25, left: 338, sprite: enterImg },
 
         // 세번째줄
-        { id: 'capslock', top: 50, left: 0, sprite: capsImg},
+        { id: 'CapsLock', top: 50, left: 0, sprite: capsImg},
         { id: 'a', top: 50, left: 47, sprite: aImg },
         { id: 's', top: 50, left: 72, sprite: sImg },
         { id: 'd', top: 50, left: 97, sprite: dImg },
@@ -137,7 +165,7 @@ const Keyboard = () => {
         { id: ']', top: 50, left: 322, sprite: closecurlyImg },
 
         // 네번째줄
-        { id: 'shift', top: 75, left: 0, sprite: shiftImg},
+        { id: 'Shift', top: 75, left: 0, sprite: shiftImg},
         { id: 'z', top: 75, left: 55, sprite: zImg },
         { id: 'x', top: 75, left: 80, sprite: xImg },
         { id: 'c', top: 75, left: 105, sprite: cImg },
@@ -148,20 +176,20 @@ const Keyboard = () => {
         { id: ',', top: 75, left: 230, sprite: lessthanImg },
         { id: '.', top: 75, left: 255, sprite: greaterthanImg },
         { id: '/', top: 75, left: 280, sprite: questionmarkImg },
-        { id: 'shfit', top: 75, left: 305, sprite: shiftbiggerImg },
-        { id: 'arrowup', top: 75, left: 372, sprite: arrowUpImg },
+        { id: 'Shift', top: 75, left: 305, sprite: shiftbiggerImg },
+        { id: 'ArrowUp', top: 75, left: 372, sprite: arrowUpImg },
 
          // 다섯번째줄
          // ['ctrl', 'window', 'alt', 'space', 'alt', 'ctrl' , 'arrowleft', 'arrowdown', 'arrowright']
-         { id: 'control', top: 100, left: 0, sprite: ctrlImg},
-         { id: '0', top: 100, left: 52, sprite: windowsImg}, //윈도우는 안눌러지게
-         { id: 'alt', top: 100, left: 82, sprite: altImg },
+         { id: 'Control', top: 100, left: 0, sprite: ctrlImg},
+         { id: 'Meta', top: 100, left: 52, sprite: windowsImg}, //윈도우는 안눌러지게
+         { id: 'Alt', top: 100, left: 82, sprite: altImg },
          { id: ' ', top: 100, left: 126, sprite: spaceImg },
          { id: 'hangulmode', top: 100, left: 235, sprite: altgrImg },
-         { id: 'hanjamode', top: 100, left: 295, sprite: ctrlImg },
-         { id: 'arrowleft', top: 100, left: 347, sprite: arrowLeftImg },
-         { id: 'arrowdown', top: 100, left: 372, sprite: arrowDownImg },
-         { id: 'arrowright', top: 100, left: 397, sprite: arrowRightImg }
+         { id: 'Control', top: 100, left: 295, sprite: ctrlImg },
+         { id: 'ArrowLeft', top: 100, left: 347, sprite: arrowLeftImg },
+         { id: 'ArrowDown', top: 100, left: 372, sprite: arrowDownImg },
+         { id: 'ArrowRight', top: 100, left: 397, sprite: arrowRightImg }
     ];
 
     const playSound = () => {
@@ -183,7 +211,7 @@ const Keyboard = () => {
     useEffect(() => {
         const handleKeyDown = (e) => {
             // console.log(e.key)
-            setPressKey(e.key.toLowerCase());
+            setPressKey(e.key);
             playSound();
         };
 
@@ -202,6 +230,51 @@ const Keyboard = () => {
 
     },[])
 
+    const handleVirtualKeyPress = (key) => {
+
+        const lowerKey = key.toLowerCase();
+
+        if (lowerKey === 'shift') {
+            setIsShift((prev) => !prev);
+            // return;
+        }
+
+        if (lowerKey === 'capslock') {
+            setIsCaps((prev) => !prev);
+            // return;
+        }
+
+        let finalKey = key;
+
+        // 1. 알파벳 일 경우 대소문자 반영
+        if(/^[a-z]$/i.test(key)) {
+            const isUpper = (isShift && !isCaps) || (!isShift && isCaps);
+            finalKey = isUpper ? key.toUpperCase() : key.toLowerCase();
+        }
+
+        // 2. 특수문자 일 경우 변환시키기
+        if (isShift && shiftSymbolMap[key]) {
+            finalKey = shiftSymbolMap[key];
+        }
+
+        // 3. 스페이스바는 ' '로 보정 혹시나 몰라
+        if (key === ' ') {
+            finalKey = ' ';
+        }
+
+        setPressKey(key);
+        playSound();
+        onVirtualKeyPress(finalKey);
+    }
+
+    // 터치 나 마우스 뗄때때
+    const handleKeyUp = (key) => {
+        setPressKey(null)
+        if (key === "Shift") {
+            setIsShift(false)
+        }
+    }
+
 
     return (
         <div className = "relative w-[500px] h-[140px] scale-[1.3] origin-top-left">
@@ -213,6 +286,10 @@ const Keyboard = () => {
                     isPressed={pressKey === key.id}
                     index={0}
                     style={{ top: `${key.top}px`, left: `${key.left}px` }}
+                    // onMouseDown={() => handleVirtualKeyPress(key.id)}
+                    onTouchStart={() => handleVirtualKeyPress(key.id)}
+                    // onMouseUp={() => handleKeyUp(key.id)}
+                    onTouchEnd={() => handleKeyUp(key.id)}
                 />
             ))}
         </div>

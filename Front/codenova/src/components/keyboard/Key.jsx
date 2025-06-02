@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 
-const Key = ({ sprite , label = '', index = 0, className = '', isPressed= false ,style = {} }) => {
+const Key = ({ sprite , label = '', index = 0, className = '', isPressed= false ,style = {}, onMouseDown, onTouchStart, onMouseUp, onTouchEnd }) => {
     const [keyWidth, setKeyWidth] = useState(0);
     const [keyHeight, setKeyHeight] = useState(0);
 
@@ -33,6 +33,10 @@ const Key = ({ sprite , label = '', index = 0, className = '', isPressed= false 
                 ...style,
             }}
             title={label}
+            onMouseDown= {onMouseDown}
+            onTouchStart = {onTouchStart}
+            onMouseUp = {onMouseUp}
+            onTouchEnd={onTouchEnd}
         />
     );
 };
