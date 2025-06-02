@@ -37,8 +37,8 @@ import static kr.codenova.backend.multi.dto.broadcast.GameResultBroadcast.*;
 @RequiredArgsConstructor
 public class GameServiceImpl implements GameService {
 
-    private static final  int START_COUNT_DOWN = 5;
-    private static final int END_COUNT_DOWN = 10;
+    private static final  int START_COUNT_DOWN = 3;
+    private static final int END_COUNT_DOWN = 5;
 
     private final RoomService roomService;
     private final CodeRepository codeRepository;
@@ -256,7 +256,7 @@ public class GameServiceImpl implements GameService {
             getServer().getRoomOperations(roomId)
                     .sendEvent("round_score", broadcast);
             // ✅ 라운드 수에 따라 자동 종료 또는 다음 라운드
-            int MAX_ROUND = 3;
+            int MAX_ROUND = 1;
             if (room.getRoundNumber() >= MAX_ROUND) {
                 endGame(roomId); // 🎯 자동 게임 종료
             } else {
