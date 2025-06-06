@@ -1,5 +1,6 @@
 package kr.codenova.backend.member.auth;
 
+import kr.codenova.backend.global.exception.CustomException;
 import kr.codenova.backend.member.entity.Member;
 import kr.codenova.backend.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import static kr.codenova.backend.global.response.ResponseCode.INACTIVE_ACCOUNT;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +27,8 @@ public class CustomMemberDetailsService implements UserDetailsService {
         Member member = userRepository.findByIdColumn(id)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("유저를 찾을 수 없습니다"));
+
+        if (!member.isActive()) throw new CustomException(INACTIVE_ACCOUNT);
 
         log.debug("로그인 성공한 user: {}", member.getId());
 

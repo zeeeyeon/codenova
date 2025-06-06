@@ -7,6 +7,8 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import kr.codenova.backend.global.exception.CustomException;
+import kr.codenova.backend.global.response.ResponseCode;
 import kr.codenova.backend.member.auth.CustomMemberDetails;
 import kr.codenova.backend.member.entity.Member;
 import org.slf4j.Logger;
@@ -29,6 +31,7 @@ public class JwtProcess {
                     .withExpiresAt(new Date(System.currentTimeMillis() + JwtVO.EXPIRATION_TIME))
                     .withClaim("memberId", loginMember.getMember().getMemberId())
                     .withClaim("id", loginMember.getUsername())
+                    .withClaim("nickname", loginMember.getNickname())
                     .sign(Algorithm.HMAC512(JwtVO.SECRET));
 
             log.debug("디버그 : 생성된 토큰 = {}", jwtToken);
@@ -44,7 +47,7 @@ public class JwtProcess {
     public static CustomMemberDetails verify(String token) {
         if (token == null || !token.startsWith(JwtVO.TOKEN_PREFIX)) {
             log.error("토큰이 null이거나 Bearer로 시작하지 않습니다. token: {}", token);
-            throw new RuntimeException("토큰이 null이거나 Bearer로 시작하지 않습니다.");
+            throw new CustomException(ResponseCode.INVALID_TOKEN_FORMAT);
         }
 
         try {
@@ -72,24 +75,25 @@ public class JwtProcess {
 
             Integer memberId = decodedJWT.getClaim("memberId").asInt();
             String id = decodedJWT.getClaim("id").asString();
-
+            String nickname = decodedJWT.getClaim("nickname").asString();
 
             log.debug("토큰에서 추출된 정보 - id: {}", memberId);
 
             if (memberId == null || id == null) {
-                throw new RuntimeException("토큰에 필수 클레임이 없습니다.");
+                throw new CustomException(ResponseCode.MISSING_MANDATORY_CLAIMS);
             }
 
             Member member = Member.builder()
                     .memberId(memberId)
                     .id(id)
+                    .nickname(nickname)
                     .build();
 
             return new CustomMemberDetails(member);
 
         } catch (TokenExpiredException e) {
             log.error("토큰이 만료됨. 만료시간: {}", e.getExpiredOn());
-            throw new RuntimeException("만료된 토큰입니다.");
+            throw new CustomException(ResponseCode.INVALID_TOKEN_FORMAT);
 
         } catch (SignatureVerificationException e) {
             log.error("JWT 서명 검증 실패. 원인: {}", e.getMessage());
