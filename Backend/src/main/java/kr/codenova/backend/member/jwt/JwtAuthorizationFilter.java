@@ -46,6 +46,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         chain.doFilter(request, response);
     }
 
+
     private boolean isHeaderVerify(HttpServletRequest request, HttpServletResponse response) {
         String header = request.getHeader(JwtVO.HEADER);
         if (header == null || !header.startsWith(JwtVO.TOKEN_PREFIX)) {
